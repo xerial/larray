@@ -47,7 +47,7 @@ class LArrayTest extends LArraySpec {
         l0.free
         l1.free
       }
-    } 
+    }
 
     "have map/flatMap" in {
       val l = LArray(1, 3, 5)
