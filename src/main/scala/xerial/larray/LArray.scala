@@ -289,23 +289,15 @@ private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
    * @return written byte length
    */
   def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
-    val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset))
-    // Retrieve destination array address
-    // TODO Use JNI to get Collect Address
-//    val destAddr = UnsafeUtil.getObjectAddr(dest) + UnsafeUtil.byteArrayOffset
-//    trace(f"dest addr:$destAddr%x")
-//    unsafe.copyMemory(address + srcOffset, destAddr + destOffset, writeLen)
+    val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(address + srcOffset, dest, destOffset, length)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(address + srcOffset, dest, destOffset, writeLen)
     writeLen.toInt
   }
 
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
-    //val srcAddr = UnsafeUtil.getObjectAddr(src) + UnsafeUtil.byteArrayOffset
-    val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length))
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, length)
-//    debug(s"read len: $readLen")
-//    unsafe.copyMemory(srcAddr, address + destOffset, readLen)
+    val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, readLen)
     readLen.toInt
   }
 
