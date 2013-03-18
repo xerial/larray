@@ -196,4 +196,4 @@ trait BufferedLIterator[+A] extends LIterator[A] {
 }
 
 
-private[array] abstract class AbstractLIterator[A] extends LIterator[A]
+private[larray] abstract class AbstractLIterator[A] extends LIterator[A]

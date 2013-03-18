@@ -63,7 +63,7 @@ trait MemoryAllocator extends Logger {
 
 
   /**
-   * Allocate a memory of the specified byte length. The allocated memory must be released via [[utgenome.weaver.core.memory.MemoryAllocator#release]]
+   * Allocate a memory of the specified byte length. The allocated memory must be released via [[xerial.larray.MemoryAllocator#release]]
    * as in malloc() in C/C++.
    * @param size byte length of the memory
    * @return adress of the allocated mmoery.
@@ -78,8 +78,8 @@ trait MemoryAllocator extends Logger {
   }
 
   /**
-   * Release the memory allocated by [[utgenome.weaver.core.memory.MemoryAllocator#allocate]]
-   * @param addr the address returned by  [[utgenome.weaver.core.memory.MemoryAllocator#allocate]]
+   * Release the memory allocated by [[xerial.larray.MemoryAllocator#allocate]]
+   * @param addr the address returned by  [[xerial.larray.MemoryAllocator#allocate]]
    */
   def release(addr:Long) : Unit = {
     synchronized {

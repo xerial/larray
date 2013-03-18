@@ -26,12 +26,12 @@ $(LARRAY_HEADER): $(SRC)/xerial/larray/impl/LArrayNative.java $(TARGET)/classes/
 	@mkdir -p $(TARGET)/classes
 	$(JAVAH) -classpath $(TARGET)/classes -o $@ xerial.larray.impl.LArrayNative
 
-bytecode: src/main/resources/xerial/larray/impl/LArrayNativeLoader.bytecode
+bytecode: src/main/resources/xerial/larray/LArrayNativeLoader.bytecode
 
-src/main/resources/xerial/larray/impl/LArrayNativeLoader.bytecode: src/main/resources/xerial/larray/impl/LArrayNativeLoader.java
+src/main/resources/xerial/larray/LArrayNativeLoader.bytecode: src/main/resources/xerial/larray/LArrayNativeLoader.java
 	@mkdir -p $(TARGET)/temp
 	$(JAVAC) -source 1.5 -target 1.5 -d $(TARGET)/temp $<
-	cp $(TARGET)/temp/xerial/larray/impl/LArrayNativeLoader.class $@
+	cp $(TARGET)/temp/xerial/larray/LArrayNativeLoader.class $@
 
 $(LARRAY_OUT)/%.o : $(LARRAY_SRC_DIR)/%.c 
 	@mkdir -p $(@D)

@@ -16,7 +16,7 @@ import collection.GenIterable
  * Large Array (LArray) interface. The differences from Array[A] includes:
  *
  * - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, a limitation of Array[A].
- * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[utgenome.weaver.core.array.LArray#free]].
+ * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[xerial.larray.LArray#free]].
  * - LArray elements are not initialized, so explicit initialization is needed
  * -
  * @tparam A
@@ -63,6 +63,9 @@ trait LArray[A] extends LArrayOps[A] with LIterable[A] {
  * @author Taro L. Saito
  */
 object LArray {
+
+  private[larray] val impl = xerial.larray.impl.LArrayLoader.load
+
 
   object EmptyArray
     extends LArray[Nothing]
@@ -272,9 +275,10 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 }
 
 
-private[array] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
 
   def address: Long
+
 
   /**
    * Write the contents of this array to the destination buffer
@@ -288,17 +292,20 @@ private[array] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset))
     // Retrieve destination array address
     // TODO Use JNI to get Collect Address
-    val destAddr = UnsafeUtil.getObjectAddr(dest) + UnsafeUtil.byteArrayOffset
-    trace(f"dest addr:$destAddr%x")
-    unsafe.copyMemory(address + srcOffset, destAddr + destOffset, writeLen)
+//    val destAddr = UnsafeUtil.getObjectAddr(dest) + UnsafeUtil.byteArrayOffset
+//    trace(f"dest addr:$destAddr%x")
+//    unsafe.copyMemory(address + srcOffset, destAddr + destOffset, writeLen)
+    trace("copy to array")
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(address + srcOffset, dest, destOffset, length)
     writeLen.toInt
   }
 
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
-    val srcAddr = getObjectAddr(src) + UnsafeUtil.byteArrayOffset
+    //val srcAddr = UnsafeUtil.getObjectAddr(src) + UnsafeUtil.byteArrayOffset
     val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length))
-    debug(s"read len: $readLen")
-    unsafe.copyMemory(srcAddr, address + destOffset, readLen)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, length)
+//    debug(s"read len: $readLen")
+//    unsafe.copyMemory(srcAddr, address + destOffset, readLen)
     readLen.toInt
   }
 
