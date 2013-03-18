@@ -1,7 +1,8 @@
 
+all: larray
+
 include Makefile.common
 
-all: larray
 
 SRC:=src/main/scala
 
@@ -11,6 +12,7 @@ LARRAY_SRC:=$(shell find $(LARRAY_SRC_DIR))
 LARRAY_OBJ:=$(LARRAY_OUT)/LArrayNative.o
 
 VERSION:=$(shell perl -npe "s/version in ThisBuild\s+:=\s+\"(.*)\"/\1/" version.sbt | sed -e "/^$$/d")
+
 
 
 CFLAGS:=$(CFLAGS) -I$(LARRAY_SRC_DIR)
@@ -33,6 +35,12 @@ src/main/resources/xerial/larray/LArrayNativeLoader.bytecode: src/main/resources
 	$(JAVAC) -source 1.5 -target 1.5 -d $(TARGET)/temp $<
 	cp $(TARGET)/temp/xerial/larray/LArrayNativeLoader.class $@
 
+VERSION_FILE:=src/main/resources/xerial/larray/VERSION
+
+$(VERSION_FILE):
+	echo "version=$(VERSION)" > $@
+
+
 $(LARRAY_OUT)/%.o : $(LARRAY_SRC_DIR)/%.c 
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@ 
@@ -52,7 +60,7 @@ NATIVE_TARGET_DIR:=$(TARGET)/classes/xerial/native/$(OS_NAME)/$(OS_ARCH)
 NATIVE_DLL:=$(NATIVE_DIR)/$(LIBNAME)
 
 native: $(NATIVE_DLL) 
-larray: native $(TARGET)/larray-$(VERSION).jar
+larray: native $(VERSION_FILE) $(TARGET)/larray-$(VERSION).jar
 
 SBT:=bin/sbt
 
