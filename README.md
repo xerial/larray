@@ -28,13 +28,16 @@ Add the following sbt dependencies to your project settings:
 
 ```scala
 libraryDependencies += "org.xerial" % "larray" % "0.1"
+```
 
-# When using snapshot version
+### When using snapshot version
+```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
-
 ```
+
+## Usage (Scala)
 
 You can use LArray in the same manner with the standard Scala Arrays: 
 
