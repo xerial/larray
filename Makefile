@@ -59,7 +59,7 @@ NATIVE_DIR:=src/main/resources/xerial/larray/native/$(OS_NAME)/$(OS_ARCH)
 NATIVE_TARGET_DIR:=$(TARGET)/classes/xerial/native/$(OS_NAME)/$(OS_ARCH)
 NATIVE_DLL:=$(NATIVE_DIR)/$(LIBNAME)
 
-native: $(NATIVE_DLL) 
+native: osinfo $(NATIVE_DLL) 
 larray: native $(VERSION_FILE) $(TARGET)/larray-$(VERSION).jar
 
 SBT:=bin/sbt
