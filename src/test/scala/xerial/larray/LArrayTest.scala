@@ -16,7 +16,8 @@ class LArrayTest extends LArraySpec {
   val G: Long = 1024L * 1024 * 1024
 
   override def afterEach {
-    MemoryAllocator.default.releaseAll
+//    MemoryAllocator.default.releaseAll
+//    System.gc()
   }
 
   "LArray" should {
@@ -46,7 +47,7 @@ class LArrayTest extends LArraySpec {
         l0.free
         l1.free
       }
-    }
+    } 
 
     "have map/flatMap" in {
       val l = LArray(1, 3, 5)

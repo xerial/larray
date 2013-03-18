@@ -12,18 +12,18 @@ package xerial.larray
  *
  * @author Taro L. Saito
  */
-class UInt32Array(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] {
+class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] {
   def this(size:Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
   import UnsafeUtil.unsafe
 
   def apply(i:Long) : Long = {
-    val v : Long = unsafe.getInt(address + (i << 2)) & 0xFFFFFFFFL
+    val v : Long = unsafe.getInt(m.address + (i << 2)) & 0xFFFFFFFFL
     v
   }
 
   def update(i:Long, v:Long) : Long = {
-    unsafe.putInt(address + (i << 2), (v & 0xFFFFFFFFL).toInt)
+    unsafe.putInt(m.address + (i << 2), (v & 0xFFFFFFFFL).toInt)
     v
   }
 
