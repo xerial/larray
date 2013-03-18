@@ -22,7 +22,7 @@ object Build extends sbt.Build {
   private val SCALA_VERSION = "2.10.0"
 
   lazy val root = Project(
-    id = "xerial-larray",
+    id = "larray",
     base = file("."),
     settings = Defaults.defaultSettings ++
       Seq(
