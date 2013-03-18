@@ -277,8 +277,7 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
 private[larray] trait UnsafeArray[T] extends LArray[T] with Logger { self: LArray[T] =>
 
-  def address: Long
-
+  private[larray] def m: Memory
 
   /**
    * Write the contents of this array to the destination buffer
@@ -291,46 +290,46 @@ private[larray] trait UnsafeArray[T] extends LArray[T] with Logger { self: LArra
   def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(address + srcOffset, dest, destOffset, writeLen)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
     writeLen.toInt
   }
 
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
     val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, readLen)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen.toInt
   }
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
    */
-  def free { UnsafeUtil.unsafe.freeMemory(address) }
+  def free { m.free }
 
 }
 
 /**
  * LArray of Int type
  * @param size  the size of array
- * @param address memory address
- * @param mem memory allocator
+ * @param m allocated memory
+ * @param alloc memory allocator
  */
-class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: MemoryAllocator)
   extends LArray[Int]
   with UnsafeArray[Int]
 {
-  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))
 
   def byteLength = size * 4
 
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
-    unsafe.getInt(address + (i << 2))
+    unsafe.getInt(m.address + (i << 2))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int): Int = {
-    unsafe.putInt(address + (i << 2), v)
+    unsafe.putInt(m.address + (i << 2), v)
     v
   }
 
@@ -339,10 +338,10 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
 /**
  * LArray of Long type
  * @param size  the size of array
- * @param address memory address
+ * @param m allocated memory
  * @param mem memory allocator
  */
-class LLongArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
   extends LArray[Long]
   with UnsafeArray[Long]
 {
@@ -353,12 +352,12 @@ class LLongArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Long = {
-    unsafe.getLong(address + (i << 4))
+    unsafe.getLong(m.address + (i << 4))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Long): Long = {
-    unsafe.putLong(address + (i << 4), v)
+    unsafe.putLong(m.address + (i << 4), v)
     v
   }
 }
@@ -366,11 +365,11 @@ class LLongArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
 
 /**
  * LArray of Byte type
- * @param size
- * @param address
- * @param mem
+ * @param size the size of array
+ * @param m allocated memory
+ * @param mem memory allocator
  */
-class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
   extends LArray[Byte]
   with UnsafeArray[Byte]
 {
@@ -386,7 +385,7 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
    * @return the element value
    */
   def apply(i: Long): Byte = {
-    UnsafeUtil.unsafe.getByte(address + i)
+    UnsafeUtil.unsafe.getByte(m.address + i)
   }
 
   /**
@@ -396,7 +395,7 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
    * @return the value
    */
   def update(i: Long, v: Byte): Byte = {
-    UnsafeUtil.unsafe.putByte(address + i, v)
+    UnsafeUtil.unsafe.putByte(m.address + i, v)
     v
   }
 
