@@ -3,7 +3,7 @@ LArray
 A library for managing large arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * 2^31 (2GB) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. To resolve this, LArray uses long type indexes that uses 64-bit signed integer.
+ * 2^31 (2G) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. To resolve this, LArray uses long type indexes of 64-bit signed integers.
    * For example the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory at any time. 
    * The default arrays in Java/Scala consume JVM heaps heavily and often cause OutOfMemory exception when working with such large amount of data. 
