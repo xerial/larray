@@ -31,6 +31,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.1"
 ```
 
  * For using snapshot versions:
+
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
