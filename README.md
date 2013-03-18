@@ -3,12 +3,12 @@ LArray
 A library for managing large arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * 2^31 (2GB) is the limitation of the default Java/Scala array size, because Int of 2^31-1 is used for the array indexes. To resolve this, LArray uses Long (2^63-1) type indexes.
-   * For example the entire human genome (3GB) data can be stored in LArray. 
+ * 2^31 (2GB) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. To resolve this, LArray uses long type indexes that uses 64-bit signed integer.
+   * For example the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory at any time. 
-   * The default arrays in Scala(Java) consumes JVM heaps heavily and often causes OutOfMemory error when working with large amount of data. 
+   * The default arrays in Java/Scala consumes JVM heaps heavily and often causes OutOfMemory error when working with such large amount of data. 
    * Call LArray.free to release acquired memory resources immediately.
-   * Even if you forget to call LArray.free, the acquired memory will be released when before GC sweeps LArray instances.
+   * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
  * LArray is free from the limitation of JVM memory manager.
    * LArray uses memory space outside of the default JVM heap, so creating LArrays with more than -Xmx(maximum memory size) is possible. This is useful when you need large amount of memory or its size is unknown.
 
@@ -31,8 +31,9 @@ Add the following sbt dependencies to your project settings:
 You can use LArray in the same manner with the standard Scala Arrays: 
 
     val l = LArray(1, 2, 3)
-    val l = LArray[Int].ofDim(
+    val l = LArray[Int].ofDim(10000L)
 
 ## Usage (Java)
 
-    (to do)
+    (to be written)
+
