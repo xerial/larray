@@ -56,6 +56,10 @@ trait LArray[A] extends LArrayOps[A] with LIterable[A] {
   def free: Unit
 
 
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize : Int
 }
 
 
@@ -142,6 +146,19 @@ object LArray {
       arr(i + 1) = e
     }
     arr
+  }
+
+  def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
+    import UnsafeUtil.unsafe
+    val copyLen = math.min(length, math.min(src.size - srcPos, dest.size - destPos))
+    val elemSize = src.elementByteSize
+    (src, dest) match {
+      case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
+        unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
+      case _ =>
+        for(i <- 0 until copyLen)
+          dest(destPos+i) = src(srcPos+i)
+    }
   }
 
 }
