@@ -28,8 +28,7 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   }
 
   /**
-   * byte length of this array
-   * @return
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
-  def byteLength = size * 4L
+  private[larray] def elementByteSize: Int = 4
 }

@@ -8,9 +8,11 @@
 package xerial.larray
 
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.ClassTag
 import ru._
 import xerial.core.log.Logger
 import collection.GenIterable
+import collection.mutable.ArrayBuilder
 
 /**
  * Large Array (LArray) interface. The differences from Array[A] includes:
@@ -33,7 +35,7 @@ trait LArray[A] extends LArrayOps[A] with LIterable[A] {
    * byte length of this array
    * @return
    */
-  def byteLength: Long
+  def byteLength: Long = elementByteSize * size
 
   /**
    * Retrieve an element
@@ -70,13 +72,13 @@ object LArray {
 
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
-
   object EmptyArray
     extends LArray[Nothing]
     with LIterable[Nothing]
   {
+    private[larray] def elementByteSize : Int = 0
+
     def size: Long = 0L
-    def byteLength = 0L
 
     def apply(i: Long): Nothing = {
       sys.error("not allowed")
@@ -169,8 +171,6 @@ object LArray {
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
 
-  def byteLength = size * 4
-
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
@@ -220,6 +220,11 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
     System.arraycopy(src, srcOffset, arr, destOffset.toInt, length)
     length
   }
+
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize: Int = 4
 }
 
 
@@ -229,7 +234,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
  */
 class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
-  def byteLength = size * 4
+  private[larray] def elementByteSize: Int = 4
 
 
   private val maskLen : Int = 24
@@ -336,8 +341,6 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
 {
   def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))
 
-  def byteLength = size * 4
-
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
@@ -350,6 +353,10 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
     v
   }
 
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize: Int = 4
 }
 
 /**
@@ -364,7 +371,7 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 {
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 4))
 
-  def byteLength = size * 8
+  private[larray] def elementByteSize: Int = 8
 
   import UnsafeUtil.unsafe
 
@@ -394,7 +401,7 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
 
-  def byteLength = size
+  private[larray] def elementByteSize: Int = 1
 
   /**
    * Retrieve an element

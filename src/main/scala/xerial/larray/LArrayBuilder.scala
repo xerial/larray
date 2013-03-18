@@ -8,7 +8,8 @@
 package xerial.larray
 
 import collection.{TraversableOnce, TraversableLike, mutable}
-import collection.mutable.Builder
+import collection.mutable.{ArrayBuilder, Builder}
+import reflect.ClassTag
 
 /**
  * Extention of [[scala.collection.mutable.Builder]] to Long indexes
@@ -61,6 +62,28 @@ abstract class LArrayBuilder[A] extends LBuilder[A, LArray[A]]
  */
 object LArrayBuilder {
 
+  /** Creates a new arraybuilder of type `T`.
+    *
+    *  @tparam T     type of the elements for the array builder, with a `ClassTag` context bound.
+    *  @return       a new empty array builder.
+    */
+  def make[T: ClassTag](): LArrayBuilder[T] = {
+    val tag = implicitly[ClassTag[T]]
+    tag.runtimeClass match {
+      case java.lang.Byte.TYPE      => ofByte.asInstanceOf[LArrayBuilder[T]]
+      //case java.lang.Short.TYPE     =>
+      //case java.lang.Character.TYPE => new ArrayBuilder.ofChar().asInstanceOf[ArrayBuilder[T]]
+      case java.lang.Integer.TYPE   => ofInt.asInstanceOf[LArrayBuilder[T]]
+      //case java.lang.Long.TYPE      => new ArrayBuilder.ofLong().asInstanceOf[ArrayBuilder[T]]
+      //case java.lang.Float.TYPE     => new ArrayBuilder.ofFloat().asInstanceOf[ArrayBuilder[T]]
+      //case java.lang.Double.TYPE    => new ArrayBuilder.ofDouble().asInstanceOf[ArrayBuilder[T]]
+      //case java.lang.Boolean.TYPE   => new ArrayBuilder.ofBoolean().asInstanceOf[ArrayBuilder[T]]
+      //case java.lang.Void.TYPE      => new ArrayBuilder.ofUnit().asInstanceOf[ArrayBuilder[T]]
+      //case _                        => new ArrayBuilder.ofRef[T with AnyRef]()(tag.asInstanceOf[ClassTag[T with AnyRef]]).asInstanceOf[ArrayBuilder[T]]
+    }
+  }
+
+
   def ofInt = new LArrayBuilder[Int] {
 
     private var elems : LArray[Int] = _
@@ -109,7 +132,54 @@ object LArrayBuilder {
     }
   }
 
-  // TODO ofByte
+  def ofByte = new LArrayBuilder[Byte] {
+
+    private var elems : LArray[Byte] = _
+    private var capacity: Long = 0L
+    private var size: Long = 0L
+
+    private def mkArray(size:Long) : LArray[Byte] = {
+      val newArray = new LByteArray(size)
+      if(this.size > 0L)
+        LArray.copy(elems, 0L, newArray, 0L, this.size)
+      newArray
+    }
+
+    override def sizeHint(size:Long) {
+      if(capacity < size) resize(size)
+    }
+
+    private def ensureSize(size:Long) {
+      if(capacity < size || capacity == 0L){
+        var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
+        while(newsize < size) newsize *= 2
+        resize(newsize)
+      }
+    }
+
+    private def resize(size:Long) {
+      elems.free
+      elems = mkArray(size)
+      capacity = size
+    }
+
+    def +=(elem: Byte): this.type = {
+      ensureSize(size + 1)
+      elems(size) = elem
+      size += 1
+      this
+    }
+
+    def clear() {
+      size = 0
+    }
+
+    def result(): LArray[Byte] = {
+      if(capacity != 0L && capacity == size) elems
+      else mkArray(size)
+    }
+  }
+
   // TODO ofChar
   // TODO ofShort
   // TODO ofFloat
