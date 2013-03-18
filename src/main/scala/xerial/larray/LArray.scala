@@ -275,7 +275,7 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 }
 
 
-private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends LArray[T] with Logger { self: LArray[T] =>
 
   def address: Long
 
@@ -300,6 +300,11 @@ private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, readLen)
     readLen.toInt
   }
+
+  /**
+   * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
+   */
+  def free { UnsafeUtil.unsafe.freeMemory(address) }
 
 }
 
@@ -329,10 +334,35 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
     v
   }
 
-  def free {
-    mem.release(address)
+}
+
+/**
+ * LArray of Long type
+ * @param size  the size of array
+ * @param address memory address
+ * @param mem memory allocator
+ */
+class LLongArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+  extends LArray[Long]
+  with UnsafeArray[Long]
+{
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 4))
+
+  def byteLength = size * 8
+
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Long = {
+    unsafe.getLong(address + (i << 4))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Long): Long = {
+    unsafe.putLong(address + (i << 4), v)
+    v
   }
 }
+
 
 /**
  * LArray of Byte type
@@ -370,12 +400,6 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
     v
   }
 
-  /**
-   * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
-   */
-  def free {
-    mem.release(address)
-  }
 
   def sort {
 
