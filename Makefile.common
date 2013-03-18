@@ -74,7 +74,7 @@ Linux-amd64_LIBNAME   := liblarray.so
 # jni_md.h in same directory as jni.h, the include path is ignored when
 # jni_md.h is included from jni.h
 
-Linux-arm_C       := $(CROSS_PREFIX)gcc
+Linux-arm_CC       := $(CROSS_PREFIX)gcc
 Linux-arm_STRIP     := $(CROSS_PREFIX)strip
 Linux-arm_CFLAGS  := -include include/inc_linux/jni_md.h -I$(JAVA_HOME)/include -O2 -fPIC -fvisibility=hidden -mfloat-abi=softfp
 Linux-arm_LINKFLAGS := -shared -static-libgcc
