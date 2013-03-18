@@ -26,7 +26,15 @@ In addition, Oracle JVM (standard JVM) must be used since LArray depends on `sun
 ## Usage (Scala)
 Add the following sbt dependencies to your project settings:
 
-    libraryDependencies += "org.xerial" % "larray" % "0.1"
+```scala
+libraryDependencies += "org.xerial" % "larray" % "0.1"
+
+# When using snapshot version
+resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
+
+libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
+
+```
 
 You can use LArray in the same manner with the standard Scala Arrays: 
 
@@ -44,12 +52,12 @@ val l2 = LArray[Int].ofDim(10000L)
 
 ## Usage (Java)
 
-In Java we cannot add new syntax for arrays as in Scala. Use `apply` and `update` methods to read/write values in arrays.
+In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
 import xerial.larray.LIntArray;
 
 LIntArray l = new LIntArray(10000L);
-l.update(0L, 20) // l[0L] = 20
-l.apply(0L)  //  l[0L]
+l.update(0L, 20) // Set l[0L] = 20
+l.apply(0L)  //  Get l[0L]
 ```
