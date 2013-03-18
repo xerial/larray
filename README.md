@@ -18,8 +18,8 @@ A library for managing large arrays that can hold more than 2G (2^31) entries in
 LArray uses OS-specific implementation for copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
 
  * Windows (32/64-bit)
- * Linux (amd64, arm, armhf)
- * Mac OSX (64bit)
+ * Linux (amd64 (Intel 64-bit), arm, armhf)
+ * Mac OSX (Intel 64bit)
 
 In addition, Oracle JVM (standard JVM) must be used since LArray depends on `sun.misc.Unsafe` class.
 
