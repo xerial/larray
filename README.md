@@ -50,6 +50,11 @@ l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
 val l2 = LArray[Int].ofDim(10000L)
+
+// Release the memory resource
+l2.free 
+
+l2(0) // The result of accessing released LArray is undefined
 ```
 
 ## Usage (Java)
