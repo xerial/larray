@@ -114,7 +114,7 @@ object LArray {
     val arr : LArray[T] = t match {
       case t if t =:= typeOf[Int] => new LIntArray(size).asInstanceOf[LArray[T]]
       case t if t =:= typeOf[Byte] => new LByteArray(size).asInstanceOf[LArray[T]]
-      case _ => sys.error(s"Unsupported type LArray[${t}}]")
+      case _ => sys.error(s"Unsupported type LArray[${t}]")
     }
     var i = 0
     for(x <- xs) { arr(i) = x; i += 1 }
