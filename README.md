@@ -27,6 +27,7 @@ In addition, Oracle JVM (standard JVM) must be used since LArray depends on `sun
 Add the following sbt dependencies to your project settings:
 
 ```scala
+# In preparation 
 libraryDependencies += "org.xerial" % "larray" % "0.1"
 ```
 
@@ -49,7 +50,12 @@ println(l.mkString(", ")) // 1, 2, 3
 l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
-val l2 = LArray[Int].ofDim(10000L)
+val l2 = LArray.ofDim[Int](10000L)
+
+// Release the memory resource
+l2.free 
+
+l2(0) // The result of accessing released LArray is undefined
 ```
 
 ## Usage (Java)

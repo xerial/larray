@@ -9,13 +9,43 @@ package xerial.larray
 
 import sun.misc.Unsafe
 import xerial.core.log.Logger
+import java.lang.ref.ReferenceQueue
+
+/**
+ * Accessor to the allocated memory
+ * @param address
+ */
+case class Memory(address:Long, alloc:MemoryAllocator) {
+
+  import UnsafeUtil.unsafe
+
+  @inline def getByte(offset:Long) : Byte = unsafe.getByte(address + offset)
+  @inline def getChar(offset:Long) : Char= unsafe.getChar(address + offset)
+  @inline def getShort(offset:Long) : Short = unsafe.getShort(address + offset)
+  @inline def getInt(offset:Long) : Int = unsafe.getInt(address + offset)
+  @inline def getFloat(offset:Long) : Float = unsafe.getFloat(address + offset)
+  @inline def getLong(offset:Long) : Long = unsafe.getLong(address + offset)
+  @inline def getDouble(offset:Long) : Double = unsafe.getDouble(address + offset)
+
+  @inline def putByte(offset:Long, v:Byte) : Unit = unsafe.putByte(address + offset, v)
+  @inline def putChar(offset:Long, v:Char) : Unit = unsafe.putChar(address + offset, v)
+  @inline def putShort(offset:Long, v:Short) : Unit = unsafe.putShort(address + offset, v)
+  @inline def putInt(offset:Long, v:Int) : Unit = unsafe.putInt(address + offset, v)
+  @inline def putFloat(offset:Long, v:Float) : Unit = unsafe.putFloat(address + offset, v)
+  @inline def putLong(offset:Long, v:Long) : Unit = unsafe.putLong(address + offset, v)
+  @inline def putDouble(offset:Long, v:Double) : Unit = unsafe.putDouble(address + offset, v)
+
+  def free = alloc.release(address)
+}
+
+
 
 object MemoryAllocator {
 
   /**
-   * Provides default memory allocator
+   * Provides a default memory allocator
    */
-  implicit val default : MemoryAllocator = new UnsafeAllocator
+  implicit val default : MemoryAllocator = new DefaultAllocator
 
 }
 
@@ -27,14 +57,25 @@ object MemoryAllocator {
  */
 trait MemoryAllocator extends Logger {
 
-  private val allocatedMemoryAddr = collection.mutable.Set[Long]()
 
   // Register a shutdown hook to deallocate memory regions
   Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
     def run() {
-      releaseAll
+      synchronized {
+        allocatedAddresses foreach(checkAddr(_, false))
+      }
     }
   }))
+
+  private def checkAddr(addr:Long, doRelease:Boolean) {
+    warn(f"Found unreleased address:${addr}%x")
+    if(!hasDisplayedMemoryWarning) {
+      warn("It looks like LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+      hasDisplayedMemoryWarning = true
+    }
+    if(doRelease)
+      release(addr)
+  }
 
   private var hasDisplayedMemoryWarning = false
 
@@ -44,22 +85,14 @@ trait MemoryAllocator extends Logger {
    */
   def releaseAll {
     synchronized {
-      val addrSet = Set() ++ allocatedMemoryAddr // take a copy of the set
+      val addrSet = allocatedAddresses
       if(!addrSet.isEmpty)
         trace("Releasing allocated memory regions")
-      for(addr <- addrSet) {
-        warn(f"Found unreleased address:$addr%x")
-        if(!hasDisplayedMemoryWarning) {
-          warn("Probably LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
-          hasDisplayedMemoryWarning = true
-        }
-        release(addr)
-      }
+      allocatedAddresses foreach(checkAddr(_, true))
     }
   }
 
-  protected def allocateInternal(size:Long) : Long
-  protected def releaseInternal(addr:Long) : Unit
+  protected def allocatedAddresses : Seq[Long]
 
 
   /**
@@ -68,28 +101,13 @@ trait MemoryAllocator extends Logger {
    * @param size byte length of the memory
    * @return adress of the allocated mmoery.
    */
-  def allocate(size:Long) : Long = {
-    synchronized {
-      val addr = allocateInternal(size)
-      trace(f"allocated memory:$addr%x")
-      allocatedMemoryAddr += addr
-      addr
-    }
-  }
+  def allocate(size:Long) : Memory
 
   /**
    * Release the memory allocated by [[xerial.larray.MemoryAllocator#allocate]]
-   * @param addr the address returned by  [[xerial.larray.MemoryAllocator#allocate]]
+   * @param addr the memory returned by  [[xerial.larray.MemoryAllocator#allocate]]
    */
-  def release(addr:Long) : Unit = {
-    synchronized {
-      if(addr != 0 && allocatedMemoryAddr.contains(addr)) {
-        trace(f"release memory:$addr%x")
-        releaseInternal(addr)
-        allocatedMemoryAddr -= addr
-      }
-    }
-  }
+  def release(addr:Long) : Unit
 }
 
 object UnsafeUtil extends Logger {
@@ -106,6 +124,12 @@ object UnsafeUtil extends Logger {
   private val addressFactor = if(addressBandWidth == 64) 8L else 1L
   val addressSize = unsafe.addressSize()
 
+  /**
+   * @param obj
+   * @return
+   *
+   */
+  @deprecated(message="Deprecated because this method does not return correct object addresses in some platform", since="0.1")
   def getObjectAddr(obj:AnyRef) : Long = {
     trace(f"address factor:$addressFactor%d, addressSize:$addressSize, objectArrayOffset:$objectArrayOffset, objectArrayScale:$objectArrayScale")
 
@@ -122,35 +146,56 @@ object UnsafeUtil extends Logger {
 /**
  * Allocate memory using [[sun.misc.Unsafe]]. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
  */
-class UnsafeAllocator extends MemoryAllocator with Logger {
+class DefaultAllocator extends MemoryAllocator with Logger {
+
+  private val allocatedMemoryReferences = collection.mutable.Map[Long, MemoryReference]()
+  private val queue = new ReferenceQueue[Memory]
+
+  {
+    // Recieves garbage-collected Memory
+    val worker = new Thread(new Runnable {
+      def run() {
+        while(true) {
+          try {
+            val ref = queue.remove.asInstanceOf[MemoryReference]
+            trace(f"GC collected memory ${ref.address}%x")
+            release(ref.address)
+          }
+          catch {
+            case e: Exception => warn(e)
+          }
+        }
+      }
+    })
+    worker.setDaemon(true)
+    debug("Started memory collector")
+    worker.start
+  }
+
 
   import UnsafeUtil.unsafe
 
-  protected def allocateInternal(size: Long): Long = unsafe.allocateMemory(size)
-  protected def releaseInternal(addr: Long) = unsafe.freeMemory(addr)
+  protected def allocatedAddresses : Seq[Long] = synchronized { Seq() ++ allocatedMemoryReferences.values.map(_.address) } // take a copy of the set
+
+  def allocate(size: Long): Memory = {
+    synchronized {
+      val m = Memory(unsafe.allocateMemory(size), this)
+      trace(f"allocated memory of size $size%,d at ${m.address}%x")
+      val ref = new MemoryReference(m, queue)
+      allocatedMemoryReferences += m.address -> ref
+      m
+    }
+  }
+
+  def release(addr:Long) : Unit = {
+    synchronized {
+      if(allocatedMemoryReferences.contains(addr)) {
+        trace(f"released memory at ${addr}%x")
+        val ref = allocatedMemoryReferences(addr)
+        unsafe.freeMemory(addr)
+        allocatedMemoryReferences.remove(addr)
+      }
+    }
+  }
 }
 
-///**
-// * Allocate memory using Numa API
-// */
-//class NumaAllocator extends MemoryAllocator {
-//
-//  import xerial.jnuma.Numa
-//
-//  private val metaInfoSpace = 8L
-//
-//  def allocateInternal(size: Long): Long = {
-//    val s = metaInfoSpace + size
-//    val addr = Numa.allocMemory(s)
-//    // Write the buffer length as meta info
-//    UnsafeUtil.unsafe.putLong(addr, s)
-//    // Return the address after the meta info
-//    addr + metaInfoSpace
-//  }
-//
-//  def releaseInternal(addr: Long) {
-//    val start = addr - metaInfoSpace
-//    val size = UnsafeUtil.unsafe.getLong(start)
-//    Numa.free(start,size)
-//  }
-//}

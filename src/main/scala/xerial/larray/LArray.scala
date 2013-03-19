@@ -8,9 +8,11 @@
 package xerial.larray
 
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.ClassTag
 import ru._
 import xerial.core.log.Logger
 import collection.GenIterable
+import collection.mutable.ArrayBuilder
 
 /**
  * Large Array (LArray) interface. The differences from Array[A] includes:
@@ -33,7 +35,7 @@ trait LArray[A] extends LArrayOps[A] with LIterable[A] {
    * byte length of this array
    * @return
    */
-  def byteLength: Long
+  def byteLength: Long = elementByteSize * size
 
   /**
    * Retrieve an element
@@ -56,6 +58,10 @@ trait LArray[A] extends LArrayOps[A] with LIterable[A] {
   def free: Unit
 
 
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize : Int
 }
 
 
@@ -67,12 +73,14 @@ object LArray {
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
 
+
   object EmptyArray
     extends LArray[Nothing]
     with LIterable[Nothing]
   {
+    private[larray] def elementByteSize : Int = 0
+
     def size: Long = 0L
-    def byteLength = 0L
 
     def apply(i: Long): Nothing = {
       sys.error("not allowed")
@@ -144,6 +152,26 @@ object LArray {
     arr
   }
 
+  def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
+    import UnsafeUtil.unsafe
+    val copyLen = math.min(length, math.min(src.size - srcPos, dest.size - destPos))
+    val elemSize = src.elementByteSize
+    (src, dest) match {
+      case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
+        unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
+      case _ =>
+        for(i <- 0L until copyLen)
+          dest(destPos+i) = src(srcPos+i)
+    }
+  }
+
+  /**
+   * Create a new LArrayBuilder[A]
+   * @tparam A
+   * @return
+   */
+  def newBuilder[A : ClassTag] : LArrayBuilder[A] = LArrayBuilder.make[A]
+
 }
 
 /**
@@ -151,8 +179,6 @@ object LArray {
  * @param size
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
-
-  def byteLength = size * 4
 
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
@@ -203,6 +229,11 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
     System.arraycopy(src, srcOffset, arr, destOffset.toInt, length)
     length
   }
+
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize: Int = 4
 }
 
 
@@ -212,7 +243,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
  */
 class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
-  def byteLength = size * 4
+  private[larray] def elementByteSize: Int = 4
 
 
   private val maskLen : Int = 24
@@ -275,10 +306,9 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 }
 
 
-private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends LArray[T] with Logger { self: LArray[T] =>
 
-  def address: Long
-
+  private[larray] def m: Memory
 
   /**
    * Write the contents of this array to the destination buffer
@@ -291,56 +321,88 @@ private[larray] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
   def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(address + srcOffset, dest, destOffset, writeLen)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
     writeLen.toInt
   }
 
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
     val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, address + destOffset, readLen)
+    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen.toInt
   }
+
+  /**
+   * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
+   */
+  def free { m.free }
 
 }
 
 /**
  * LArray of Int type
  * @param size  the size of array
- * @param address memory address
- * @param mem memory allocator
+ * @param m allocated memory
+ * @param alloc memory allocator
  */
-class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: MemoryAllocator)
   extends LArray[Int]
   with UnsafeArray[Int]
 {
-  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
-
-  def byteLength = size * 4
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))
 
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
-    unsafe.getInt(address + (i << 2))
+    unsafe.getInt(m.address + (i << 2))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int): Int = {
-    unsafe.putInt(address + (i << 2), v)
+    unsafe.putInt(m.address + (i << 2), v)
     v
   }
 
-  def free {
-    mem.release(address)
-  }
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize: Int = 4
 }
 
 /**
- * LArray of Byte type
- * @param size
- * @param address
- * @param mem
+ * LArray of Long type
+ * @param size  the size of array
+ * @param m allocated memory
+ * @param mem memory allocator
  */
-class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+  extends LArray[Long]
+  with UnsafeArray[Long]
+{
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 4))
+
+  private[larray] def elementByteSize: Int = 8
+
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Long = {
+    unsafe.getLong(m.address + (i << 4))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Long): Long = {
+    unsafe.putLong(m.address + (i << 4), v)
+    v
+  }
+}
+
+
+/**
+ * LArray of Byte type
+ * @param size the size of array
+ * @param m allocated memory
+ * @param mem memory allocator
+ */
+class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
   extends LArray[Byte]
   with UnsafeArray[Byte]
 {
@@ -348,7 +410,7 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
 
-  def byteLength = size
+  private[larray] def elementByteSize: Int = 1
 
   /**
    * Retrieve an element
@@ -356,7 +418,7 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
    * @return the element value
    */
   def apply(i: Long): Byte = {
-    UnsafeUtil.unsafe.getByte(address + i)
+    UnsafeUtil.unsafe.getByte(m.address + i)
   }
 
   /**
@@ -366,16 +428,10 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
    * @return the value
    */
   def update(i: Long, v: Byte): Byte = {
-    UnsafeUtil.unsafe.putByte(address + i, v)
+    UnsafeUtil.unsafe.putByte(m.address + i, v)
     v
   }
 
-  /**
-   * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
-   */
-  def free {
-    mem.release(address)
-  }
 
   def sort {
 
