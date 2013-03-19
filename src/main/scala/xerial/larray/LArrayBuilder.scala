@@ -92,8 +92,10 @@ object LArrayBuilder {
 
     private def mkArray(size:Long) : LArray[Int] = {
       val newArray = new LIntArray(size)
-      if(this.size > 0L)
+      if(this.size > 0L) {
         LArray.copy(elems, 0L, newArray, 0L, this.size)
+        elems.free
+      }
       newArray
     }
 
@@ -110,7 +112,6 @@ object LArrayBuilder {
     }
 
     private def resize(size:Long) {
-      elems.free
       elems = mkArray(size)
       capacity = size
     }
@@ -140,8 +141,10 @@ object LArrayBuilder {
 
     private def mkArray(size:Long) : LArray[Byte] = {
       val newArray = new LByteArray(size)
-      if(this.size > 0L)
+      if(this.size > 0L) {
         LArray.copy(elems, 0L, newArray, 0L, this.size)
+        elems.free
+      }
       newArray
     }
 
@@ -158,7 +161,6 @@ object LArrayBuilder {
     }
 
     private def resize(size:Long) {
-      elems.free
       elems = mkArray(size)
       capacity = size
     }

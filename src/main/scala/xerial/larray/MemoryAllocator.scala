@@ -45,7 +45,7 @@ object MemoryAllocator {
   /**
    * Provides a default memory allocator
    */
-  implicit val default : MemoryAllocator = new UnsafeAllocator
+  implicit val default : MemoryAllocator = new DefaultAllocator
 
 }
 
@@ -61,9 +61,21 @@ trait MemoryAllocator extends Logger {
   // Register a shutdown hook to deallocate memory regions
   Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
     def run() {
-      releaseAll
+      synchronized {
+        allocatedAddresses foreach(checkAddr(_, false))
+      }
     }
   }))
+
+  private def checkAddr(addr:Long, doRelease:Boolean) {
+    warn(f"Found unreleased address:${addr}%x")
+    if(!hasDisplayedMemoryWarning) {
+      warn("It looks like LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+      hasDisplayedMemoryWarning = true
+    }
+    if(doRelease)
+      release(addr)
+  }
 
   private var hasDisplayedMemoryWarning = false
 
@@ -76,14 +88,7 @@ trait MemoryAllocator extends Logger {
       val addrSet = allocatedAddresses
       if(!addrSet.isEmpty)
         trace("Releasing allocated memory regions")
-      for(addr <- addrSet) {
-        warn(f"Found unreleased address:${addr}%x")
-        if(!hasDisplayedMemoryWarning) {
-          warn("Probably LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
-          hasDisplayedMemoryWarning = true
-        }
-        release(addr)
-      }
+      allocatedAddresses foreach(checkAddr(_, true))
     }
   }
 
@@ -141,9 +146,9 @@ object UnsafeUtil extends Logger {
 /**
  * Allocate memory using [[sun.misc.Unsafe]]. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
  */
-class UnsafeAllocator extends MemoryAllocator with Logger {
+class DefaultAllocator extends MemoryAllocator with Logger {
 
-  private val phantomReferences = collection.mutable.Map[Long, MemoryReference]()
+  private val allocatedMemoryReferences = collection.mutable.Map[Long, MemoryReference]()
   private val queue = new ReferenceQueue[Memory]
 
   {
@@ -170,25 +175,25 @@ class UnsafeAllocator extends MemoryAllocator with Logger {
 
   import UnsafeUtil.unsafe
 
-  protected def allocatedAddresses : Seq[Long] = synchronized { Seq() ++ phantomReferences.values.map(_.address) } // take a copy of the set
+  protected def allocatedAddresses : Seq[Long] = synchronized { Seq() ++ allocatedMemoryReferences.values.map(_.address) } // take a copy of the set
 
   def allocate(size: Long): Memory = {
     synchronized {
       val m = Memory(unsafe.allocateMemory(size), this)
-      trace(f"allocated memory: ${m.address}%x")
+      trace(f"allocated memory of size $size%,d at ${m.address}%x")
       val ref = new MemoryReference(m, queue)
-      phantomReferences += m.address -> ref
+      allocatedMemoryReferences += m.address -> ref
       m
     }
   }
 
   def release(addr:Long) : Unit = {
     synchronized {
-      if(phantomReferences.contains(addr)) {
-        trace(f"release memory: ${addr}%x")
-        val ref = phantomReferences(addr)
+      if(allocatedMemoryReferences.contains(addr)) {
+        trace(f"released memory at ${addr}%x")
+        val ref = allocatedMemoryReferences(addr)
         unsafe.freeMemory(addr)
-        phantomReferences.remove(addr)
+        allocatedMemoryReferences.remove(addr)
       }
     }
   }

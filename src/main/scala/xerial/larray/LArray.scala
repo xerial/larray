@@ -72,6 +72,8 @@ object LArray {
 
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
+
+
   object EmptyArray
     extends LArray[Nothing]
     with LIterable[Nothing]
@@ -162,6 +164,13 @@ object LArray {
           dest(destPos+i) = src(srcPos+i)
     }
   }
+
+  /**
+   * Create a new LArrayBuilder[A]
+   * @tparam A
+   * @return
+   */
+  def newBuilder[A : ClassTag] : LArrayBuilder[A] = LArrayBuilder.make[A]
 
 }
 
