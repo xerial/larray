@@ -158,7 +158,7 @@ object LArray {
       case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
         unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
       case _ =>
-        for(i <- 0 until copyLen)
+        for(i <- 0L until copyLen)
           dest(destPos+i) = src(srcPos+i)
     }
   }
