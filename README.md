@@ -27,6 +27,7 @@ In addition, Oracle JVM (standard JVM) must be used since LArray depends on `sun
 Add the following sbt dependencies to your project settings:
 
 ```scala
+# In preparation 
 libraryDependencies += "org.xerial" % "larray" % "0.1"
 ```
 
