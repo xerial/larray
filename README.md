@@ -12,6 +12,10 @@ A library for managing large arrays that can hold more than 2G (2^31) entries in
  * LArray is free from the limitation of JVM memory manager.
    * LArray uses memory space outside of the default JVM heap, so creating LArrays with more than -Xmx(maximum memory size) is possible. This is useful when you need large amount of memory or its size is unknown.
 
+## Limitations
+
+  * Only LArray[A] of primitive types can be released from the memory when LArray[A].free is called.
+    * LArray[A] of generic objects need to be collected by GC, since objects stored in LArray[A] are on JVM heaps.
 
 ## Supported Platforms
 
