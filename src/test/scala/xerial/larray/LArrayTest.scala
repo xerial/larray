@@ -86,7 +86,7 @@ class LArrayTest extends LArraySpec {
       val b = new Array[Byte](l.byteLength.toInt)
 
       l match {
-        case l:RawByteArray =>
+        case l:RawByteArray[_] =>
           debug(s"LArray: [${l.mkString(", ")}]")
           debug(s"Array[Byte]: [${b.mkString(", ")}]")
           l.write(0, b, 0, l.byteLength.toInt)
@@ -96,7 +96,7 @@ class LArrayTest extends LArraySpec {
       debug(s"Array[Byte]: [${b.mkString(", ")}]")
       val l2 = LArray(0, 0)
       l2 match {
-        case l2:RawByteArray =>
+        case l2:RawByteArray[_] =>
           l2.read(b, 0, 0, b.length)
           debug(s"LArray2: [${l2.mkString(", ")}]")
           l.sameElements(l2) should be (true)
@@ -125,7 +125,7 @@ class LArrayTest extends LArraySpec {
           val a = new Array[Int](M)
           var i = 0
           while (i < M) {
-            a(i) = r.nextInt(N);
+            a(i) = r.nextInt(N)
             i += 1
           }
           a
@@ -223,6 +223,7 @@ class LArrayTest extends LArraySpec {
 
     "have constructor" in {
       val a = Array[Byte](1, 2, 3)
+
       val b = LArray[Byte](1, 5, 34)
 
       b(0) should be (1.toByte)

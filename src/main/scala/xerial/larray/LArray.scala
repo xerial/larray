@@ -7,12 +7,9 @@
 
 package xerial.larray
 
-import scala.reflect.runtime.{universe => ru}
 import scala.reflect.ClassTag
-import ru._
 import xerial.core.log.Logger
-import collection.GenIterable
-import collection.mutable.ArrayBuilder
+
 
 /**
  * Large Array (LArray) interface. The differences from Array[A] includes:
@@ -21,7 +18,7 @@ import collection.mutable.ArrayBuilder
  * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[xerial.larray.LArray#free]].
  * - LArray elements are not initialized, so explicit initialization is needed
  * -
- * @tparam A
+ * @tparam A element type
  */
 trait LArray[A] extends LIterable[A] {
 
@@ -55,8 +52,7 @@ trait LArray[A] extends LIterable[A] {
   /**
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
    */
-  def free: Unit
-
+  def free
 
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
@@ -93,22 +89,26 @@ object LArray {
     def free {
       /* do nothing */
     }
-    def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = 0
-
-    /**
-     * Read the contents from a given source buffer
-     * @param src
-     * @param srcOffset
-     * @param destOffset
-     * @param length
-     */
-    def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = 0
-
   }
 
   def empty = EmptyArray
 
   def apply() = EmptyArray
+
+
+  import java.{lang=>jl}
+
+  private[larray] def wrap[A:ClassTag](size:Long, m:Memory) : LArray[A] = {
+    val tag = implicitly[ClassTag[A]]
+    tag.runtimeClass match {
+      case jl.Integer.TYPE => new LIntArray(size / 4, m).asInstanceOf[LArray[A]]
+      case jl.Byte.TYPE => new LByteArray(size, m).asInstanceOf[LArray[A]]
+      case jl.Long.TYPE => new LLongArray(size / 8, m).asInstanceOf[LArray[A]]
+      // TODO Short, Char, Float, Double
+      case _ => sys.error(s"unsupported type: $tag")
+    }
+  }
+
 
   /**
    * Creates an LArray with given elements.
@@ -116,18 +116,14 @@ object LArray {
    * @param xs the elements to put in the array
    * @return an array containing all elements from xs.
    */
-  def apply[T: TypeTag : ClassTag](xs: T*): LArray[T] = {
+  def apply[A : ClassTag](xs: A*): LArray[A] = {
     val size = xs.size
-    val t = typeOf[T]
-    val arr : LArray[T] = t match {
-      case t if t =:= typeOf[Int] => new LIntArray(size).asInstanceOf[LArray[T]]
-      case t if t =:= typeOf[Byte] => new LByteArray(size).asInstanceOf[LArray[T]]
-      case _ => new LObjectArray32[T](size).asInstanceOf[LArray[T]]
-    }
+    val arr = new LObjectArray32[A](size)
     var i = 0
     for(x <- xs) { arr(i) = x; i += 1 }
     arr
   }
+
 
 
   def apply(first: Int, elems: Int*): LArray[Int] = {
@@ -151,6 +147,14 @@ object LArray {
     }
     arr
   }
+
+  // TODO apply(Char..)
+  // TODO apply(Short..)
+  // TODO apply(Float ..)
+  // TODO apply(Long ..)
+  // TODO apply(Double ..)
+  // TODO apply(AnyRef ..)
+
 
   def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
     import UnsafeUtil.unsafe
@@ -203,19 +207,26 @@ trait RawByteArray[A] extends LArray[A] {
 
   /**
    * Read the contents from a given source buffer
-   * @param src
-   * @param srcOffset
-   * @param destOffset
-   * @param length
+   * @param src source buffer
+   * @param srcOffset byte offset in the source buffer
+   * @param destOffset byte offset from the destination address
+   * @param length byte length to read from the source
    */
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
+
+
+  /**
+   * Create an input stream for reading LArray byte contents
+   * @return
+   */
+  def toInputStream : java.io.InputStream = LArrayInputStream(this)
 }
 
 
 
 /**
  * Wrapping Array[Int] to support Long-type indexes
- * @param size
+ * @param size array size
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
 
@@ -253,7 +264,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
 
 /**
  * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
- * @param size
+ * @param size array size
  */
 class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
@@ -312,13 +323,13 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
-    writeLen.toInt
+    writeLen
   }
 
   def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
     val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
-    readLen.toInt
+    readLen
   }
 
   def readByte(index:Long) = m.getByte(index)
@@ -471,8 +482,8 @@ object LObjectArray {
 
 /**
  * LArray[A] of Objects. This implementation is a simple wrapper of Array[A] and used when the array size is less than 2G
- * @param size
- * @tparam A
+ * @param size array size
+ * @tparam A object type
  */
 class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
   require(size < Int.MaxValue)
@@ -493,8 +504,8 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
 
 /**
  * LArray[A] of Object of more than 2G entries.
- * @param size
- * @tparam A
+ * @param size array size
+ * @tparam A object type
  */
 class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
 

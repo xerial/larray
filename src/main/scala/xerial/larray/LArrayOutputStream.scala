@@ -8,23 +8,28 @@
 package xerial.larray
 
 import java.io.OutputStream
-
-object LArrayOutputStream {
-
-  def apply[A](array:LArray[A]) : OutputStream = {
-    array match {
-      case r:RawByteArray[A] => new RawLArrayOutputStream[A](r)
-      case _ => sys.error(s"cannot create OutputStream from this LArray class:${array.getClass}}")
-    }
-  }
-}
+import reflect.ClassTag
 
 /**
+ * Create LArray using [[java.io.OutputStream]] interface
+ *
  * @author Taro L. Saito
  */
-private[larray] class RawLArrayOutputStream[A](array:RawByteArray[A]) extends OutputStream {
+class LArrayOutputStream[A : ClassTag] extends OutputStream {
 
-  def write(b: Int) {
-    // TODO impl
+  private val buf = new LByteArrayBuilder
+
+  def write(v: Int) {
+    buf += v.toByte
   }
+
+  override def write(b: Array[Byte], off: Int, len: Int) {
+    buf.append(b, off, len)
+  }
+
+  def result : LArray[A] = {
+    val arr = buf.result.asInstanceOf[LByteArray]
+    LArray.wrap[A](arr.size, arr.m)
+  }
+
 }

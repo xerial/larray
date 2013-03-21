@@ -8,6 +8,7 @@
 package xerial.larray
 
 import java.io.InputStream
+import xerial.core.log.Logger
 
 
 object LArrayInputStream {
@@ -33,7 +34,7 @@ object LArrayInputStream {
  *
  * @author Taro L. Saito
  */
-private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends InputStream {
+private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends InputStream with Logger {
 
   private var cursor = 0L
   private var mark = 0L
@@ -45,10 +46,14 @@ private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends Inp
   }
 
   override def read(b: Array[Byte], offset:Int, len:Int) : Int = {
-    val readLen = math.min(len, array.size - cursor).toInt
-    array.write(cursor, b, offset, readLen)
-    cursor += readLen
-    readLen
+    if(cursor >= array.size)
+      -1
+    else {
+      val readLen = math.min(len, array.byteLength - cursor).toInt
+      array.write(cursor, b, offset, readLen)
+      cursor += readLen
+      readLen
+    }
   }
 
 
