@@ -67,9 +67,13 @@ l2(0) // The result of accessing released LArray is undefined
 In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
+import xerial.larray.japi.LArray;
 import xerial.larray.LIntArray;
 
-LIntArray l = new LIntArray(10000L);
+LIntArray l = LArray.newLIntArray(10000L);
 l.update(0L, 20) // Set l[0L] = 20
 l.apply(0L)  //  Get l[0L]
+
+// release 
+l.free 
 ```
