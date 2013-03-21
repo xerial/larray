@@ -183,7 +183,14 @@ object LArray {
 /**
  * read/write operations that can be supported for LArrays using raw byte arrays as their back-end.
  */
-trait RawByteArray {
+trait RawByteArray[A] extends LArray[A] {
+
+  /**
+   * Get a byte at the index
+   * @return
+   */
+  def readByte(index:Long) : Int
+
   /**
    * Write the contents of this array to the destination buffer
    * @param srcOffset byte offset
@@ -289,7 +296,7 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 }
 
 
-private[larray] trait UnsafeArray[T] extends LArray[T] with RawByteArray with Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self: LArray[T] =>
 
   private[larray] def m: Memory
 
@@ -313,6 +320,8 @@ private[larray] trait UnsafeArray[T] extends LArray[T] with RawByteArray with Lo
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen.toInt
   }
+
+  def readByte(index:Long) = m.getByte(index)
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
