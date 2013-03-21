@@ -195,6 +195,7 @@ trait RawByteArray[A] extends LArray[A] {
    */
   def readByte(index:Long) : Int
 
+
   /**
    * Write the contents of this array to the destination buffer
    * @param srcOffset byte offset
@@ -220,6 +221,24 @@ trait RawByteArray[A] extends LArray[A] {
    * @return
    */
   def toInputStream : java.io.InputStream = LArrayInputStream(this)
+
+
+  def getByte(offset:Long) : Byte
+  def getChar(offset:Long) : Char
+  def getShort(offset:Long) : Short
+  def getInt(offset:Long) : Int
+  def getFloat(offset:Long) : Float
+  def getLong(offset:Long) : Long
+  def getDouble(offset:Long) : Double
+
+  def putByte(offset:Long, v:Byte)
+  def putChar(offset:Long, v:Char)
+  def putShort(offset:Long, v:Short)
+  def putInt(offset:Long, v:Int)
+  def putFloat(offset:Long, v:Float)
+  def putLong(offset:Long, v:Long)
+  def putDouble(offset:Long, v:Double)
+
 }
 
 
@@ -338,6 +357,23 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
    */
   def free { m.free }
+
+
+  def getByte(offset:Long) : Byte = m.getByte(offset)
+  def getChar(offset:Long) : Char = m.getChar(offset)
+  def getShort(offset:Long) : Short = m.getShort(offset)
+  def getInt(offset:Long) : Int = m.getInt(offset)
+  def getFloat(offset:Long) : Float = m.getFloat(offset)
+  def getLong(offset:Long) : Long = m.getLong(offset)
+  def getDouble(offset:Long) : Double = m.getDouble(offset)
+
+  def putByte(offset:Long, v:Byte) = m.putByte(offset, v)
+  def putChar(offset:Long, v:Char) = m.putChar(offset, v)
+  def putShort(offset:Long, v:Short) = m.putShort(offset, v)
+  def putInt(offset:Long, v:Int) = m.putInt(offset, v)
+  def putFloat(offset:Long, v:Float) = m.putFloat(offset, v)
+  def putLong(offset:Long, v:Long) = m.putLong(offset, v)
+  def putDouble(offset:Long, v:Double) = m.putDouble(offset, v)
 
 }
 
