@@ -13,8 +13,8 @@ import reflect.ClassTag
 
 /**
  * Extention of [[scala.collection.mutable.Builder]] to Long indexes
- * @tparam Elem
- * @tparam To
+ * @tparam Elem element type
+ * @tparam To LArray type to generate
  */
 trait LBuilder[-Elem, +To] {
 
@@ -57,6 +57,63 @@ trait LBuilder[-Elem, +To] {
 
 abstract class LArrayBuilder[A] extends LBuilder[A, LArray[A]]
 
+
+class LByteArrayBuilder extends LArrayBuilder[Byte] {
+  private var elems : LByteArray = _
+  private var capacity: Long = 0L
+  private[larray] var size: Long = 0L
+
+  def append(b:Array[Byte], offset:Int, len:Int) = {
+    ensureSize(size + len)
+    elems.read(b, offset, size, len)
+    size += len
+    this
+  }
+
+  private def mkArray(size:Long) : LByteArray = {
+    val newArray = new LByteArray(size)
+    if(this.size > 0L) {
+      LArray.copy(elems, 0L, newArray, 0L, this.size)
+      elems.free
+    }
+    newArray
+  }
+
+  override def sizeHint(size:Long) {
+    if(capacity < size) resize(size)
+  }
+
+  private def ensureSize(size:Long) {
+    if(capacity < size || capacity == 0L){
+      var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
+      while(newsize < size) newsize *= 2
+      resize(newsize)
+    }
+  }
+
+  private def resize(size:Long) {
+    elems = mkArray(size)
+    capacity = size
+  }
+
+  def +=(elem: Byte): this.type = {
+    ensureSize(size + 1)
+    elems(size) = elem
+    size += 1
+    this
+  }
+
+  def clear() {
+    size = 0
+  }
+
+  def result(): LArray[Byte] = {
+    if(capacity != 0L && capacity == size) elems
+    else mkArray(size)
+  }
+
+}
+
 /**
  * @author Taro L. Saito
  */
@@ -70,7 +127,7 @@ object LArrayBuilder {
   def make[T: ClassTag](): LArrayBuilder[T] = {
     val tag = implicitly[ClassTag[T]]
     tag.runtimeClass match {
-      case java.lang.Byte.TYPE      => ofByte.asInstanceOf[LArrayBuilder[T]]
+      case java.lang.Byte.TYPE      => new LByteArrayBuilder().asInstanceOf[LArrayBuilder[T]]
       case java.lang.Short.TYPE     => sys.error("Not yet implemented")
       case java.lang.Character.TYPE => sys.error("Not yet implemented")
       case java.lang.Integer.TYPE   => ofInt.asInstanceOf[LArrayBuilder[T]]
@@ -93,11 +150,11 @@ object LArrayBuilder {
 
   def ofInt = new LArrayBuilder[Int] {
 
-    private var elems : LArray[Int] = _
+    private var elems : LIntArray = _
     private var capacity: Long = 0L
     private var size: Long = 0L
 
-    private def mkArray(size:Long) : LArray[Int] = {
+    private def mkArray(size:Long) : LIntArray = {
       val newArray = new LIntArray(size)
       if(this.size > 0L) {
         LArray.copy(elems, 0L, newArray, 0L, this.size)
@@ -140,55 +197,6 @@ object LArrayBuilder {
     }
   }
 
-  def ofByte = new LArrayBuilder[Byte] {
-
-    private var elems : LArray[Byte] = _
-    private var capacity: Long = 0L
-    private var size: Long = 0L
-
-    private def mkArray(size:Long) : LArray[Byte] = {
-      val newArray = new LByteArray(size)
-      if(this.size > 0L) {
-        LArray.copy(elems, 0L, newArray, 0L, this.size)
-        elems.free
-      }
-      newArray
-    }
-
-    override def sizeHint(size:Long) {
-      if(capacity < size) resize(size)
-    }
-
-    private def ensureSize(size:Long) {
-      if(capacity < size || capacity == 0L){
-        var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
-        while(newsize < size) newsize *= 2
-        resize(newsize)
-      }
-    }
-
-    private def resize(size:Long) {
-      elems = mkArray(size)
-      capacity = size
-    }
-
-    def +=(elem: Byte): this.type = {
-      ensureSize(size + 1)
-      elems(size) = elem
-      size += 1
-      this
-    }
-
-    def clear() {
-      size = 0
-    }
-
-    def result(): LArray[Byte] = {
-      if(capacity != 0L && capacity == size) elems
-      else mkArray(size)
-    }
-  }
-
 
   // TODO ofChar
   // TODO ofShort
@@ -201,7 +209,7 @@ object LArrayBuilder {
 
     private var elems : LArray[A] = _
     private var capacity: Long = 0L
-    private var size: Long = 0L
+    private[larray] var size: Long = 0L
 
     private def mkArray(size:Long) : LArray[A] = {
       val newArray = LObjectArray.ofDim[A](size)
