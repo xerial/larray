@@ -95,8 +95,7 @@ object LArray {
 
   def apply() = EmptyArray
 
-
-  import java.{lang=>jl}
+  import _root_.java.{lang=>jl}
 
   private[larray] def wrap[A:ClassTag](size:Long, m:Memory) : LArray[A] = {
     val tag = implicitly[ClassTag[A]]
@@ -351,8 +350,7 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
   extends LArray[Int]
   with UnsafeArray[Int]
 {
-  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))
-
+  def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 2))
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
