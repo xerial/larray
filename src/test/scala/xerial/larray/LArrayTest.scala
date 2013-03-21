@@ -85,17 +85,25 @@ class LArrayTest extends LArraySpec {
       val l = LArray(1, 3)
       val b = new Array[Byte](l.byteLength.toInt)
 
-      debug(s"LArray: [${l.mkString(", ")}]")
-      debug(s"Array[Byte]: [${b.mkString(", ")}]")
-      l.write(0, b, 0, l.byteLength.toInt)
+      l match {
+        case l:RawByteArray =>
+          debug(s"LArray: [${l.mkString(", ")}]")
+          debug(s"Array[Byte]: [${b.mkString(", ")}]")
+          l.write(0, b, 0, l.byteLength.toInt)
+        case _ => fail("cannot reach here")
+      }
 
       debug(s"Array[Byte]: [${b.mkString(", ")}]")
       val l2 = LArray(0, 0)
-      l2.read(b, 0, 0, b.length)
+      l2 match {
+        case l2:RawByteArray =>
+          l2.read(b, 0, 0, b.length)
+          debug(s"LArray2: [${l2.mkString(", ")}]")
+          l.sameElements(l2) should be (true)
+        case _ => fail("cannot reach here")
+      }
 
-      debug(s"LArray2: [${l2.mkString(", ")}]")
 
-      l.sameElements(l2) should be (true)
     }
 
 

@@ -23,7 +23,7 @@ import collection.mutable.ArrayBuilder
  * -
  * @tparam A
  */
-trait LArray[A] extends LArrayOps[A] with LIterable[A] {
+trait LArray[A] extends LIterable[A] {
 
   /**
    * Size of this array
@@ -116,13 +116,13 @@ object LArray {
    * @param xs the elements to put in the array
    * @return an array containing all elements from xs.
    */
-  def apply[T: TypeTag](xs: T*): LArray[T] = {
+  def apply[T: TypeTag : ClassTag](xs: T*): LArray[T] = {
     val size = xs.size
     val t = typeOf[T]
     val arr : LArray[T] = t match {
       case t if t =:= typeOf[Int] => new LIntArray(size).asInstanceOf[LArray[T]]
       case t if t =:= typeOf[Byte] => new LByteArray(size).asInstanceOf[LArray[T]]
-      case _ => sys.error(s"Unsupported type LArray[${t}}]")
+      case _ => new LObjectArray32[T](size).asInstanceOf[LArray[T]]
     }
     var i = 0
     for(x <- xs) { arr(i) = x; i += 1 }
@@ -158,10 +158,15 @@ object LArray {
     val elemSize = src.elementByteSize
     (src, dest) match {
       case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
+        // Use fast memcopy
         unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
       case _ =>
-        for(i <- 0L until copyLen)
+        // slow copy
+        var i = 0L
+        while(i < copyLen) {
           dest(destPos+i) = src(srcPos+i)
+          i += 1
+        }
     }
   }
 
@@ -173,6 +178,32 @@ object LArray {
   def newBuilder[A : ClassTag] : LArrayBuilder[A] = LArrayBuilder.make[A]
 
 }
+
+/**
+ * read/write operations that can be supported for LArrays using raw byte arrays as their back-end.
+ */
+trait RawByteArray {
+  /**
+   * Write the contents of this array to the destination buffer
+   * @param srcOffset byte offset
+   * @param dest destination array
+   * @param destOffset offset in the destination array
+   * @param length the byte length to write
+   * @return byte length to write
+   */
+  def write(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
+
+  /**
+   * Read the contents from a given source buffer
+   * @param src
+   * @param srcOffset
+   * @param destOffset
+   * @param length
+   */
+  def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
+}
+
+
 
 /**
  * Wrapping Array[Int] to support Long-type indexes
@@ -203,31 +234,6 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
 
   def free {
     // do nothing
-  }
-
-  /**
-   * Write the contents of this array to the destination buffer
-   * @param srcOffset byte offset
-   * @param dest destination array
-   * @param destOffset offset in the destination array
-   * @param length the byte length to write
-   * @return byte length to write
-   */
-  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
-    System.arraycopy(arr, srcOffset.toInt, dest, destOffset, length)
-    length
-  }
-
-  /**
-   * Read the contents from a given source buffer
-   * @param src
-   * @param srcOffset
-   * @param destOffset
-   * @param length
-   */
-  def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = {
-    System.arraycopy(src, srcOffset, arr, destOffset.toInt, length)
-    length
   }
 
   /**
@@ -279,34 +285,10 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
    */
   def free {}
 
-  /**
-   * Write the contents of this array to the destination buffer
-   * @param srcOffset byte offset
-   * @param dest destination array
-   * @param destOffset offset in the destination array
-   * @param length the byte length to write
-   * @return byte length to write
-   */
-  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
-    // TODO
-    0
-  }
-
-  /**
-   * Read the contents from a given source buffer
-   * @param src
-   * @param srcOffset
-   * @param destOffset
-   * @param length
-   */
-  def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = {
-    // TODO
-    0
-  }
 }
 
 
-private[larray] trait UnsafeArray[T] extends LArray[T] with Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends LArray[T] with RawByteArray with Logger { self: LArray[T] =>
 
   private[larray] def m: Memory
 
@@ -466,4 +448,26 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
   }
 
 
+}
+
+/**
+ * LArray[A] for Objects. This implementation is a simple wrapper of Array[A] and used when the array size is less than 2G
+ * @param size
+ * @tparam A
+ */
+class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
+  require(size < Int.MaxValue)
+  private var array = new Array[A](size.toInt)
+
+  def apply(i: Long) = array(i.toInt)
+  def update(i: Long, v: A) = {
+    array(i.toInt) = v
+    v
+  }
+  def free {
+    // Dereference the array to let the array garbage-collected
+    array = null
+  }
+
+  private[larray] def elementByteSize = 4
 }

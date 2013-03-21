@@ -71,17 +71,24 @@ object LArrayBuilder {
     val tag = implicitly[ClassTag[T]]
     tag.runtimeClass match {
       case java.lang.Byte.TYPE      => ofByte.asInstanceOf[LArrayBuilder[T]]
-      //case java.lang.Short.TYPE     =>
-      //case java.lang.Character.TYPE => new ArrayBuilder.ofChar().asInstanceOf[ArrayBuilder[T]]
+      case java.lang.Short.TYPE     => sys.error("Not yet implemented")
+      case java.lang.Character.TYPE => sys.error("Not yet implemented")
       case java.lang.Integer.TYPE   => ofInt.asInstanceOf[LArrayBuilder[T]]
-      //case java.lang.Long.TYPE      => new ArrayBuilder.ofLong().asInstanceOf[ArrayBuilder[T]]
-      //case java.lang.Float.TYPE     => new ArrayBuilder.ofFloat().asInstanceOf[ArrayBuilder[T]]
-      //case java.lang.Double.TYPE    => new ArrayBuilder.ofDouble().asInstanceOf[ArrayBuilder[T]]
-      //case java.lang.Boolean.TYPE   => new ArrayBuilder.ofBoolean().asInstanceOf[ArrayBuilder[T]]
-      //case java.lang.Void.TYPE      => new ArrayBuilder.ofUnit().asInstanceOf[ArrayBuilder[T]]
-      //case _                        => new ArrayBuilder.ofRef[T with AnyRef]()(tag.asInstanceOf[ClassTag[T with AnyRef]]).asInstanceOf[ArrayBuilder[T]]
+      case java.lang.Long.TYPE      => sys.error("Not yet implemented")
+      case java.lang.Float.TYPE     => sys.error("Not yet implemented")
+      case java.lang.Double.TYPE    => sys.error("Not yet implemented")
+      case java.lang.Boolean.TYPE   => sys.error("Not yet implemented")
+      case java.lang.Void.TYPE      => sys.error("Not yet implemented")
+      case _                        => ofObject[T].asInstanceOf[LArrayBuilder[T]]
     }
   }
+
+
+  /**
+   * In the following, we need to define builders for every primitive types because if we extract
+   * common functions (e.g., resize, mkArray) using type parameter, we cannot avoid boxing/unboxing.
+   *
+   */
 
 
   def ofInt = new LArrayBuilder[Int] {
@@ -182,10 +189,61 @@ object LArrayBuilder {
     }
   }
 
+
   // TODO ofChar
   // TODO ofShort
   // TODO ofFloat
   // TODO ofLong
   // TODO ofDouble
+
+
+  def ofObject[A:ClassTag] = new LArrayBuilder[A] {
+
+    private var elems : LArray[A] = _
+    private var capacity: Long = 0L
+    private var size: Long = 0L
+
+    private def mkArray(size:Long) : LArray[A] = {
+      val newArray = new LObjectArray32[A](size)
+      if(this.size > 0L) {
+        LArray.copy(elems, 0L, newArray, 0L, this.size)
+        elems.free
+      }
+      newArray
+    }
+
+    override def sizeHint(size:Long) {
+      if(capacity < size) resize(size)
+    }
+
+    private def ensureSize(size:Long) {
+      if(capacity < size || capacity == 0L){
+        var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
+        while(newsize < size) newsize *= 2
+        resize(newsize)
+      }
+    }
+
+    private def resize(size:Long) {
+      elems = mkArray(size)
+      capacity = size
+    }
+
+    def +=(elem: A): this.type = {
+      ensureSize(size + 1)
+      elems(size) = elem
+      size += 1
+      this
+    }
+
+    def clear() {
+      size = 0
+    }
+
+    def result(): LArray[A] = {
+      if(capacity != 0L && capacity == size) elems
+      else mkArray(size)
+    }
+  }
 
 }
