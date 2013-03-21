@@ -155,9 +155,10 @@ object LArray {
   def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
     import UnsafeUtil.unsafe
     val copyLen = math.min(length, math.min(src.size - srcPos, dest.size - destPos))
-    val elemSize = src.elementByteSize
+
     (src, dest) match {
       case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
+        val elemSize = a.elementByteSize
         // Use fast memcopy
         unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
       case _ =>
@@ -450,8 +451,17 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 
 }
 
+
+object LObjectArray {
+  def ofDim[A:ClassTag](size:Long) =
+    if(size < Int.MaxValue)
+      new LObjectArray32[A](size)
+    else
+      new LObjectArrayLarge[A](size)
+}
+
 /**
- * LArray[A] for Objects. This implementation is a simple wrapper of Array[A] and used when the array size is less than 2G
+ * LArray[A] of Objects. This implementation is a simple wrapper of Array[A] and used when the array size is less than 2G
  * @param size
  * @tparam A
  */
@@ -469,5 +479,41 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
     array = null
   }
 
+  private[larray] def elementByteSize = 4
+}
+
+/**
+ * LArray[A] of Object of more than 2G entries.
+ * @param size
+ * @tparam A
+ */
+class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
+
+  /**
+   * block size in pow(2, B)
+   */
+  private val B = 31
+  private val mask = (1L << B) - 1L
+
+  @inline private def index(i:Long) : Int = (i >>> B).toInt
+  @inline private def offset(i:Long) : Int = (i & mask).toInt
+
+  private var array : Array[Array[A]] = {
+    val BLOCK_SIZE = (1L << B).toInt
+    val NUM_BLOCKS = index(size-1) + 1
+    // initialize the array
+    val a = new Array[Array[A]](NUM_BLOCKS)
+    var remaining = size
+    for(i <- 0 until NUM_BLOCKS) {
+      val s = math.min(remaining, BLOCK_SIZE).toInt
+      a(i) = new Array[A](s)
+      remaining -= s
+    }
+    a
+  }
+
+  def apply(i: Long) = array(index(i))(offset(i))
+  def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }
+  def free { array = null }
   private[larray] def elementByteSize = 4
 }

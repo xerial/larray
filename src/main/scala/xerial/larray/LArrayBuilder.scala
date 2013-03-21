@@ -204,7 +204,7 @@ object LArrayBuilder {
     private var size: Long = 0L
 
     private def mkArray(size:Long) : LArray[A] = {
-      val newArray = new LObjectArray32[A](size)
+      val newArray = LObjectArray.ofDim[A](size)
       if(this.size > 0L) {
         LArray.copy(elems, 0L, newArray, 0L, this.size)
         elems.free
