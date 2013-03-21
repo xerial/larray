@@ -19,12 +19,12 @@ CFLAGS:=$(CFLAGS) -I$(LARRAY_SRC_DIR)
 
 LARRAY_HEADER:=$(SRC)/xerial/larray/impl/LArrayNative.h
 
-$(TARGET)/classes/xerial/larray/impl/LArrayNative.class : $(LARRAY_SRC_DIR)/LArrayNative.java
-	$(JAVAC) -d $(TARGET)/classes $<
+$(TARGET)/classes/xerial/larray/impl/%.class : $(LARRAY_SRC_DIR)/%.java
+	$(JAVAC) -sourcepath $(SRC) -d $(TARGET)/classes $<
 
 jni-header: $(LARRAY_HEADER)
 
-$(LARRAY_HEADER): $(SRC)/xerial/larray/impl/LArrayNative.java $(TARGET)/classes/xerial/larray/impl/LArrayNative.class
+$(LARRAY_HEADER): $(SRC)/xerial/larray/impl/LArrayNative.java  $(TARGET)/classes/xerial/larray/impl/LArrayNative.class
 	@mkdir -p $(TARGET)/classes
 	$(JAVAH) -classpath $(TARGET)/classes -o $@ xerial.larray.impl.LArrayNative
 
