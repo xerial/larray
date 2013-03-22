@@ -10,6 +10,8 @@ package xerial.larray
 import sun.misc.Unsafe
 import xerial.core.log.Logger
 import java.lang.ref.ReferenceQueue
+import collection.mutable
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 
 /**
  * Accessor to the allocated memory
@@ -45,7 +47,7 @@ object MemoryAllocator {
   /**
    * Provides a default memory allocator
    */
-  implicit val default : MemoryAllocator = new DefaultAllocator
+  implicit val default : MemoryAllocator = new ConcurrentMemoryAllocator
 
 }
 
@@ -146,9 +148,13 @@ object UnsafeUtil extends Logger {
 /**
  * Allocate memory using [[sun.misc.Unsafe]]. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
  */
-class DefaultAllocator extends MemoryAllocator with Logger {
+class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryReference]) extends MemoryAllocator with Logger {
 
-  private val allocatedMemoryReferences = collection.mutable.Map[Long, MemoryReference]()
+  def this() = this(collection.mutable.Map[Long, MemoryReference]())
+
+  /**
+   * When Memory is garbage-collected, the reference to the Memory is pushed into this queue.
+   */
   private val queue = new ReferenceQueue[Memory]
 
   {
@@ -177,25 +183,36 @@ class DefaultAllocator extends MemoryAllocator with Logger {
 
   protected def allocatedAddresses : Seq[Long] = synchronized { Seq() ++ allocatedMemoryReferences.values.map(_.address) } // take a copy of the set
 
-  def allocate(size: Long): Memory = {
-    synchronized {
-      val m = Memory(unsafe.allocateMemory(size), this)
-      trace(f"allocated memory of size $size%,d at ${m.address}%x")
-      val ref = new MemoryReference(m, queue)
-      allocatedMemoryReferences += m.address -> ref
-      m
-    }
+  def allocate(size: Long): Memory = synchronized { allocateInternal(size) }
+
+  def release(addr:Long) { synchronized { releaseInternal(addr) } }
+
+  protected def allocateInternal(size: Long): Memory = {
+    val m = Memory(unsafe.allocateMemory(size), this)
+    trace(f"allocated memory of size $size%,d at ${m.address}%x")
+    val ref = new MemoryReference(m, queue)
+    allocatedMemoryReferences += m.address -> ref
+    m
   }
 
-  def release(addr:Long) : Unit = {
-    synchronized {
-      if(allocatedMemoryReferences.contains(addr)) {
-        trace(f"released memory at ${addr}%x")
-        val ref = allocatedMemoryReferences(addr)
-        unsafe.freeMemory(addr)
-        allocatedMemoryReferences.remove(addr)
-      }
+  protected def releaseInternal(addr:Long) {
+    if(allocatedMemoryReferences.contains(addr)) {
+      trace(f"released memory at ${addr}%x")
+      val ref = allocatedMemoryReferences(addr)
+      unsafe.freeMemory(addr)
+      allocatedMemoryReferences.remove(addr)
     }
   }
 }
 
+import collection.JavaConversions._
+/**
+ * This class uses ConcurrentHashMap to improve the memory allocation performance
+ */
+class ConcurrentMemoryAllocator(memMap : collection.mutable.Map[Long, MemoryReference]) extends DefaultAllocator(memMap)  {
+  def this() = this(new ConcurrentHashMap[Long, MemoryReference]())
+
+  override def allocate(size: Long): Memory = allocateInternal(size)
+  override def release(addr:Long) : Unit = releaseInternal(addr)
+
+}

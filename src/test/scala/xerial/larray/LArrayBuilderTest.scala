@@ -7,7 +7,7 @@
 
 package xerial.larray
 
-import util.Random
+import scala.util.Random
 
 /**
  * @author Taro L. Saito

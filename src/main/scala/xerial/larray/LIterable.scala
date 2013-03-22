@@ -22,6 +22,8 @@ trait LIterable[A] { self : LArray[A] =>
 
   type Repr = LArray[A]
 
+  protected[this] def newBuilder : LArrayBuilder[A]
+
   def iterator : LIterator[A] = new AbstractLIterator[A] {
     private var index = 0L
     override def size = self.size
@@ -84,8 +86,8 @@ trait LIterable[A] { self : LArray[A] =>
   def map[B](f:A=>B): LIterator[B] = iterator.map(f)
   def flatMap[B](f: A => LIterable[B]) : LIterator[B] = iterator.flatMap(f)
 
-  def reverse: Repr = {
-    val b = LArray.newBuilder[A]
+  def reverse[A]: Repr = {
+    val b = newBuilder
     b.sizeHint(size)
     var i = length
     while(0L < i) {
@@ -163,7 +165,7 @@ trait LIterable[A] { self : LArray[A] =>
     val hi    = math.min(math.max(until, 0L), length)
     val elems = math.max(hi - lo, 0L)
     // Supply array size to recuce the number of memory allocation
-    val b     = LArray.newBuilder[A]
+    val b     = newBuilder
     b.sizeHint(elems)
 
     var i = lo

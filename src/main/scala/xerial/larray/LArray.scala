@@ -76,6 +76,8 @@ object LArray {
   {
     private[larray] def elementByteSize : Int = 0
 
+    def newBuilder = LArray.newBuilder[Nothing]
+
     def size: Long = 0L
 
     def apply(i: Long): Nothing = {
@@ -248,6 +250,8 @@ trait RawByteArray[A] extends LArray[A] {
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
 
+  protected[this] def newBuilder = LArray.newBuilder[Int]
+
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
@@ -287,6 +291,8 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
 class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
   private[larray] def elementByteSize: Int = 4
+
+  protected[this] def newBuilder = LArray.newBuilder[Int]
 
 
   private val maskLen : Int = 24
@@ -386,6 +392,8 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
   extends LArray[Int]
   with UnsafeArray[Int]
 {
+  protected[this] def newBuilder = LArray.newBuilder[Int]
+
   def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 2))
   import UnsafeUtil.unsafe
 
@@ -417,6 +425,8 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 {
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 4))
 
+  protected[this] def newBuilder = LArray.newBuilder[Long]
+
   private[larray] def elementByteSize: Int = 8
 
   import UnsafeUtil.unsafe
@@ -446,6 +456,8 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
   self =>
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
+
+  protected[this] def newBuilder = LArray.newBuilder[Byte]
 
   private[larray] def elementByteSize: Int = 1
 
@@ -523,6 +535,9 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
   require(size < Int.MaxValue)
   private var array = new Array[A](size.toInt)
 
+  protected[this] def newBuilder = LArrayBuilder.ofObject[A]
+
+
   def apply(i: Long) = array(i.toInt)
   def update(i: Long, v: A) = {
     array(i.toInt) = v
@@ -542,6 +557,9 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
  * @tparam A object type
  */
 class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
+
+  protected[this] def newBuilder = LArrayBuilder.ofObject[A]
+
 
   /**
    * block size in pow(2, B)

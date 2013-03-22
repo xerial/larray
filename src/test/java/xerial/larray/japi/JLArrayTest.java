@@ -3,7 +3,7 @@ package xerial.larray.japi;
 import junit.framework.Assert;
 import org.junit.Test;
 import xerial.larray.LIntArray;
-import xerial.larray.Logger;
+import xerial.larray.util.Logger;
 
 /**
  * @author Taro L. Saito

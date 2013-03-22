@@ -1,6 +1,6 @@
 package xerial.larray.japi;
 
-import xerial.larray.DefaultAllocator;
+import xerial.larray.ConcurrentMemoryAllocator;
 import xerial.larray.LByteArray;
 import xerial.larray.LIntArray;
 
@@ -10,7 +10,7 @@ import xerial.larray.LIntArray;
  */
 public class LArray {
 
-    static xerial.larray.MemoryAllocator defaultAllocator = new DefaultAllocator();
+    static xerial.larray.MemoryAllocator defaultAllocator = new ConcurrentMemoryAllocator();
 
     public static LIntArray newLIntArray(long size) {
         return new LIntArray(size, defaultAllocator);
