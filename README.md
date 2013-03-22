@@ -3,10 +3,10 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * Supporting huge array sizes, upto 2^63 -1 entries.
+ * Supporting huge array size upto 2^63 -1 entries.
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. To resolve this, LArray uses long type indexes of 64-bit signed integers.
    * For example the entire human genome data (3GB) can be stored in LArray. 
- * LArray can be released from the main memory immedeately. 
+ * LArray can be released from the main memory immediately. 
    * Call LArray.free to release acquired memory resources.
    * The default arrays in Java/Scala are resident in JVM heaps, in which users cannot free the allocate arrays space even if they become unnecessary. That means it is hard to avoid OutOfMemoryException when working with large amount of data.
  * LArray is in sync with Garbage Collection (GC)
@@ -80,9 +80,9 @@ import xerial.larray.japi.LArray;
 import xerial.larray.LIntArray;
 
 LIntArray l = LArray.newLIntArray(10000L);
-l.update(0L, 20) // Set l[0L] = 20
-l.apply(0L)  //  Get l[0L]
+l.update(0L, 20); // Set l[0L] = 20
+l.apply(0L);  //  Get l[0L]
 
 // release 
-l.free 
+l.free();
 ```
