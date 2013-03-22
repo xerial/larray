@@ -109,6 +109,7 @@ class LArrayTest extends LArraySpec {
 
     "read/write data through ByteBuffer" taggedAs("bb") in {
       val l = LArray(1, 3, 5, 134, 34, -3, 2)
+      debug(l.mkString(", "))
       val bb = l.toDirectByteBuffer
 
       val tmp = File.createTempFile("larray-dump", ".dat", new File("target"))
@@ -118,10 +119,18 @@ class LArrayTest extends LArraySpec {
       out.write(bb)
       out.close()
 
-      //val in = new FileInputStream(tmp).getChannel
+      val in = new FileInputStream(tmp).getChannel
+      val fileSize = in.size()
+      val newArray = new LByteArray(fileSize)
 
-      //new LArrayInputStream[Int](new FileInputStream(tmp))
+      var pos = 0L
+      while(pos < fileSize) {
+        pos += in.transferTo(pos, fileSize - pos, newArray)
+      }
+      val l2 = LArray.wrap[Int](newArray.byteLength, newArray.m)
+      debug(l2.mkString(", "))
 
+      l.sameElements(l2) should be (true)
     }
 
 

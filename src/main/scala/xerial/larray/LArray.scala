@@ -10,7 +10,8 @@ package xerial.larray
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
 import java.nio.ByteBuffer
-
+import java.nio.channels.WritableByteChannel
+import sun.nio.ch.DirectBuffer
 
 
 /**
@@ -22,7 +23,14 @@ import java.nio.ByteBuffer
  * -
  * @tparam A element type
  */
-trait LArray[A] extends LIterable[A] {
+trait LArray[A] extends LIterable[A] with WritableByteChannel {
+
+  def isOpen: Boolean = true
+
+  def close() { free }
+
+  def write(src:ByteBuffer) : Int =
+    throw new UnsupportedOperationException("write(ByteBuffer)")
 
   /**
    * Create a sequence of DirectByteBuffer that projects LArray contents
@@ -102,6 +110,7 @@ object LArray {
     def free {
       /* do nothing */
     }
+
   }
 
   def empty = EmptyArray
@@ -110,12 +119,12 @@ object LArray {
 
   import _root_.java.{lang=>jl}
 
-  private[larray] def wrap[A:ClassTag](size:Long, m:Memory) : LArray[A] = {
+  private[larray] def wrap[A:ClassTag](byteSize:Long, m:Memory) : LArray[A] = {
     val tag = implicitly[ClassTag[A]]
     tag.runtimeClass match {
-      case jl.Integer.TYPE => new LIntArray(size / 4, m).asInstanceOf[LArray[A]]
-      case jl.Byte.TYPE => new LByteArray(size, m).asInstanceOf[LArray[A]]
-      case jl.Long.TYPE => new LLongArray(size / 8, m).asInstanceOf[LArray[A]]
+      case jl.Integer.TYPE => new LIntArray(byteSize / 4, m).asInstanceOf[LArray[A]]
+      case jl.Byte.TYPE => new LByteArray(byteSize, m).asInstanceOf[LArray[A]]
+      case jl.Long.TYPE => new LLongArray(byteSize / 8, m).asInstanceOf[LArray[A]]
       // TODO Short, Char, Float, Double
       case _ => sys.error(s"unsupported type: $tag")
     }
@@ -346,6 +355,24 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self: LArray[T] =>
 
   private[larray] def m: Memory
+
+  import UnsafeUtil.unsafe
+
+  private var cursor = 0L
+
+  override def write(src:ByteBuffer) : Int = {
+    val len = math.max(src.limit - src.position, 0)
+    val writeLen = src match {
+      case d:DirectBuffer =>
+        unsafe.copyMemory(d.address() + src.position(), m.address + cursor, len)
+        len
+      case arr if src.hasArray =>
+        read(src.array(), src.position(), cursor, len)
+    }
+    cursor += writeLen
+    src.position(src.position + writeLen)
+    writeLen
+  }
 
   override def toDirectByteBuffer: Array[ByteBuffer] = {
     var pos = 0L
