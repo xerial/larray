@@ -7,6 +7,27 @@
 
 package xerial.larray
 
+object UInt32Array {
+
+  def newBuilder = new LArrayBuilder[Long, UInt32Array] {
+    def +=(v: Long): this.type = {
+      ensureSize(byteSize + 4)
+      elems.putInt(byteSize,  (v & 0xFFFFFFFFL).toInt)
+      byteSize += 4
+      this
+    }
+
+    /** Produces a collection from the added elements.
+      * The builder's contents are undefined after this operation.
+      * @return a collection containing the elements added to this builder.
+      */
+    def result(): UInt32Array = {
+      if(capacity != 0L && capacity == byteSize) new UInt32Array(byteSize / 4, elems.m)
+      else new UInt32Array(byteSize / 4, mkArray(byteSize).m)
+    }
+  }
+}
+
 /**
  * Array of uint32 values. The internal array representation is the same with LIntArray, but the apply and update methods are based on Long type values.
  *
@@ -17,8 +38,7 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
 
   import UnsafeUtil.unsafe
 
-  // TODO Extend LArrayBuilder type
-  protected[this] def newBuilder: LBuilder[Long, UInt32Array] = throw new UnsupportedOperationException("Uint32Array.newBuilder")
+  protected[this] def newBuilder: LBuilder[Long, UInt32Array] = UInt32Array.newBuilder
 
   def apply(i:Long) : Long = {
     val v : Long = unsafe.getInt(m.address + (i << 2)) & 0xFFFFFFFFL
