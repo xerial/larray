@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package xerial.larray
+package xerial.larray.util
 
 /**
  * Logger wrapper for using [[xerial.core.log.Logger]] in Java

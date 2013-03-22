@@ -10,6 +10,8 @@ package xerial.larray
 import sun.misc.Unsafe
 import xerial.core.log.Logger
 import java.lang.ref.ReferenceQueue
+import collection.mutable
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 
 /**
  * Accessor to the allocated memory
@@ -45,7 +47,7 @@ object MemoryAllocator {
   /**
    * Provides a default memory allocator
    */
-  implicit val default : MemoryAllocator = new DefaultAllocator
+  implicit val default : MemoryAllocator = new ConcurrentMemoryAllocator
 
 }
 
@@ -58,41 +60,41 @@ object MemoryAllocator {
 trait MemoryAllocator extends Logger {
 
 
-//  // Register a shutdown hook to deallocate memory regions
-//  Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
-//    def run() {
-//      synchronized {
-//        allocatedAddresses foreach(checkAddr(_, false))
-//      }
-//    }
-//  }))
-//
-//  private def checkAddr(addr:Long, doRelease:Boolean) {
-//    warn(f"Found unreleased address:${addr}%x")
-//    if(!hasDisplayedMemoryWarning) {
-//      warn("It looks like LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
-//      hasDisplayedMemoryWarning = true
-//    }
-//    if(doRelease)
-//      release(addr)
-//  }
-//
-//  private var hasDisplayedMemoryWarning = false
-//
-//  /**
-//   * Release all memory addresses taken by this allocator.
-//   * Be careful in using this method, since all the memory addresses in LArray will be invalid.
-//   */
-//  def releaseAll {
-//    synchronized {
-//      val addrSet = allocatedAddresses
-//      if(!addrSet.isEmpty)
-//        trace("Releasing allocated memory regions")
-//      allocatedAddresses foreach(checkAddr(_, true))
-//    }
-//  }
-//
-//  protected def allocatedAddresses : Seq[Long]
+  // Register a shutdown hook to deallocate memory regions
+  Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+    def run() {
+      synchronized {
+        allocatedAddresses foreach(checkAddr(_, false))
+      }
+    }
+  }))
+
+  private def checkAddr(addr:Long, doRelease:Boolean) {
+    warn(f"Found unreleased address:${addr}%x")
+    if(!hasDisplayedMemoryWarning) {
+      warn("It looks like LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+      hasDisplayedMemoryWarning = true
+    }
+    if(doRelease)
+      release(addr)
+  }
+
+  private var hasDisplayedMemoryWarning = false
+
+  /**
+   * Release all memory addresses taken by this allocator.
+   * Be careful in using this method, since all the memory addresses in LArray will be invalid.
+   */
+  def releaseAll {
+    synchronized {
+      val addrSet = allocatedAddresses
+      if(!addrSet.isEmpty)
+        trace("Releasing allocated memory regions")
+      allocatedAddresses foreach(checkAddr(_, true))
+    }
+  }
+
+  protected def allocatedAddresses : Seq[Long]
 
 
   /**
@@ -146,9 +148,13 @@ object UnsafeUtil extends Logger {
 /**
  * Allocate memory using [[sun.misc.Unsafe]]. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
  */
-class DefaultAllocator extends MemoryAllocator with Logger {
+class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryReference]) extends MemoryAllocator with Logger {
 
-  private val allocatedMemoryReferences = collection.mutable.Map[Long, MemoryReference]()
+  def this() = this(collection.mutable.Map[Long, MemoryReference]())
+
+  /**
+   * When Memory is garbage-collected, the reference to the Memory is pushed into this queue.
+   */
   private val queue = new ReferenceQueue[Memory]
 
   {
@@ -177,96 +183,36 @@ class DefaultAllocator extends MemoryAllocator with Logger {
 
   protected def allocatedAddresses : Seq[Long] = synchronized { Seq() ++ allocatedMemoryReferences.values.map(_.address) } // take a copy of the set
 
-  def allocate(size: Long): Memory = {
-    synchronized {
-      val m = Memory(unsafe.allocateMemory(size), this)
-      trace(f"allocated memory of size $size%,d at ${m.address}%x")
-      val ref = new MemoryReference(m, queue)
-      allocatedMemoryReferences += m.address -> ref
-      m
-    }
+  def allocate(size: Long): Memory = synchronized { allocateInternal(size) }
+
+  def release(addr:Long) { synchronized { releaseInternal(addr) } }
+
+  protected def allocateInternal(size: Long): Memory = {
+    val m = Memory(unsafe.allocateMemory(size), this)
+    trace(f"allocated memory of size $size%,d at ${m.address}%x")
+    val ref = new MemoryReference(m, queue)
+    allocatedMemoryReferences += m.address -> ref
+    m
   }
 
-  def release(addr:Long) : Unit = {
-    synchronized {
-      if(allocatedMemoryReferences.contains(addr)) {
-        trace(f"released memory at ${addr}%x")
-        val ref = allocatedMemoryReferences(addr)
-        unsafe.freeMemory(addr)
-        allocatedMemoryReferences.remove(addr)
-      }
+  protected def releaseInternal(addr:Long) {
+    if(allocatedMemoryReferences.contains(addr)) {
+      trace(f"released memory at ${addr}%x")
+      val ref = allocatedMemoryReferences(addr)
+      unsafe.freeMemory(addr)
+      allocatedMemoryReferences.remove(addr)
     }
   }
 }
 
+import collection.JavaConversions._
 /**
- * This class creates a memory allocator for each thread. Expected to increase the concurrency of memory allocation
+ * This class uses ConcurrentHashMap to improve the memory allocation performance
  */
-class ThreadLocalMemoryAllocator extends MemoryAllocator with Logger {
+class ConcurrentMemoryAllocator(memMap : collection.mutable.Map[Long, MemoryReference]) extends DefaultAllocator(memMap)  {
+  def this() = this(new ConcurrentHashMap[Long, MemoryReference]())
 
-  /**
-   * When Memory is garbage-collected, the reference to the Memory is pushed into this queue.
-   */
-  private val queue = new ReferenceQueue[Memory]
-
-  {
-    // Garbage collector
-    val worker = new Thread(new Runnable {
-      def run() {
-        while(true) {
-          try {
-            val ref = queue.remove.asInstanceOf[MemoryReference]
-            trace(f"GC collected memory ${ref.address}%x")
-            release(ref.address)
-          }
-          catch {
-            case e: Exception => warn(e)
-          }
-        }
-      }
-    })
-    worker.setDaemon(true)
-    debug("Started memory collector")
-    worker.start
-  }
-
-
-  /**
-   * Thread-local memory allocator
-   */
-  private class SequentialMemoryAllocator extends MemoryAllocator {
-
-    private val allocatedMemoryReferences = collection.mutable.Map[Long, MemoryReference]()
-
-    import UnsafeUtil.unsafe
-
-    def allocate(size: Long): Memory = {
-      // No synchronization is necessary because this allocator is used by a single thread
-      val m = Memory(unsafe.allocateMemory(size), this)
-      trace(f"allocated memory of size $size%,d at ${m.address}%x")
-      // Use the shared queue
-      val ref = new MemoryReference(m, queue)
-      allocatedMemoryReferences += m.address -> ref
-      m
-    }
-    def release(addr: Long) {
-      if(allocatedMemoryReferences.contains(addr)) {
-        trace(f"released memory at ${addr}%x")
-        val ref = allocatedMemoryReferences(addr)
-        unsafe.freeMemory(addr)
-        allocatedMemoryReferences.remove(addr)
-      }
-    }
-  }
-
-  /**
-   * Thread-local storage that holds MemoryAllocator for each thread
-   */
-  private val tls = new ThreadLocal[MemoryAllocator] {
-    override def initialValue(): MemoryAllocator = new SequentialMemoryAllocator
-  }
-
-  def allocate(size: Long): Memory = tls.get().allocate(size)
-  def release(addr:Long) { tls.get().release(addr) }
+  override def allocate(size: Long): Memory = allocateInternal(size)
+  override def release(addr:Long) : Unit = releaseInternal(addr)
 
 }

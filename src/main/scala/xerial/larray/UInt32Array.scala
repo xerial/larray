@@ -17,6 +17,9 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
 
   import UnsafeUtil.unsafe
 
+  // TODO Extend LArrayBuilder type
+  protected[this] def newBuilder: LArrayBuilder[Long] = throw new UnsupportedOperationException("Uint32Array.newBuilder")
+
   def apply(i:Long) : Long = {
     val v : Long = unsafe.getInt(m.address + (i << 2)) & 0xFFFFFFFFL
     v
@@ -31,4 +34,6 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize: Int = 4
+
+
 }
