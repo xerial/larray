@@ -201,7 +201,7 @@ object LArray {
    * @tparam A
    * @return
    */
-  def newBuilder[A : ClassTag] : LArrayBuilder[A] = LArrayBuilder.make[A]
+  def newBuilder[A : ClassTag] : LBuilder[A, LArray[A]] = LArrayBuilder.make[A]
 
 }
 
@@ -210,6 +210,7 @@ object LArray {
  */
 trait RawByteArray[A] extends LArray[A] {
 
+  def address : Long
 
   /**
    * Get a byte at the index
@@ -360,6 +361,8 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
 
   private var cursor = 0L
 
+  def address = m.address
+
   override def write(src:ByteBuffer) : Int = {
     val len = math.max(src.limit - src.position, 0)
     val writeLen = src match {
@@ -368,6 +371,13 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
         len
       case arr if src.hasArray =>
         read(src.array(), src.position(), cursor, len)
+      case _ =>
+        var i = 0L
+        while(i < len) {
+          m.putByte(m.address + i, src.get((src.position() + i).toInt))
+          i += 1
+        }
+        len
     }
     cursor += writeLen
     src.position(src.position + writeLen)

@@ -18,7 +18,7 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   import UnsafeUtil.unsafe
 
   // TODO Extend LArrayBuilder type
-  protected[this] def newBuilder: LArrayBuilder[Long] = throw new UnsupportedOperationException("Uint32Array.newBuilder")
+  protected[this] def newBuilder: LBuilder[Long, UInt32Array] = throw new UnsupportedOperationException("Uint32Array.newBuilder")
 
   def apply(i:Long) : Long = {
     val v : Long = unsafe.getInt(m.address + (i << 2)) & 0xFFFFFFFFL

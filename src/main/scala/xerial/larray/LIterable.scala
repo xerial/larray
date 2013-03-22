@@ -22,7 +22,7 @@ trait LIterable[A] { self : LArray[A] =>
 
   type Repr = LArray[A]
 
-  protected[this] def newBuilder : LArrayBuilder[A]
+  protected[this] def newBuilder : LBuilder[A, LArray[A]]
 
   def iterator : LIterator[A] = new AbstractLIterator[A] {
     private var index = 0L
