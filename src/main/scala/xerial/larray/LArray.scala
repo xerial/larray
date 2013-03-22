@@ -9,6 +9,9 @@ package xerial.larray
 
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
+import java.nio.ByteBuffer
+import java.nio.channels.WritableByteChannel
+import sun.nio.ch.DirectBuffer
 
 
 /**
@@ -20,7 +23,22 @@ import xerial.core.log.Logger
  * -
  * @tparam A element type
  */
-trait LArray[A] extends LIterable[A] {
+trait LArray[A] extends LIterable[A] with WritableByteChannel {
+
+  def isOpen: Boolean = true
+
+  def close() { free }
+
+  def write(src:ByteBuffer) : Int =
+    throw new UnsupportedOperationException("write(ByteBuffer)")
+
+  /**
+   * Create a sequence of DirectByteBuffer that projects LArray contents
+   * @return sequence of [[java.nio.ByteBuffer]]
+   */
+  def toDirectByteBuffer : Array[ByteBuffer] =
+    throw new UnsupportedOperationException("toDirectByteBuffer")
+
 
   /**
    * Size of this array
@@ -69,12 +87,13 @@ object LArray {
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
 
-
   object EmptyArray
     extends LArray[Nothing]
     with LIterable[Nothing]
   {
     private[larray] def elementByteSize : Int = 0
+
+    override def toDirectByteBuffer = Array.empty
 
     def newBuilder = LArray.newBuilder[Nothing]
 
@@ -91,6 +110,7 @@ object LArray {
     def free {
       /* do nothing */
     }
+
   }
 
   def empty = EmptyArray
@@ -99,12 +119,12 @@ object LArray {
 
   import _root_.java.{lang=>jl}
 
-  private[larray] def wrap[A:ClassTag](size:Long, m:Memory) : LArray[A] = {
+  private[larray] def wrap[A:ClassTag](byteSize:Long, m:Memory) : LArray[A] = {
     val tag = implicitly[ClassTag[A]]
     tag.runtimeClass match {
-      case jl.Integer.TYPE => new LIntArray(size / 4, m).asInstanceOf[LArray[A]]
-      case jl.Byte.TYPE => new LByteArray(size, m).asInstanceOf[LArray[A]]
-      case jl.Long.TYPE => new LLongArray(size / 8, m).asInstanceOf[LArray[A]]
+      case jl.Integer.TYPE => new LIntArray(byteSize / 4, m).asInstanceOf[LArray[A]]
+      case jl.Byte.TYPE => new LByteArray(byteSize, m).asInstanceOf[LArray[A]]
+      case jl.Long.TYPE => new LLongArray(byteSize / 8, m).asInstanceOf[LArray[A]]
       // TODO Short, Char, Float, Double
       case _ => sys.error(s"unsupported type: $tag")
     }
@@ -181,7 +201,7 @@ object LArray {
    * @tparam A
    * @return
    */
-  def newBuilder[A : ClassTag] : LArrayBuilder[A] = LArrayBuilder.make[A]
+  def newBuilder[A : ClassTag] : LBuilder[A, LArray[A]] = LArrayBuilder.make[A]
 
 }
 
@@ -189,6 +209,8 @@ object LArray {
  * read/write operations that can be supported for LArrays using raw byte arrays as their back-end.
  */
 trait RawByteArray[A] extends LArray[A] {
+
+  def address : Long
 
   /**
    * Get a byte at the index
@@ -334,6 +356,45 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self: LArray[T] =>
 
   private[larray] def m: Memory
+
+  import UnsafeUtil.unsafe
+
+  private var cursor = 0L
+
+  def address = m.address
+
+  override def write(src:ByteBuffer) : Int = {
+    val len = math.max(src.limit - src.position, 0)
+    val writeLen = src match {
+      case d:DirectBuffer =>
+        unsafe.copyMemory(d.address() + src.position(), m.address + cursor, len)
+        len
+      case arr if src.hasArray =>
+        read(src.array(), src.position(), cursor, len)
+      case _ =>
+        var i = 0L
+        while(i < len) {
+          m.putByte(m.address + i, src.get((src.position() + i).toInt))
+          i += 1
+        }
+        len
+    }
+    cursor += writeLen
+    src.position(src.position + writeLen)
+    writeLen
+  }
+
+  override def toDirectByteBuffer: Array[ByteBuffer] = {
+    var pos = 0L
+    val b = Array.newBuilder[ByteBuffer]
+    val limit = byteLength
+    while(pos < limit){
+      val len : Long = math.min(limit - pos, Int.MaxValue)
+      b += UnsafeUtil.newDirectByteBuffer(m.address + pos, len.toInt)
+      pos += len
+    }
+    b.result()
+  }
 
   /**
    * Write the contents of this array to the destination buffer

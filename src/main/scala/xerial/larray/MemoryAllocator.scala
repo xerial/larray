@@ -12,6 +12,7 @@ import xerial.core.log.Logger
 import java.lang.ref.ReferenceQueue
 import collection.mutable
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
+import java.nio.ByteBuffer
 
 /**
  * Accessor to the allocated memory
@@ -118,6 +119,15 @@ object UnsafeUtil extends Logger {
     f.setAccessible(true)
     f.get(null).asInstanceOf[Unsafe]
   }
+
+  private val dbbCC = Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(classOf[Long], classOf[Int])
+
+  def newDirectByteBuffer(addr:Long, size:Int) : ByteBuffer = {
+    dbbCC.setAccessible(true)
+    val b = dbbCC.newInstance(new java.lang.Long(addr), new java.lang.Integer(size))
+    b.asInstanceOf[ByteBuffer]
+  }
+
 
   val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
   val objectArrayOffset = unsafe.arrayBaseOffset(classOf[Array[AnyRef]]).toLong
