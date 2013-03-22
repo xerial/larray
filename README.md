@@ -34,7 +34,7 @@ LArray uses OS-specific implementation for copying memory contents between LArra
  * Linux (amd64 (Intel 64-bit), arm, armhf)
  * Mac OSX (Intel 64bit)
 
-In addition, Oracle JVM (standard JVM) must be used since LArray depends on `sun.misc.Unsafe` class.
+In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## Usage (Scala)
 Add the following sbt dependencies to your project settings:
