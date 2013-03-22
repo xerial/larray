@@ -8,7 +8,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * For example the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory immedeately. 
    * Call LArray.free to release acquired memory resources.
-   * The default arrays in Java/Scala are resident in JVM heaps, where users have no control of the allocated space even if arrays become unnecessary. That means it is hard to avoid OutOfMemoryException when working with large amount of data.
+   * The default arrays in Java/Scala are resident in JVM heaps, in which users cannot free the allocate arrays space even if they become unnecessary. That means it is hard to avoid OutOfMemoryException when working with large amount of data.
  * LArray is in sync with Garbage Collection (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List)
