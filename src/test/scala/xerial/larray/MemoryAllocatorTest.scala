@@ -23,21 +23,27 @@ class MemoryAllocatorTest extends LArraySpec {
         val t = time("alloc", repeat = 5) {
           block("default") {
             val l = for (i <- (0 until N).par) yield {
-              new LIntArray(B)(m1)
+              val a = new LIntArray(B)(m1)
+              a(B-1) = 1
+              a
             }
             l.foreach(_.free)
           }
 
           block("concurrent") {
             val l = for (i <- (0 until N).par) yield {
-              new LIntArray(B)(m2)
+              val a = new LIntArray(B)(m2)
+              a(B-1) = 1
+              a
             }
             l.foreach(_.free)
           }
 
           block("Array") {
             val l = for (i <- (0 until N).par) yield {
-              new Array[Int](B)
+              val a = new Array[Int](B)
+              a(B-1) = 1
+              a
             }
           }
         }
