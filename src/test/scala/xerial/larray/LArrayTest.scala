@@ -7,6 +7,7 @@
 
 package xerial.larray
 import scala.util.Random
+import java.io.{FileInputStream, File, FileOutputStream}
 
 /**
  * @author Taro L. Saito
@@ -106,6 +107,22 @@ class LArrayTest extends LArraySpec {
 
     }
 
+    "read/write data through ByteBuffer" taggedAs("bb") in {
+      val l = LArray(1, 3, 5, 134, 34, -3, 2)
+      val bb = l.toDirectByteBuffer
+
+      val tmp = File.createTempFile("larray-dump", ".dat", new File("target"))
+      debug(s"Write LArray to file: $tmp")
+      tmp.deleteOnExit()
+      val out = new FileOutputStream(tmp).getChannel
+      out.write(bb)
+      out.close()
+
+      //val in = new FileInputStream(tmp).getChannel
+
+      //new LArrayInputStream[Int](new FileInputStream(tmp))
+
+    }
 
 
 
