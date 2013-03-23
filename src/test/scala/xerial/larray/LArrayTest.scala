@@ -156,7 +156,23 @@ class LArrayTest extends LArraySpec {
 
     }
 
+    "provide initializer" taggedAs("init") in {
 
+      {
+        val l = new LIntArray(1000)
+        l(40) = 34
+        l.clear()
+        l.forall(_ == 0) should be (true)
+      }
+
+
+      {
+        val l = new LByteArray(1000)
+        l(340) = 34.toByte
+        l.clear()
+        l.forall(_ == 0) should be (true)
+      }
+    }
 
     "compare its random access performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024

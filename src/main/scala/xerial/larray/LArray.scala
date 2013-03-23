@@ -29,6 +29,11 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel {
 
   def close() { free }
 
+  /**
+   * Clear the contents of the array. It simply fills the array with zero bytes.
+   */
+  def clear()
+
   def write(src:ByteBuffer) : Int =
     throw new UnsupportedOperationException("write(ByteBuffer)")
 
@@ -80,6 +85,7 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel {
 
 
 /**
+ * LArray factory
  * @author Taro L. Saito
  */
 object LArray {
@@ -92,6 +98,8 @@ object LArray {
     with LIterable[Nothing]
   {
     private[larray] def elementByteSize : Int = 0
+
+    def clear() {}
 
     override def toDirectByteBuffer = Array.empty
 
@@ -274,6 +282,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
 
   protected[this] def newBuilder = LArray.newBuilder[Int]
 
+
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
@@ -281,6 +290,10 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
 
   private val arr = {
     new Array[Int](size.toInt)
+  }
+
+  def clear() {
+    java.util.Arrays.fill(arr, 0, size.toInt, 0)
   }
 
   def apply(i: Long): Int = {
@@ -327,6 +340,12 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
   private val numBlocks = ((size + (B - 1L))/ B).toInt
   private val arr = Array.ofDim[Int](numBlocks, B)
 
+  def clear() {
+    for(a <- arr) {
+      java.util.Arrays.fill(a, 0, a.length, 0)
+    }
+  }
+
   /**
    * Retrieve an element
    * @param i index
@@ -362,6 +381,11 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
   private var cursor = 0L
 
   def address = m.address
+
+  def clear() {
+    unsafe.setMemory(address, byteLength, 0)
+  }
+
 
   override def write(src:ByteBuffer) : Int = {
     val len = math.max(src.limit - src.position, 0)
@@ -598,6 +622,9 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
 
   protected[this] def newBuilder = LArrayBuilder.ofObject[A]
 
+  def clear() {
+    java.util.Arrays.fill(array.asInstanceOf[Array[AnyRef]], 0, length.toInt, null)
+  }
 
   def apply(i: Long) = array(i.toInt)
   def update(i: Long, v: A) = {
@@ -621,7 +648,6 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
 
   protected[this] def newBuilder = LArrayBuilder.ofObject[A]
 
-
   /**
    * block size in pow(2, B)
    */
@@ -644,6 +670,14 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
     }
     a
   }
+
+  def clear() {
+    for(arr <- array) {
+      val a = arr.asInstanceOf[Array[AnyRef]]
+      java.util.Arrays.fill(a, 0, a.length, null)
+    }
+  }
+
 
   def apply(i: Long) = array(index(i))(offset(i))
   def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }
