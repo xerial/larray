@@ -159,6 +159,7 @@ trait LIterable[A] { self : LArray[A] =>
   }
   def indexOf[B>:A](elem:B) : Long = iterator.indexOf(elem)
 
+  def slice(from:Long) = slice(from, size)
 
   def slice(from:Long, until:Long) : LArray[A] = {
     val lo    = math.max(from, 0L)

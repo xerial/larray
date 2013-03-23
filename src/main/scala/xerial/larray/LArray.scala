@@ -12,6 +12,7 @@ import xerial.core.log.Logger
 import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
 import sun.nio.ch.DirectBuffer
+import java.lang
 
 
 /**
@@ -121,11 +122,24 @@ object LArray {
 
   }
 
+  import _root_.java.{lang=>jl}
+
+  def of[A : ClassTag](size:Long) : LArray[A] = {
+    val tag = implicitly[ClassTag[A]]
+    tag.runtimeClass match {
+      case jl.Integer.TYPE => new LIntArray(size).asInstanceOf[LArray[A]]
+      case jl.Byte.TYPE => new LByteArray(size).asInstanceOf[LArray[A]]
+      case jl.Long.TYPE => new LLongArray(size).asInstanceOf[LArray[A]]
+      // TODO Short, Char, Float, Double
+      case _ => sys.error(s"unsupported type: $tag")
+    }
+  }
+
   def empty = EmptyArray
 
   def apply() = EmptyArray
 
-  import _root_.java.{lang=>jl}
+
 
   private[larray] def wrap[A:ClassTag](byteSize:Long, m:Memory) : LArray[A] = {
     val tag = implicitly[ClassTag[A]]
