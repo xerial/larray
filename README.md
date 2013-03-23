@@ -8,7 +8,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * For example, the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory immediately. 
    * Call LArray.free 
-   * The default arrays in Java/Scala are resident in JVM heaps until collected by GC, so it is generally hard to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array(1000)` 10,000 times.
+   * The default arrays in Java/Scala are resident in JVM heaps until collected by GC, so it is generally hard to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` 10,000 times. You are lucky if you don't see OutOfMemoryException without using `-Xmx` option.
  * LArray can be collected by Garbage Collection (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List)
@@ -17,7 +17,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * Fast memory allocation
    * LArray internally uses concurrent memory allocator suited to multi-threaded programs, which is faster than the default JVM memory allocator.
  * LArray can be used as DirectBuffer
-   * Enables zero-copy transfer to/from File, network, etc.
+   * Enables zero-copy transfer to/from files, network, etc.
  * Rich set of operations for LArray[A]
    * map, filter, reduce, zip, etc.
 
