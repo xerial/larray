@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
 import sun.nio.ch.DirectBuffer
 import java.lang
+import java.io.{FileInputStream, FileOutputStream, File}
 
 
 /**
@@ -82,6 +83,18 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel {
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize : Int
+
+
+  def saveTo(f:File) : File = {
+    val fout = new FileOutputStream(f).getChannel
+    try {
+      fout.write(this.toDirectByteBuffer)
+      f
+    }
+    finally
+      fout.close
+  }
+
 }
 
 
@@ -92,6 +105,22 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel {
 object LArray {
 
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
+
+  def loadFrom[A : ClassTag](f:File) : LArray[A] = {
+    val fin = new FileInputStream(f).getChannel
+    try {
+      var pos = 0L
+      val fileSize = fin.size()
+      val b = LArray.newBuilder[A]
+      b.sizeHint(fileSize)
+      while(pos < fileSize) {
+        pos += fin.transferTo(pos, fileSize - pos, b)
+      }
+      b.result()
+    }
+    finally
+      fin.close
+  }
 
 
   object EmptyArray

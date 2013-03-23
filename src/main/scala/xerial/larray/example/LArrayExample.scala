@@ -32,38 +32,27 @@ class LArrayExample {
   for((e, i) <- l.zipWithIndex)
     println(s"l($i) = $e") // l(0) = 0, l(1) = 1, ...
 
-  // Manipulating LArray
+  // Manipulate LArray
   val l2 = l.map(_ * 10) // LArray(0, 10, 20, 30, 40)
   val f = l.filter(_ % 2 == 0) // LArray(0, 2, 4)
   val s = l.slice(2) // LArray(2, 3, 4)
 
-  // Building LArray
+  // Build LArray
   val b = LArray.newBuilder[Int]
   for(i <- 0 until 10 step 3)
     b += i
   val lb = b.result // LArray(0, 3, 6, 9)
 
-  // Create Array
+  // Convert to Scala Array
   val arr = l.toArray
   print(arr.mkString(", ")) // 0, 1, 2, 3, 4
 
   // Save to a file
-  import java.io._
-  val fout = new FileOutputStream("larary.tmp").getChannel
-  fout.write(l.toDirectByteBuffer)
-  fout.close
+  import java.io.File
+  val file = l.saveTo(new File("larray.tmp"))
 
   // Read from a file
-  val fin = new FileInputStream("larray.tmp").getChannel
-  var pos = 0L
-  val fileSize = fin.size()
-  val b2 = LArray.newBuilder[Int]
-  b2.sizeHint(fileSize)
-  while(pos < fileSize) {
-    pos += fin.transferTo(pos, fileSize - pos, b2)
-  }
-  fin.close
-  val l3 = b2.result() // LArray(0, 1, 2, 3, 4)
+  val l3 = LArray.loadFrom[Int](file) // LArray(0, 1, 2, 3, 4)
 
   // Initialize the array
   l.clear()
