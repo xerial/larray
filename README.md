@@ -71,7 +71,7 @@ l2.free
 l2(0) // The result of accessing released LArray is undefined
 ```
 
-For more example, see [xerail/larray/example/LArrayExample.scala](https://github.com/xerial/larray/blob/develop/src/main/scala/xerial/larray/example/LArrayExample.scala)
+For more examples, see [xerail/larray/example/LArrayExample.scala](https://github.com/xerial/larray/blob/develop/src/main/scala/xerial/larray/example/LArrayExample.scala)
 
 ## Usage (Java)
 
