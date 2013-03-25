@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 import sun.nio.ch.DirectBuffer
 
 /**
- * Extention of [[scala.collection.mutable.Builder]] to Long indexes
+ * Extension of `scala.collection.mutable.Builder` using Long indexes
  * @tparam Elem element type
  * @tparam To LArray type to generate
  */

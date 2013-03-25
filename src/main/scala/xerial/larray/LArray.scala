@@ -15,38 +15,11 @@ import sun.nio.ch.DirectBuffer
 import java.lang
 import java.io.{FileInputStream, FileOutputStream, File}
 
-
 /**
- * Large Array (LArray) interface. The differences from Array[A] includes:
- *
- * - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, a limitation of Array[A].
- * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[xerial.larray.LArray#free]].
- * - LArray elements are not initialized, so explicit initialization is needed
- * -
- * @tparam A element type
+ * Read-only interface of [[xerial.larray.LArray]]
+ * @tparam A
  */
-trait LArray[A] extends LIterable[A] with WritableByteChannel  {
-
-  def isOpen: Boolean = true
-
-  def close() { free }
-
-  /**
-   * Clear the contents of the array. It simply fills the array with zero bytes.
-   */
-  def clear()
-
-  def write(src:ByteBuffer) : Int =
-    throw new UnsupportedOperationException("write(ByteBuffer)")
-
-  /**
-   * Create a sequence of DirectByteBuffer that projects LArray contents
-   * @return sequence of [[java.nio.ByteBuffer]]
-   */
-  def toDirectByteBuffer : Array[ByteBuffer] =
-    throw new UnsupportedOperationException("toDirectByteBuffer")
-
-
+trait LSeq[A] extends LIterable[A] {
   /**
    * Size of this array
    * @return size of this array
@@ -67,12 +40,9 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel  {
   def apply(i: Long): A
 
   /**
-   * Update an element
-   * @param i index to be updated
-   * @param v value to set
-   * @return the value
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
-  def update(i: Long, v: A): A
+  private[larray] def elementByteSize : Int
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
@@ -80,9 +50,11 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel  {
   def free
 
   /**
-   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   * Create a sequence of DirectByteBuffer that projects LArray contents
+   * @return sequence of `java.nio.ByteBuffer`
    */
-  private[larray] def elementByteSize : Int
+  def toDirectByteBuffer : Array[ByteBuffer] =
+    throw new UnsupportedOperationException("toDirectByteBuffer")
 
 
   /**
@@ -100,10 +72,53 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel  {
       fout.close
   }
 
-  def view(from:Long, to:Long) : LArrayView[A] = {
 
-  }
 
+  //  def view(from:Long, to:Long) : LArrayView[A] = {
+  //
+  //  }
+  //
+}
+
+/**
+ * Large Array (LArray) interface.
+ *
+ * The differences from Array[A] are:
+ *
+ *  - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, that is a limitation of standard Array[A].
+ *  - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[xerial.larray.LArray#free]].
+ *  - LArray elements are not initialized, so explicit initialization is needed
+ *
+ * @tparam A element type
+ */
+trait LArray[A] extends LSeq[A] with WritableByteChannel  {
+
+  def isOpen: Boolean = true
+
+  def close() { free }
+
+  /**
+   * Wraps with immutable interface
+   * @return
+   */
+  def toSeq : LSeq[A] = this.asInstanceOf[LSeq[A]]
+
+  /**
+   * Clear the contents of the array. It simply fills the array with zero bytes.
+   */
+  def clear()
+
+  def write(src:ByteBuffer) : Int =
+    throw new UnsupportedOperationException("write(ByteBuffer)")
+
+
+  /**
+   * Update an element
+   * @param i index to be updated
+   * @param v value to set
+   * @return the value
+   */
+  def update(i: Long, v: A): A
 }
 
 

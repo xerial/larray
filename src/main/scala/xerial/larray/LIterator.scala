@@ -122,7 +122,6 @@ trait LIterator[+A] {
 
   /** Returns the index of the first occurrence of the specified
     *  object in this iterable object.
-    *  $mayNotTerminateInf
     *
     *  @param  elem  element to search for.
     *  @return the index of the first occurrence of `elem` in the values produced by this iterator,

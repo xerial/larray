@@ -17,7 +17,7 @@ import collection.{AbstractIterator, Iterator}
  *
  * @author Taro L. Saito
  */
-trait LIterable[A] { self : LArray[A] =>
+trait LIterable[A] { self : LSeq[A] =>
 
   type Repr = LArray[A]
 

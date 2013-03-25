@@ -50,7 +50,7 @@ object LBitArray {
 /**
  *
  * Specialized implementaiton of LArray[Boolean] using LArray[Long]
- * To generate an instance of LBitArray, use [[xerial.larray.LBitArray#newBuilder(long)]] or [[xerial.larray.LBitArray#apply]]
+ * To generate an instance of LBitArray, use ``LBitArray.newBuilder(Long)`` or [[xerial.larray.LBitArray#apply]]
  *
  * @param seq raw bit string
  * @param numBits

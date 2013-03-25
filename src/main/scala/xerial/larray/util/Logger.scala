@@ -8,7 +8,7 @@
 package xerial.larray.util
 
 /**
- * Logger wrapper for using [[xerial.core.log.Logger]] in Java
+ * Logger wrapper for using `xerial.core.log.Logger` in Java
  * @author Taro L. Saito
  */
 class Logger(cl:Class[_]) {
