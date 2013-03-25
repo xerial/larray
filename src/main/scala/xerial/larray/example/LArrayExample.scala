@@ -44,7 +44,7 @@ class LArrayExample {
 
   // Build LArray
   val b = LArray.newBuilder[Int]
-  for(i <- 0 until 10 step 3)
+  for(i <- 0 until (10, step=3))
     b += i
   val lb = b.result // LArray(0, 3, 6, 9)
 
