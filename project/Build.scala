@@ -41,12 +41,21 @@ object Build extends sbt.Build {
         parallelExecution := true,
         parallelExecution in Test := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
+        scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
+          Seq("-sourcepath", bd.getAbsolutePath,
+            "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
+          "-doc-title", "LArray API",
+          "-doc-version", v
+          )
+        },
         // custom settings here
         scalaVersion := SCALA_VERSION,
         crossPaths := false,
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.1",
+          "junit" % "junit" % "4.10" % "test",
+          "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
           "org.scala-lang" % "scala-reflect" % SCALA_VERSION
         ),
