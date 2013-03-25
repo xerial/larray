@@ -200,6 +200,37 @@ object LArrayBuilder {
     }
   }
 
+  def ofFloat = new LArrayBuilder[Float, LFloatArray] {
+
+    def +=(elem: Float): this.type = {
+      ensureSize(byteSize + 4)
+      elems.putFloat(byteSize, elem)
+      byteSize += 4
+      this
+    }
+
+    def result(): LFloatArray = {
+      if(capacity != 0L && capacity == byteSize) new LFloatArray(byteSize / 4, elems.m)
+      else new LFloatArray(byteSize / 4, mkArray(byteSize).m)
+    }
+  }
+
+
+  def ofDouble = new LArrayBuilder[Double, LDoubleArray] {
+
+    def +=(elem: Double): this.type = {
+      ensureSize(byteSize + 8)
+      elems.putDouble(byteSize, elem)
+      byteSize += 8
+      this
+    }
+
+    def result(): LDoubleArray = {
+      if(capacity != 0L && capacity == byteSize) new LDoubleArray(byteSize / 8, elems.m)
+      else new LDoubleArray(byteSize / 8, mkArray(byteSize).m)
+    }
+
+  }
 
   // TODO ofChar
   // TODO ofShort

@@ -648,6 +648,8 @@ class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: M
 {
   def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
+
+
   private [larray] def elementByteSize = 8
 
   import UnsafeUtil.unsafe
@@ -663,6 +665,8 @@ class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: M
     unsafe.putDouble(m.address + (i << 2), v)
     v
   }
+
+  protected[this] def newBuilder: LBuilder[Double, LArray[Double]] = LArrayBuilder.ofDouble
 }
 
 class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -686,6 +690,8 @@ class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
     unsafe.putFloat(m.address + (i << 2), v)
     v
   }
+
+  protected[this] def newBuilder: LBuilder[Float, LArray[Float]] = LArrayBuilder.ofFloat
 }
 
 
