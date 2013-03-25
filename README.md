@@ -90,3 +90,9 @@ l.apply(0L);  //  Get l[0L]
 // release 
 l.free();
 ```
+
+## Scaladoc
+
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/snapshots/archive/org/xerial/larray/0.1-SNAPSHOT/larray-0.1-SNAPSHOT-javadoc.jar/!/index.html#xerial.larray.package)
+ 
+ 
