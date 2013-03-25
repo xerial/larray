@@ -158,8 +158,12 @@ object LArray {
     tag.runtimeClass match {
       case jl.Integer.TYPE => new LIntArray(size).asInstanceOf[LArray[A]]
       case jl.Byte.TYPE => new LByteArray(size).asInstanceOf[LArray[A]]
+      case jl.Character.TYPE => new LCharArray(size).asInstanceOf[LArray[A]]
+      case jl.Short.TYPE => new LShortArray(size).asInstanceOf[LArray[A]]
       case jl.Long.TYPE => new LLongArray(size).asInstanceOf[LArray[A]]
-      // TODO Short, Char, Float, Double
+      case jl.Float.TYPE => new LFloatArray(size).asInstanceOf[LArray[A]]
+      case jl.Double.TYPE => new LDoubleArray(size).asInstanceOf[LArray[A]]
+      case jl.Boolean.TYPE => new LBitArray(size).asInstanceOf[LArray[A]]
       case _ => sys.error(s"unsupported type: $tag")
     }
   }
@@ -176,7 +180,11 @@ object LArray {
       case jl.Integer.TYPE => new LIntArray(byteSize / 4, m).asInstanceOf[LArray[A]]
       case jl.Byte.TYPE => new LByteArray(byteSize, m).asInstanceOf[LArray[A]]
       case jl.Long.TYPE => new LLongArray(byteSize / 8, m).asInstanceOf[LArray[A]]
-      // TODO Short, Char, Float, Double
+      case jl.Character.TYPE => new LCharArray(byteSize / 2, m).asInstanceOf[LArray[A]]
+      case jl.Short.TYPE => new LShortArray(byteSize/ 2, m).asInstanceOf[LArray[A]]
+      case jl.Float.TYPE => new LFloatArray(byteSize / 4, m).asInstanceOf[LArray[A]]
+      case jl.Double.TYPE => new LDoubleArray(byteSize / 8, m).asInstanceOf[LArray[A]]
+      //case jl.Boolean.TYPE => new LBitArray(byteSize * 8, m).asInstanceOf[LArray[A]]
       case _ => sys.error(s"unsupported type: $tag")
     }
   }
@@ -317,102 +325,6 @@ trait RawByteArray[A] extends LArray[A] {
 
 
 
-/**
- * Wrapping Array[Int] to support Long-type indexes
- * @param size array size
- */
-class LIntArraySimple(val size: Long) extends LArray[Int] {
-
-  protected[this] def newBuilder = LArray.newBuilder[Int]
-
-
-  private def boundaryCheck(i: Long) {
-    if (i > Int.MaxValue)
-      sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
-  }
-
-  private val arr = {
-    new Array[Int](size.toInt)
-  }
-
-  def clear() {
-    java.util.Arrays.fill(arr, 0, size.toInt, 0)
-  }
-
-  def apply(i: Long): Int = {
-    //boundaryCheck(i)
-    arr.apply(i.toInt)
-  }
-
-  // a(i) = a(j) = 1
-  def update(i: Long, v: Int): Int = {
-    //boundaryCheck(i)
-    arr.update(i.toInt, v)
-    v
-  }
-
-  def free {
-    // do nothing
-  }
-
-  /**
-   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
-   */
-  private[larray] def elementByteSize: Int = 4
-}
-
-
-/**
- * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
- * @param size array size
- */
-class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
-
-  private[larray] def elementByteSize: Int = 4
-
-  protected[this] def newBuilder = LArray.newBuilder[Int]
-
-
-  private val maskLen : Int = 24
-  private val B : Int = 1 << maskLen // block size
-  private val mask : Long = ~(~0L << maskLen)
-
-  @inline private def index(i:Long) : Int = (i >>> maskLen).toInt
-  @inline private def offset(i:Long) : Int = (i & mask).toInt
-
-  private val numBlocks = ((size + (B - 1L))/ B).toInt
-  private val arr = Array.ofDim[Int](numBlocks, B)
-
-  def clear() {
-    for(a <- arr) {
-      java.util.Arrays.fill(a, 0, a.length, 0)
-    }
-  }
-
-  /**
-   * Retrieve an element
-   * @param i index
-   * @return the element value
-   */
-  def apply(i: Long) = arr(index(i))(offset(i))
-
-  /**
-   * Update an element
-   * @param i index to be updated
-   * @param v value to set
-   * @return the value
-   */
-  def update(i: Long, v: Int) = {
-    arr(index(i))(offset(i)) = v
-    v
-  }
-
-  /**
-   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
-   */
-  def free {}
-
-}
 
 
 private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self: LArray[T] =>
@@ -508,6 +420,32 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
   def putLong(offset:Long, v:Long) = m.putLong(offset, v)
   def putDouble(offset:Long, v:Double) = m.putDouble(offset, v)
 
+}
+
+
+class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: MemoryAllocator)
+  extends LArray[Char]
+  with UnsafeArray[Char]
+{
+  protected[this] def newBuilder = LArray.newBuilder[Char]
+
+  def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 1))
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Char = {
+    unsafe.getChar(m.address + (i << 1))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Char): Char = {
+    unsafe.putChar(m.address + (i << 1), v)
+    v
+  }
+
+  /**
+   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+   */
+  private[larray] def elementByteSize: Int = 2
 }
 
 /**
@@ -692,6 +630,31 @@ class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   }
 
   protected[this] def newBuilder: LBuilder[Float, LArray[Float]] = LArrayBuilder.ofFloat
+}
+
+class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+  extends LArray[Short]
+  with UnsafeArray[Short]
+{
+  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 1))
+
+  private [larray] def elementByteSize = 2
+
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Short =
+  {
+    unsafe.getShort(m.address + (i << 1))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Short): Short =
+  {
+    unsafe.putShort(m.address + (i << 1), v)
+    v
+  }
+
+  protected[this] def newBuilder: LBuilder[Short, LArray[Short]] = LArrayBuilder.ofShort
 }
 
 

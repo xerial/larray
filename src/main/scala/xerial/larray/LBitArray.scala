@@ -64,6 +64,7 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
   import BitEncoder._
 
   def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
+  def this(numBits:Long, m:Memory) = this(new LLongArray(BitEncoder.minArraySize(numBits), m), numBits)
 
   def size = numBits
   private var hash: Int = 0

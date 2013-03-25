@@ -165,14 +165,13 @@ object LArrayBuilder {
     val tag = implicitly[ClassTag[T]]
     tag.runtimeClass match {
       case java.lang.Byte.TYPE      => new LByteArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
-      case java.lang.Short.TYPE     => sys.error("Not yet implemented")
-      case java.lang.Character.TYPE => sys.error("Not yet implemented")
+      case java.lang.Short.TYPE     => ofShort.asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Character.TYPE => ofChar.asInstanceOf[LBuilder[T, LArray[T]]]
       case java.lang.Integer.TYPE   => ofInt.asInstanceOf[LBuilder[T, LArray[T]]]
-      case java.lang.Long.TYPE      => sys.error("Not yet implemented")
-      case java.lang.Float.TYPE     => sys.error("Not yet implemented")
-      case java.lang.Double.TYPE    => sys.error("Not yet implemented")
-      case java.lang.Boolean.TYPE   => sys.error("Not yet implemented")
-      case java.lang.Void.TYPE      => sys.error("Not yet implemented")
+      case java.lang.Long.TYPE      => ofLong.asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Float.TYPE     => ofFloat.asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Double.TYPE    => ofDouble.asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Boolean.TYPE   => new LBitArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
       case _                        => ofObject[T].asInstanceOf[LBuilder[T, LArray[T]]]
     }
   }
@@ -183,6 +182,35 @@ object LArrayBuilder {
    * common functions (e.g., resize, mkArray) using type parameter, we cannot avoid boxing/unboxing.
    *
    */
+
+  def ofChar = new LArrayBuilder[Char, LCharArray] {
+    def +=(elem: Char): this.type = {
+      ensureSize(byteSize + 2)
+      elems.putChar(byteSize, elem)
+      byteSize += 2
+      this
+    }
+    def result(): LCharArray = {
+      if(capacity != 0L && capacity == byteSize) new LCharArray(byteSize / 2, elems.m)
+      else new LCharArray(byteSize / 2, mkArray(byteSize).m)
+    }
+  }
+
+
+
+  def ofShort = new LArrayBuilder[Short, LShortArray] {
+    def +=(elem: Short): this.type = {
+      ensureSize(byteSize + 2)
+      elems.putShort(byteSize, elem)
+      byteSize += 2
+      this
+    }
+    def result(): LShortArray = {
+      if(capacity != 0L && capacity == byteSize) new LShortArray(byteSize / 2, elems.m)
+      else new LShortArray(byteSize / 2, mkArray(byteSize).m)
+    }
+  }
+
 
 
   def ofInt = new LArrayBuilder[Int, LIntArray] {
@@ -215,6 +243,22 @@ object LArrayBuilder {
     }
   }
 
+  def ofLong = new LArrayBuilder[Long, LLongArray] {
+
+    def +=(elem: Long): this.type = {
+      ensureSize(byteSize + 8)
+      elems.putLong(byteSize, elem)
+      byteSize += 8
+      this
+    }
+
+    def result(): LLongArray = {
+      if(capacity != 0L && capacity == byteSize) new LLongArray(byteSize / 8, elems.m)
+      else new LLongArray(byteSize / 8, mkArray(byteSize).m)
+    }
+
+  }
+
 
   def ofDouble = new LArrayBuilder[Double, LDoubleArray] {
 
@@ -231,12 +275,6 @@ object LArrayBuilder {
     }
 
   }
-
-  // TODO ofChar
-  // TODO ofShort
-  // TODO ofFloat
-  // TODO ofLong
-  // TODO ofDouble
 
 
   def ofObject[A:ClassTag] = new LBuilder[A, LArray[A]] {
