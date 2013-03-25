@@ -18,7 +18,7 @@ package xerial
  *  - LArray uses off-heap memory, so it is free from the limitation of JVM memory manager.
  *    - LArray uses memory space outside of the default JVM heap, so creating LArrays with more than -Xmx(maximum memory size) is possible. This is useful when you need large amount of memory or the amount of memory required in your application is unknown.
  *  - Fast copy and memory allocation
- *    - LArray internally uses concurrent memory allocator suited to multi-threaded programs.
+ *    - LArray
  *  - Rich set of operations for LArray[A]
  *    - map, filter, reduce, zip, etc.
  *
@@ -29,6 +29,18 @@ package xerial
  *
  */
 package object larray {
+
+  implicit class ConvertToLArray[A](arr:Array[A]) {
+    def toLArray : LArray[A] = {
+      val l = LArray.of[A](arr.length)
+      // TODO native data copy
+      for(i <- 0 until arr.length)
+        l(i) = arr(i)
+      l
+    }
+  }
+
+
 
 
 }

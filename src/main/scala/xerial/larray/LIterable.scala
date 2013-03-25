@@ -214,7 +214,7 @@ trait LIterable[A] { self : LArray[A] =>
 
 
   def sameElements[B >: A](that: LIterable[B]): Boolean = iterator.sameElements(that.toIterator)
-
+L
   def zipAll[B, A1 >: A, B1 >: B](that: LIterator[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] =
     iterator.zipAll(that, thisElem, thatElem)
 
