@@ -59,6 +59,8 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
 
   self =>
 
+  import UnsafeUtil.unsafe
+
   import BitEncoder._
 
   def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
@@ -84,14 +86,11 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
   def off(index:Long) = update(index, false)
 
   /**
-   * Set all bits
+   * Set all bits to 1
    * @return
    */
   def fill {
-    UnsafeUtil.unsafe.setMemory(seq.m.address, byteLength, 0xFF.toByte)
-  }
-  override def clear {
-    UnsafeUtil.unsafe.setMemory(seq.m.address, byteLength, 0.toByte)
+    unsafe.setMemory(seq.m.address, byteLength, 0xFF.toByte)
   }
 
 
@@ -103,7 +102,7 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
   def apply(index: Long): Boolean = {
     val pos = blockIndex(index)
     val offset = blockOffset(index)
-    val code = ((seq(pos) >>> offset) & 0x01).toInt
+    val code = ((m.getLong(pos) >>> offset) & 0x01).toInt
     table(code)
   }
 
@@ -111,11 +110,10 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
     // TODO
     val pos = blockIndex(index)
     val offset = blockOffset(index)
-    seq(pos) =
-      if(v)
-        seq(pos) | (1L << offset)
-      else
-        seq(pos) & ~(1L << offset)
+    if(v)
+      m.putLong(pos, m.getLong(pos) | (1L << offset))
+    else
+      m.putLong(pos, m.getLong(pos) & ~(1L << offset))
     v
   }
 
