@@ -41,6 +41,9 @@ object Build extends sbt.Build {
         parallelExecution := true,
         parallelExecution in Test := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
+        scalacOptions in (Compile, doc) <++= (baseDirectory) map { (bd) =>
+          Seq("-sourcepath", bd.getAbsolutePath, "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala")
+        },
         // custom settings here
         scalaVersion := SCALA_VERSION,
         crossPaths := false,

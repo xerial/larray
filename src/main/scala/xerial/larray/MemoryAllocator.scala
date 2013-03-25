@@ -156,7 +156,7 @@ object UnsafeUtil extends Logger {
 
 
 /**
- * Allocate memory using [[sun.misc.Unsafe]]. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
+ * Allocate memory using `sun.misc.Unsafe`. OpenJDK (and probably Oracle JDK) implements allocateMemory and freeMemory functions using malloc() and free() in C.
  */
 class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryReference]) extends MemoryAllocator with Logger {
 
