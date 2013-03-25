@@ -101,7 +101,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
    * Wraps with immutable interface
    * @return
    */
-  def toSeq : LSeq[A] = this.asInstanceOf[LSeq[A]]
+  def toLSeq : LSeq[A] = this.asInstanceOf[LSeq[A]]
 
   /**
    * Clear the contents of the array. It simply fills the array with zero bytes.
