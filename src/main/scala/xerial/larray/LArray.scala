@@ -25,7 +25,7 @@ import java.io.{FileInputStream, FileOutputStream, File}
  * -
  * @tparam A element type
  */
-trait LArray[A] extends LIterable[A] with WritableByteChannel {
+trait LArray[A] extends LIterable[A] with WritableByteChannel  {
 
   def isOpen: Boolean = true
 

@@ -19,13 +19,20 @@ public class LArrayJavaExample {
         // Read elements
         int e0 = l.apply(0);
         int e1 = l.apply(1);
-        
+
         // Set elements
         for(int i=0; i<l.size(); ++i)
             l.update(i, i);
 
         // print the elements
         System.out.println(l.mkString(", "));
+
+        // Traverse the elements
+        int index = 0;
+        for(Object e : l.ji()) {
+            System.out.println(String.format("l(%d) = %d", index, ((Integer)e).intValue()));
+            index += 1;
+        }
 
         // manipulate LArray
         LIterator<?> l2 = l.map(new AbstractFunction1<Object, Object>(){

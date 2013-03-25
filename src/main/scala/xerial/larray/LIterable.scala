@@ -11,6 +11,7 @@ import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
 import scala.Iterator
+import java.util
 
 
 /**
@@ -21,6 +22,23 @@ import scala.Iterator
 trait LIterable[A] { self : LArray[A] =>
 
   type Repr = LArray[A]
+
+  /**
+   * Provides the Iterable interface for Java
+   * @return
+   */
+  def ji : java.lang.Iterable[A] = new java.lang.Iterable[A] {
+    def iterator(): java.util.Iterator[A] = new java.util.Iterator[A] {
+      private var index = 0L
+      def hasNext: Boolean = index < size
+      def next(): A = {
+        val v = self(index)
+        index += 1
+        v
+      }
+      def remove() { throw new UnsupportedOperationException("remove") }
+    }
+  }
 
   protected[this] def newBuilder : LBuilder[A, LArray[A]]
 
