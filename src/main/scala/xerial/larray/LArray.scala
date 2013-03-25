@@ -81,13 +81,14 @@ trait LSeq[A] extends LIterable[A] {
 }
 
 /**
- * Large Array (LArray) interface.
+ * LArray is a mutable large array.
  *
- * The differences from Array[A] are:
+ * The differences from the standard Array[A] are:
  *
- *  - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, that is a limitation of standard Array[A].
- *  - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[xerial.larray.LArray#free]].
- *  - LArray elements are not initialized, so explicit initialization is needed
+ *  - LArray accepts Long type indexes, so it is possible to have more than 2G (2^31-1) entries, which is a limitation of the standard Array[A].
+ *  - The memory resource of LArray[A] resides outside of the normal garbage-collected JVM heap and can be released via [[xerial.larray.LArray#free]].
+ *    - If [[LArray#free]] is not called, the acquried memory stays until LArray is collected by GC.
+ *  - LArray elements are not initialized, so explicit initialization using [[LArray#clear]] is necessary.
  *
  * @tparam A element type
  */
