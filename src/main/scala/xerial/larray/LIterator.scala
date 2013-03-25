@@ -15,7 +15,7 @@ import scala.Some
 
 
 /**
- * Iterator for LArray. It is a extension of [[scala.collection.Iterable]] and most of the code is
+ * Iterator for LArray. It is a extension of `scala.collection.Iterable` and most of the code is
  * derived from its implementation except that the index type is Long instead of Int.
  * @author Taro L. Saito
  */
@@ -102,7 +102,6 @@ trait LIterator[+A] {
 
 
   /** Returns the index of the first produced value satisfying a predicate, or -1.
-    *  $mayNotTerminateInf
     *
     *  @param  p the predicate to test values
     *  @return   the index of the first produced value satisfying `p`,
@@ -298,7 +297,6 @@ trait LIterator[+A] {
     *           `p` and the iterator that does not.
     *           The relative order of the elements in the resulting iterators
     *           is the same as in the original iterator.
-    *  @note    Reuse: $consumesOneAndProducesTwoIterators
     */
   def partition(p: A => Boolean): (LIterator[A], LIterator[A]) = {
     val self = buffered

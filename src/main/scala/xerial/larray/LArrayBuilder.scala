@@ -27,10 +27,10 @@ trait LBuilder[-Elem, +To] extends WritableByteChannel {
     */
   def +=(elem: Elem): this.type
 
-  /** ${Add}s all elements produced by a TraversableOnce to this $coll.
+  /** Adds all elements produced by a TraversableOnce to this coll.
     *
-    *  @param xs   the TraversableOnce producing the elements to $add.
-    *  @return  the $coll itself.
+    *  @param xs   the TraversableOnce producing the elements to add.
+    *  @return  the coll itself.
     */
   def ++=(xs: TraversableOnce[Elem]): this.type = { xs.seq foreach += ; this }
 
