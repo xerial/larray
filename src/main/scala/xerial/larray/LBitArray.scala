@@ -12,18 +12,18 @@ package xerial.larray
  * Helper methods for packing bit sequences into Array[Long]
  * @author leo
  */
-trait BitEncoder {
+object BitEncoder {
 
-  protected def minArraySize(numBits: Long): Long = {
+  def minArraySize(numBits: Long): Long = {
     val blockBitSize: Long = 64L
     val arraySize: Long = (numBits + blockBitSize - 1L) / blockBitSize
     arraySize
   }
 
-  @inline protected def blockIndex(pos: Long): Long = (pos >>> 6)
-  @inline protected def blockOffset(pos: Long): Int = (pos & 0x3FL).toInt
+  @inline def blockIndex(pos: Long): Long = (pos >>> 6)
+  @inline def blockOffset(pos: Long): Int = (pos & 0x3FL).toInt
 
-  protected val table = Array(false, true)
+  val table = Array(false, true)
 }
 
 /**
@@ -55,9 +55,11 @@ object LBitArray {
  * @param seq raw bit string
  * @param numBits
  */
-class LBitArray(private val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] with BitEncoder {
+class LBitArray(private val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] {
 
-  def this(numBits:Long) = this(LArray.of[Long](minArraySize(numBits)), numBits)
+  import BitEncoder._
+
+  def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
 
   def size = numBits
   private var hash: Int = 0
@@ -65,6 +67,16 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
   protected[this] def newBuilder: LBuilder[Boolean, LBitArray] = new LBitArrayBuilder()
   private[larray] def m: Memory = seq.m
 
+
+  override def toString = {
+    val displaySize = math.min(500L, numBits)
+    val b = new StringBuilder
+    for(i <- 0L until displaySize)
+      b.append(if(apply(i)) "1" else "0")
+    b.result()
+  }
+
+  def on(index:Long) = update(index, true)
 
   /**
    * Return the DNA base at the specified index
@@ -74,8 +86,7 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
   def apply(index: Long): Boolean = {
     val pos = blockIndex(index)
     val offset = blockOffset(index)
-    val shift = offset << 1
-    val code = (seq(pos) >>> shift).toInt & 0x01
+    val code = ((seq(pos) >>> offset) & 0x01).toInt
     table(code)
   }
 
@@ -234,8 +245,10 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
 /**
  * BitVector builder
  */
-class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray] with BitEncoder
+class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray]
 {
+  import BitEncoder._
+
   private var numBits: Long = 0L
 
   /**
@@ -247,8 +260,10 @@ class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray] with BitEncoder
     sizeHint(index)
     val pos = blockIndex(index)
     val offset = blockOffset(index)
-    val shift = offset * 2
-    elems(pos) |= (if(v) 1L else 0L) << shift
+    if(v)
+      elems.putLong(pos, elems.getLong(pos) | (1L << offset))
+    else
+      elems.putLong(pos, elems.getLong(pos) & ~(1L << offset))
     numBits += 1
     this
   }
