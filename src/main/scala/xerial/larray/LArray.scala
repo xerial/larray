@@ -551,7 +551,7 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
   extends LArray[Long]
   with UnsafeArray[Long]
 {
-  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 4))
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
   protected[this] def newBuilder = LArray.newBuilder[Long]
 
@@ -560,12 +560,12 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Long = {
-    unsafe.getLong(m.address + (i << 4))
+    unsafe.getLong(m.address + (i << 3))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Long): Long = {
-    unsafe.putLong(m.address + (i << 4), v)
+    unsafe.putLong(m.address + (i << 3), v)
     v
   }
 }

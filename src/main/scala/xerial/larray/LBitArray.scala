@@ -57,12 +57,16 @@ object LBitArray {
  */
 class LBitArray(private val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] {
 
+  self =>
+
   import BitEncoder._
 
   def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
 
   def size = numBits
   private var hash: Int = 0
+
+  override def byteLength = seq.byteLength
 
   protected[this] def newBuilder: LBuilder[Boolean, LBitArray] = new LBitArrayBuilder()
   private[larray] def m: Memory = seq.m
@@ -72,11 +76,24 @@ class LBitArray(private val seq: LLongArray, private val numBits: Long) extends 
     val displaySize = math.min(500L, numBits)
     val b = new StringBuilder
     for(i <- 0L until displaySize)
-      b.append(if(apply(i)) "1" else "0")
+      b.append(if(self(i)) "1" else "0")
     b.result()
   }
 
   def on(index:Long) = update(index, true)
+  def off(index:Long) = update(index, false)
+
+  /**
+   * Set all bits
+   * @return
+   */
+  def fill {
+    UnsafeUtil.unsafe.setMemory(seq.m.address, byteLength, 0xFF.toByte)
+  }
+  override def clear {
+    UnsafeUtil.unsafe.setMemory(seq.m.address, byteLength, 0.toByte)
+  }
+
 
   /**
    * Return the DNA base at the specified index
