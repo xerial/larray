@@ -65,7 +65,7 @@ println(l.mkString(", ")) // 1, 2, 3
 l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
-val l2 = LArray.ofDim[Int](10000L)
+val l2 = LArray.of[Int](10000L)
 
 // Release the memory resource
 l2.free 
