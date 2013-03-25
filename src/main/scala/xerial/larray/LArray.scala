@@ -554,7 +554,6 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
   protected[this] def newBuilder = LArray.newBuilder[Long]
-
   private[larray] def elementByteSize: Int = 8
 
   import UnsafeUtil.unsafe
@@ -609,7 +608,6 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
     v
   }
 
-
   def sort {
 
     def sort(left:Long, right:Long) {
@@ -642,7 +640,52 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
     sort(0L, size-1L)
   }
 
+}
 
+class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+  extends LArray[Double]
+  with UnsafeArray[Double]
+{
+  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
+
+  private [larray] def elementByteSize = 8
+
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Double =
+  {
+    unsafe.getDouble(m.address + (i << 3))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Double): Double =
+  {
+    unsafe.putDouble(m.address + (i << 2), v)
+    v
+  }
+}
+
+class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+  extends LArray[Float]
+  with UnsafeArray[Float]
+{
+  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
+
+  private [larray] def elementByteSize = 4
+
+  import UnsafeUtil.unsafe
+
+  def apply(i: Long): Float =
+  {
+    unsafe.getFloat(m.address + (i << 2))
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Float): Float =
+  {
+    unsafe.putFloat(m.address + (i << 2), v)
+    v
+  }
 }
 
 
