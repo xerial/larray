@@ -85,6 +85,11 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel  {
   private[larray] def elementByteSize : Int
 
 
+  /**
+   * Save to a file.
+   * @param f
+   * @return
+   */
   def saveTo(f:File) : File = {
     val fout = new FileOutputStream(f).getChannel
     try {
@@ -93,6 +98,10 @@ trait LArray[A] extends LIterable[A] with WritableByteChannel  {
     }
     finally
       fout.close
+  }
+
+  def view(from:Long, to:Long) : LArrayView[A] = {
+
   }
 
 }
