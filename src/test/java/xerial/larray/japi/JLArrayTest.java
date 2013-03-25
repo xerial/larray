@@ -15,7 +15,7 @@ public class JLArrayTest {
     @Test
     public void constructor() {
 
-        LIntArray l = LArray.newLIntArray(5L);
+        LIntArray l = LArrayJ.newLIntArray(5L);
         for (long i = 0; i < l.size(); ++i) l.update(i, (int) i * 2);
         _logger.debug(l.mkString(", "));
         for (long i = 0; i < l.size(); ++i) l.update(i, (int) (i * i));

@@ -427,7 +427,7 @@ class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: M
   extends LArray[Char]
   with UnsafeArray[Char]
 {
-  protected[this] def newBuilder = LArray.newBuilder[Char]
+  protected[this] def newBuilder = new LCharArrayBuilder
 
   def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 1))
   import UnsafeUtil.unsafe
@@ -458,7 +458,7 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
   extends LArray[Int]
   with UnsafeArray[Int]
 {
-  protected[this] def newBuilder = LArray.newBuilder[Int]
+  protected[this] def newBuilder = new LIntArrayBuilder
 
   def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 2))
   import UnsafeUtil.unsafe
@@ -491,7 +491,7 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 {
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
-  protected[this] def newBuilder = LArray.newBuilder[Long]
+  protected[this] def newBuilder = new LLongArrayBuilder
   private[larray] def elementByteSize: Int = 8
 
   import UnsafeUtil.unsafe
@@ -522,7 +522,7 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
 
-  protected[this] def newBuilder = LArray.newBuilder[Byte]
+  protected[this] def newBuilder = new LByteArrayBuilder
 
   private[larray] def elementByteSize: Int = 1
 
@@ -604,7 +604,7 @@ class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: M
     v
   }
 
-  protected[this] def newBuilder: LBuilder[Double, LArray[Double]] = LArrayBuilder.ofDouble
+  protected[this] def newBuilder: LBuilder[Double, LArray[Double]] = new LDoubleArrayBuilder
 }
 
 class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -629,7 +629,7 @@ class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
     v
   }
 
-  protected[this] def newBuilder: LBuilder[Float, LArray[Float]] = LArrayBuilder.ofFloat
+  protected[this] def newBuilder: LBuilder[Float, LArray[Float]] = new LFloatArrayBuilder
 }
 
 class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -654,7 +654,7 @@ class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
     v
   }
 
-  protected[this] def newBuilder: LBuilder[Short, LArray[Short]] = LArrayBuilder.ofShort
+  protected[this] def newBuilder: LBuilder[Short, LArray[Short]] = new LShortArrayBuilder
 }
 
 
@@ -675,7 +675,8 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
   require(size < Int.MaxValue)
   private var array = new Array[A](size.toInt)
 
-  protected[this] def newBuilder = LArrayBuilder.ofObject[A]
+  protected[this] def newBuilder = new LObjectArrayBuilder[A]
+
 
   def clear() {
     java.util.Arrays.fill(array.asInstanceOf[Array[AnyRef]], 0, length.toInt, null)
@@ -701,7 +702,7 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
  */
 class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
 
-  protected[this] def newBuilder = LArrayBuilder.ofObject[A]
+  protected[this] def newBuilder = new LObjectArrayBuilder[A]
 
   /**
    * block size in pow(2, B)
