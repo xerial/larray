@@ -164,7 +164,7 @@ object LArray {
       case jl.Float.TYPE => new LFloatArray(size).asInstanceOf[LArray[A]]
       case jl.Double.TYPE => new LDoubleArray(size).asInstanceOf[LArray[A]]
       case jl.Boolean.TYPE => new LBitArray(size).asInstanceOf[LArray[A]]
-      case _ => sys.error(s"unsupported type: $tag")
+      case _ => LObjectArray.ofDim[A](size)
     }
   }
 
@@ -204,6 +204,15 @@ object LArray {
     arr
   }
 
+  def apply(first: Byte, elems: Byte*): LArray[Byte] = {
+    val size = 1 + elems.size
+    val arr = new LByteArray(size)
+    arr(0) = first
+    for ((e, i) <- elems.zipWithIndex) {
+      arr(i + 1) = e
+    }
+    arr
+  }
 
 
   def apply(first: Int, elems: Int*): LArray[Int] = {
@@ -218,9 +227,10 @@ object LArray {
     arr
   }
 
-  def apply(first: Byte, elems: Byte*): LArray[Byte] = {
+
+  def apply(first: Char, elems: Char*): LArray[Char] = {
     val size = 1 + elems.size
-    val arr = new LByteArray(size)
+    val arr = new LCharArray(size)
     arr(0) = first
     for ((e, i) <- elems.zipWithIndex) {
       arr(i + 1) = e
@@ -228,13 +238,46 @@ object LArray {
     arr
   }
 
-  // TODO apply(Char..)
-  // TODO apply(Short..)
-  // TODO apply(Float ..)
-  // TODO apply(Long ..)
-  // TODO apply(Double ..)
-  // TODO apply(AnyRef ..)
+  def apply(first: Short, elems: Short*): LArray[Short] = {
+    val size = 1 + elems.size
+    val arr = new LShortArray(size)
+    arr(0) = first
+    for ((e, i) <- elems.zipWithIndex) {
+      arr(i + 1) = e
+    }
+    arr
+  }
 
+  def apply(first: Float, elems: Float*): LArray[Float] = {
+    val size = 1 + elems.size
+    val arr = new LFloatArray(size)
+    arr(0) = first
+    for ((e, i) <- elems.zipWithIndex) {
+      arr(i + 1) = e
+    }
+    arr
+  }
+
+
+  def apply(first: Double, elems: Double*): LArray[Double] = {
+    val size = 1 + elems.size
+    val arr = new LDoubleArray(size)
+    arr(0) = first
+    for ((e, i) <- elems.zipWithIndex) {
+      arr(i + 1) = e
+    }
+    arr
+  }
+
+  def apply(first: Long, elems: Long*): LArray[Long] = {
+    val size = 1 + elems.size
+    val arr = new LLongArray(size)
+    arr(0) = first
+    for ((e, i) <- elems.zipWithIndex) {
+      arr(i + 1) = e
+    }
+    arr
+  }
 
   def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
     import UnsafeUtil.unsafe
@@ -261,6 +304,43 @@ object LArray {
    * @return
    */
   def newBuilder[A : ClassTag] : LBuilder[A, LArray[A]] = LArrayBuilder.make[A]
+
+
+  /** Creates LArary with given dimensions */
+  def ofDim[A:ClassTag](size:Long) = LArray.of[A](size)
+
+  /** Creates a 2-dimensional array */
+  def ofDim[A: ClassTag](n1: Long, n2: Long): LArray[LArray[A]] = {
+    val arr: LArray[LArray[A]] = LArray.of[LArray[A]](n1)
+    var i = 0L
+    while(i < n1) {
+      arr(i) = LArray.of[A](n2)
+      i += 1
+    }
+    arr
+  }
+  /** Creates a 3-dimensional array */
+  def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long): LArray[LArray[LArray[A]]] =
+    tabulate(n1)(_ => ofDim[A](n2, n3))
+  /** Creates a 4-dimensional array */
+  def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long, n4: Long): LArray[LArray[LArray[LArray[A]]]] =
+    tabulate(n1)(_ => ofDim[A](n2, n3, n4))
+  /** Creates a 5-dimensional array */
+  def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long, n4: Long, n5: Long): LArray[LArray[LArray[LArray[LArray[A]]]]] =
+    tabulate(n1)(_ => ofDim[A](n2, n3, n4, n5))
+
+
+  def tabulate[A: ClassTag](n: Long)(f: Long => A): LArray[A] = {
+    val b = newBuilder[A]
+    b.sizeHint(n)
+    var i = 0
+    while (i < n) {
+      b += f(i)
+      i += 1
+    }
+    b.result
+  }
+
 
 }
 

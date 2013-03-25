@@ -10,8 +10,6 @@ package xerial.larray
 import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
-import scala.Iterator
-import java.util
 
 
 /**
