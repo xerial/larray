@@ -80,16 +80,17 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](https://githu
 In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
-import xerial.larray.japi.LArray;
+import xerial.larray.japi.LArrayJ;
 import xerial.larray.LIntArray;
 
-LIntArray l = LArray.newLIntArray(10000L);
+LIntArray l = LArrayJ.newLIntArray(10000L);
 l.update(0L, 20); // Set l[0L] = 20
-l.apply(0L);  //  Get l[0L]
+int e0 = l.apply(0L);  //  Get l[0L]
 
 // release 
 l.free();
 ```
+For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://github.com/xerial/larray/blob/develop/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 
