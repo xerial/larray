@@ -79,6 +79,15 @@ trait LSeq[A] extends LIterable[A] {
    */
   def copyTo(dst:LByteArray, dstOffset:Long)
 
+  /**
+   * Copy the contents of this sequence into the target LByteArray
+   * @param srcOffset
+   * @param dst
+   * @param dstOffset
+   * @param blen the byte length to copy
+   */
+  def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long)
+
   //  def view(from:Long, to:Long) : LArrayView[A] = {
   //
   //  }
@@ -181,7 +190,12 @@ object LArray {
     def copyTo(dst: LByteArray, dstOffset: Long) {
       // do nothing
     }
+
+    def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, len:Long) {
+      // do nothing
+    }
   }
+
 
   import _root_.java.{lang=>jl}
 
@@ -512,6 +526,9 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     unsafe.copyMemory(address, dst.address + dstOffset, byteLength)
   }
 
+  def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long) {
+    unsafe.copyMemory(address + srcOffset, dst.address + dstOffset, blen)
+  }
 
   def readByte(index:Long) = m.getByte(index)
 
@@ -815,6 +832,17 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
     throw new UnsupportedOperationException("copyTo(LByteArray, Long)")
   }
 
+  /**
+   * Copy the contents of this sequence into the target LByteArray
+   * @param srcOffset
+   * @param dst
+   * @param dstOffset
+   * @param blen the byte length to copy
+   */
+  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+    throw new UnsupportedOperationException("copyTo(Long, LByteArray, Long, Long)")
+  }
+
 }
 
 /**
@@ -859,6 +887,11 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
   def copyTo(dst: LByteArray, dstOffset: Long) {
     throw new UnsupportedOperationException("copyTo(LByteArray, Long)")
   }
+
+  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+    throw new UnsupportedOperationException("copyTo(Long, LByteArray, Long, Long)")
+  }
+
 
   def apply(i: Long) = array(index(i))(offset(i))
   def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }

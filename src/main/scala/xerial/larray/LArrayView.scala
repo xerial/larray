@@ -17,10 +17,31 @@ object LArrayView {
   class LIntArrayView(offset:Long, size:Long, base:LArray[Int]) extends AbstractLArrayView[Int](offset, size, base) {
     protected[this] def newBuilder: LBuilder[Int, LArray[Int]] = new LIntArrayBuilder
 
+
     /**
      * Byte size of an element. For example, if A is Int, its elementByteSize is 4
      */
     private[larray] def elementByteSize: Int = 4
+
+    /**
+     * Copy the contents of this LSeq[A] into the target LByteArray
+     * @param dst
+     * @param dstOffset
+     */
+    def copyTo(dst: LByteArray, dstOffset: Long) {
+      base.copyTo(offset, dst, dstOffset, byteLength)
+    }
+
+    /**
+     * Copy the contents of this sequence into the target LByteArray
+     * @param srcOffset
+     * @param dst
+     * @param dstOffset
+     * @param blen the byte length to copy
+     */
+    def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+      base.copyTo(srcOffset, dst, dstOffset, blen)
+    }
   }
 
 }

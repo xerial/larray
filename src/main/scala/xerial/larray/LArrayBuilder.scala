@@ -19,7 +19,7 @@ import sun.nio.ch.DirectBuffer
  * @tparam Elem element type
  * @tparam To LArray type to generate
  */
-trait LBuilder[-Elem, +To] extends WritableByteChannel {
+trait LBuilder[Elem, +To] extends WritableByteChannel {
 
   def append(elem:Elem) : this.type = +=(elem)
 
@@ -317,7 +317,7 @@ class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
 
   def close() { clear }
 
-  def append(seq: LSeq[A]): LObjectArrayBuilder[A] = {
+  def append(seq: LSeq[A]) = {
     ensureSize(size + seq.length)
     seq.foreach { e => elems(size) = e; size += 1 }
     this

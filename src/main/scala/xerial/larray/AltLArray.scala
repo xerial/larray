@@ -7,12 +7,23 @@
 
 package xerial.larray
 
+trait AltLIntArrayImpl extends LArray[Int] {
+
+  def copyTo(dest:LByteArray, destOffset:Long) {
+    throw new UnsupportedOperationException("copyTo")
+  }
+
+  def copyTo(srcOffset:Long, dest:LByteArray, destOffset:Long, blen:Long) {
+    throw new UnsupportedOperationException("copyTo")
+  }
+}
+
 /**
  * Alternative implementation of LArray that might be inefficient.
  * Wrapping Array[Int] to support Long-type indexes
  * @param size array size
  */
-class LIntArraySimple(val size: Long) extends LArray[Int] {
+class LIntArraySimple(val size: Long) extends LArray[Int] with AltLIntArrayImpl {
 
   protected[this] def newBuilder = LArray.newBuilder[Int]
 
@@ -57,7 +68,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
  * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
  * @param size array size
  */
-class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
+class MatrixBasedLIntArray(val size:Long) extends LArray[Int] with AltLIntArrayImpl {
 
   private[larray] def elementByteSize: Int = 4
 
