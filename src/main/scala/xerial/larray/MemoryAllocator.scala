@@ -168,7 +168,7 @@ class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryRefer
   private val queue = new ReferenceQueue[Memory]
 
   {
-    // Recieves garbage-collected Memory
+    // Receives garbage-collected Memory
     val worker = new Thread(new Runnable {
       def run() {
         while(true) {
@@ -210,6 +210,7 @@ class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryRefer
       trace(f"released memory at ${addr}%x")
       val ref = allocatedMemoryReferences(addr)
       unsafe.freeMemory(addr)
+      ref.clear()
       allocatedMemoryReferences.remove(addr)
     }
   }
