@@ -408,6 +408,11 @@ trait LIterator[+A] {
     def hasNext: Boolean = self.hasNext
   }
 
+  def zip[B](that: LIterator[B]): LIterator[(A, B)] = new AbstractLIterator[(A, B)] {
+    def hasNext = self.hasNext && that.hasNext
+    def next = (self.next, that.next)
+  }
+
 
   def toLArray[B >: A : ClassTag] : LArray[B] = {
     val b = LArray.newBuilder[B]

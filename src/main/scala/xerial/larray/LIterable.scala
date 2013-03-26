@@ -337,11 +337,12 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
 
   def sameElements[B >: A](that: LIterable[B]): Boolean = iterator.sameElements(that.toIterator)
 
-  def zipAll[B, A1 >: A, B1 >: B](that: LIterator[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] =
-    iterator.zipAll(that, thisElem, thatElem)
+  def zipAll[B, A1 >: A, B1 >: B](that: LIterable[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] =
+    iterator.zipAll(that.toIterator, thisElem, thatElem)
 
   def zipWithIndex : LIterator[(A, Long)] = iterator.zipWithIndex
 
+  def zip[B](that: LIterable[B]): LIterator[(A, B)] = iterator.zip(that.toIterator)
 
   def addString(b: StringBuilder, start: String, sep: String, end: String): StringBuilder =
     iterator.addString(b, start, sep, end)

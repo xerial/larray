@@ -115,6 +115,7 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.splitAt(4) === arr.splitAt(4)
       def f(x: Int) = x <= 2
       l.span(f) === arr.span(f)
+      l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
     "fold elements" in {
@@ -157,6 +158,17 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       val b = new Array[Int](l.length.toInt)
       l.copyToArray(b, 0, b.length)
       b shouldBe arr.toArray
+    }
+
+    "zip with elements" in {
+      l.zipWithIndex === arr.zipWithIndex
+      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
+      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
+    }
+
+    "make strings" in {
+      l.mkString("--") shouldBe arr.mkString("--")
+      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
     }
   }
 }
