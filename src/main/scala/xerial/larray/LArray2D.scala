@@ -23,7 +23,7 @@ object LArray2D {
 }
 
 /**
- * LArray2D is a wrapper of LArray to emulate 2-dimensional arrays.
+ * LArray2D is a wrapper of LArray to emulate 2-dimensional array using a single array.
  * @author Taro L. Saito
  */
 class LArray2D[A : ClassTag](val rowSize:Long, val colSize:Long) {
@@ -51,5 +51,10 @@ class LArray2D[A : ClassTag](val rowSize:Long, val colSize:Long) {
    */
   def clear() = arr.clear()
 
+  /**
+   * Get a raw LArray representation of this 2D array
+   * @return
+   */
+  def rawArray : LArray[A] = arr
 
 }
