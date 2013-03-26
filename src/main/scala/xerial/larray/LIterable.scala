@@ -198,7 +198,7 @@ trait LIterable[A] { self : LSeq[A] =>
   def withFilter(p: A=>Boolean) : LIterator[A] = iterator.filter(p)
 
   def map[B](f:A=>B): LIterator[B] = iterator.map(f)
-  def flatMap[B](f: A => LIterable[B]) : LIterator[B] = iterator.flatMap(f)
+  def flatMap[B](f: A => LIterator[B]) : LIterator[B] = iterator.flatMap(f)
 
   def reverse[A]: Repr = {
     val b = newBuilder

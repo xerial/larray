@@ -154,10 +154,10 @@ trait LIterator[+A] {
     def hasNext: Boolean = self.hasNext
   }
 
-  def flatMap[B](f: A => LIterable[B]) : LIterator[B] = new AbstractLIterator[B] {
+  def flatMap[B](f: A => LIterator[B]) : LIterator[B] = new AbstractLIterator[B] {
     private var current : LIterator[B] = empty
     def hasNext: Boolean =
-      current.hasNext || self.hasNext && { current = f(self.next()).toIterator; hasNext }
+      current.hasNext || self.hasNext && { current = f(self.next()); hasNext }
     def next(): B = (if(hasNext) current else empty).next()
   }
 

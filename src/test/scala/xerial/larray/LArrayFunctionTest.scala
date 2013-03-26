@@ -24,22 +24,20 @@ class LArrayFunctionTest extends LArraySpec {
     }
   }
 
-
-  implicit class LIterableMatcher[A:ClassTag](left:LIterator[A]) {
+  abstract class LMatcher[A](left:LSeq[A]) {
     def ===[A:ClassTag](answer:Seq[A]) {
       val l = left.mkString(", ")
       val a = answer.mkString(", ")
+      trace(s"target:$l, answer:$a")
       l should be (a)
     }
   }
 
-  implicit class LArrayMatcher[A:ClassTag](left:LSeq[A]) {
-    def ===[A:ClassTag](answer:Seq[A]) {
-      val l = left.mkString(", ")
-      val a = answer.mkString(", ")
-      l should be (a)
-    }
-  }
+
+  implicit class LIterableMatcher[A:ClassTag](leftIt:LIterator[A]) extends LMatcher[A](leftIt.toLArray[A])
+  implicit class LArrayMatcher[A:ClassTag](left:LSeq[A]) extends LMatcher[A](left)
+
+
 
   "LArray" should {
 
@@ -51,6 +49,10 @@ class LArrayFunctionTest extends LArraySpec {
       val l = a.toLArray
     }
 
+    trait Input2 {
+
+    }
+
     "have iterator" in new Input1 {
       l.iterator.mkString(", ") should be (a.mkString(", "))
     }
@@ -59,12 +61,16 @@ class LArrayFunctionTest extends LArraySpec {
       l.map(_*2) === a.map(_*2)
     }
 
+    "flatMap nested elements" in new Input1 {
+      l.flatMap(x => (0 Until x).map(x=>x)) === a.flatMap(x => (0 until x).map(x => x))
+    }
+
     "filter elements" in new Input1 {
       l.filter(_ % 2 == 1) === a.filter(_ % 2 == 1)
     }
 
 
-    "have slice" in new Input1 {
+    "slice elements" in new Input1 {
       l.slice(1, 3) === a.slice(1, 3)
       l.slice(2) === a.slice(2, a.length)
     }
