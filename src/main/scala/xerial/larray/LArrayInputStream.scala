@@ -50,7 +50,7 @@ private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends Inp
       -1
     else {
       val readLen = math.min(len, array.byteLength - cursor).toInt
-      array.write(cursor, b, offset, readLen)
+      array.writeToArray(cursor, b, offset, readLen)
       cursor += readLen
       readLen
     }

@@ -124,7 +124,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
   def clear()
 
   def write(src:ByteBuffer) : Int =
-    throw new UnsupportedOperationException("write(ByteBuffer)")
+    throw new UnsupportedOperationException("writeToArray(ByteBuffer)")
 
 
   /**
@@ -412,7 +412,7 @@ trait RawByteArray[A] extends LArray[A] {
    * @param length the byte length to write
    * @return byte length to write
    */
-  def write(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
+  def writeToArray(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
 
   /**
    * Read the contents from a given source buffer
@@ -421,7 +421,7 @@ trait RawByteArray[A] extends LArray[A] {
    * @param destOffset byte offset from the destination address
    * @param length byte length to read from the source
    */
-  def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
+  def readFromArray(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
 
 
   /**
@@ -475,7 +475,7 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
         unsafe.copyMemory(d.address() + src.position(), m.address + cursor, len)
         len
       case arr if src.hasArray =>
-        read(src.array(), src.position(), cursor, len)
+        readFromArray(src.array(), src.position(), cursor, len)
       case _ =>
         var i = 0L
         while(i < len) {
@@ -509,14 +509,14 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
    * @param length the byte length to write
    * @return written byte length
    */
-  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
+  def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
     writeLen
   }
 
-  def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
+  def readFromArray(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
     val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen

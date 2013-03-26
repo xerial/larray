@@ -74,7 +74,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
 
   def append(b:Array[Byte], offset:Int, len:Int) = {
     ensureSize(byteSize + len)
-    elems.read(b, offset, byteSize, len)
+    elems.readFromArray(b, offset, byteSize, len)
     byteSize += len
     this
   }
@@ -131,7 +131,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
         unsafe.copyMemory(d.address() + src.position, elems.address + byteSize, len)
         len
       case arr if src.hasArray =>
-        elems.read(src.array(), src.position(), byteSize, len)
+        elems.readFromArray(src.array(), src.position(), byteSize, len)
       case _ =>
         var i = 0L
         while(i < len) {
@@ -311,7 +311,7 @@ class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
     else mkArray(size)
   }
 
-  def write(src: ByteBuffer): Int = throw new UnsupportedOperationException("LBuilder[A].write(ByteBuffer)")
+  def write(src: ByteBuffer): Int = throw new UnsupportedOperationException("LBuilder[A].writeToArray(ByteBuffer)")
 
   def isOpen: Boolean = true
 
