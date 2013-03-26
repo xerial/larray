@@ -31,11 +31,19 @@ import reflect.ClassTag
  */
 package object larray {
 
-  implicit class ConvertToLArray[A : ClassTag](arr:Array[A]) {
+  implicit class ConvertArrayToLArray[A : ClassTag](arr:Array[A]) {
     def toLArray : LArray[A] = {
       val l = LArray.of[A](arr.length).asInstanceOf[RawByteArray[A]]
       LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(arr, 0, l.address, l.byteLength.toInt)
       l
+    }
+  }
+
+  implicit class ConvertIterableToLArray[A : ClassTag](it:Iterable[A]) {
+    def toLArray : LArray[A] = {
+      val b = LArray.newBuilder[A]
+      it.foreach(b += _)
+      b.result
     }
   }
 
