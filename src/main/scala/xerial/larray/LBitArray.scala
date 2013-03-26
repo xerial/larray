@@ -47,6 +47,27 @@ object LBitArray {
 }
 
 
+trait LBitArrayOps {
+
+  /**
+   * Count the number of bits within the specified range [start, end)
+   * @param checkTrue count true or false
+   * @param start
+   * @param end
+   * @return the number of occurrences
+   */
+  def count(checkTrue: Boolean, start: Long, end: Long): Long
+
+  /**
+   * Extract a slice of the sequence [start, end)
+   * @param start
+   * @param end
+   * @return
+   */
+  def slice(start: Long, end: Long): LBitArray
+
+}
+
 /**
  *
  * Specialized implementaiton of LArray[Boolean] using LArray[Long]
@@ -55,7 +76,7 @@ object LBitArray {
  * @param seq raw bit string
  * @param numBits
  */
-class LBitArray(private val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] {
+class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] with LBitArrayOps {
 
   self =>
 

@@ -44,10 +44,6 @@ trait LSeq[A] extends LIterable[A] {
    */
   private[larray] def elementByteSize : Int
 
-  /**
-   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
-   */
-  def free
 
   /**
    * Create a sequence of DirectByteBuffer that projects LArray contents
@@ -88,10 +84,8 @@ trait LSeq[A] extends LIterable[A] {
    */
   def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long)
 
-  //  def view(from:Long, to:Long) : LArrayView[A] = {
-  //
-  //  }
-  //
+  //def view(from:Long, to:Long) : LArrayView[A]
+
 }
 
 /**
@@ -111,6 +105,11 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
   def isOpen: Boolean = true
 
   def close() { free }
+
+  /**
+   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
+   */
+  def free
 
   /**
    * Wraps with immutable interface
