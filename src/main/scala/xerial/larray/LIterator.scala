@@ -184,7 +184,7 @@ trait LIterator[+A] {
     private var head : A = _
     private var headDefined : Boolean = false
     def next(): A = if(hasNext) { headDefined = false; head } else empty.next()
-    def hasNext: Boolean = {
+    def hasNext: Boolean = headDefined || {
       do {
         if(!self.hasNext) return false
         head = self.next()
@@ -407,6 +407,16 @@ trait LIterator[+A] {
     }
     def hasNext: Boolean = self.hasNext
   }
+
+
+  def toLArray[B >: A : ClassTag] : LArray[B] = {
+    val b = LArray.newBuilder[B]
+    self.foreach(b += _)
+    b.result
+  }
+
+
+
 }
 
 object LIterator {

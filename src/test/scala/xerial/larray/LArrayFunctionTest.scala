@@ -25,26 +25,48 @@ class LArrayFunctionTest extends LArraySpec {
   }
 
 
-  implicit class LArrayMatcher[A:ClassTag](left:LSeq[A]) {
-    def shouldBe[A:ClassTag](answer:Seq[A]) {
-      left.mkString(", ") should be (answer.mkString(", "))
+  implicit class LIterableMatcher[A:ClassTag](left:LIterator[A]) {
+    def ===[A:ClassTag](answer:Seq[A]) {
+      val l = left.mkString(", ")
+      val a = answer.mkString(", ")
+      l should be (a)
     }
   }
 
+  implicit class LArrayMatcher[A:ClassTag](left:LSeq[A]) {
+    def ===[A:ClassTag](answer:Seq[A]) {
+      val l = left.mkString(", ")
+      val a = answer.mkString(", ")
+      l should be (a)
+    }
+  }
 
   "LArray" should {
 
+    /**
+     * Sample input data
+     */
     trait Input1 {
-      val in = Array(0, 1, 2, 3, 4)
-      val l = in.toLArray
+      val a = Seq(0, 1, 2, 3, 4)
+      val l = a.toLArray
     }
 
+    "have iterator" in new Input1 {
+      l.iterator.mkString(", ") should be (a.mkString(", "))
+    }
+
+    "map elements" in new Input1 {
+      l.map(_*2) === a.map(_*2)
+    }
+
+    "filter elements" in new Input1 {
+      l.filter(_ % 2 == 1) === a.filter(_ % 2 == 1)
+    }
+
+
     "have slice" in new Input1 {
-      l.slice(1, 3) shouldBe in.slice(1, 3)
-      l.slice(2) shouldBe in.slice(2, in.length)
-
-      l.map(_*2) shouldBe in.map(_*2)
-
+      l.slice(1, 3) === a.slice(1, 3)
+      l.slice(2) === a.slice(2, a.length)
     }
 
 

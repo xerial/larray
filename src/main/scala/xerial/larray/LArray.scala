@@ -240,6 +240,12 @@ object LArray {
   }
 
 
+  def toLArray[A:ClassTag](it:LIterator[A]) : LArray[A] = {
+    val b = newBuilder[A]
+    it.foreach(b += _)
+    b.result
+  }
+
   /**
    * Creates an LArray with given elements.
    *
