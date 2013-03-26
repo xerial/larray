@@ -218,10 +218,32 @@ object LArray {
     }
   }
 
-  def empty = EmptyArray
+  val emptyBooleanArray = LArray.of[Boolean](0)
+  val emptyByteArray    = LArray.of[Byte](0)
+  val emptyCharArray    = LArray.of[Char](0)
+  val emptyDoubleArray  = LArray.of[Double](0)
+  val emptyFloatArray   = LArray.of[Float](0)
+  val emptyIntArray     = LArray.of[Int](0)
+  val emptyLongArray    = LArray.of[Long](0)
+  val emptyShortArray   = LArray.of[Short](0)
+  val emptyObjectArray  = LArray.of[Object](0)
+
+  def empty[A : ClassTag] : LArray[A] = {
+    val tag = implicitly[ClassTag[A]]
+    tag.runtimeClass match {
+    case jl.Integer.TYPE => emptyIntArray.asInstanceOf[LArray[A]]
+    case jl.Byte.TYPE => emptyByteArray.asInstanceOf[LArray[A]]
+    case jl.Character.TYPE => emptyCharArray.asInstanceOf[LArray[A]]
+    case jl.Short.TYPE => emptyShortArray.asInstanceOf[LArray[A]]
+    case jl.Long.TYPE => emptyLongArray.asInstanceOf[LArray[A]]
+    case jl.Float.TYPE => emptyFloatArray.asInstanceOf[LArray[A]]
+    case jl.Double.TYPE => emptyDoubleArray.asInstanceOf[LArray[A]]
+    case jl.Boolean.TYPE => emptyBooleanArray.asInstanceOf[LArray[A]]
+    case _ => emptyObjectArray.asInstanceOf[LArray[A]]
+    }
+  }
 
   def apply() = EmptyArray
-
 
 
   private[larray] def wrap[A:ClassTag](byteSize:Long, m:Memory) : LArray[A] = {

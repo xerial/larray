@@ -198,6 +198,8 @@ class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryRefer
   def release(addr:Long) { synchronized { releaseInternal(addr) } }
 
   protected def allocateInternal(size: Long): Memory = {
+    if(size == 0L)
+      return Memory(0, this)
     val m = Memory(unsafe.allocateMemory(size), this)
     trace(f"allocated memory of size $size%,d at ${m.address}%x")
     val ref = new MemoryReference(m, queue)

@@ -13,6 +13,7 @@ import reflect.ClassTag
 import java.nio.channels.WritableByteChannel
 import java.nio.ByteBuffer
 import sun.nio.ch.DirectBuffer
+import xerial.core.log.Logger
 
 /**
  * Extension of `scala.collection.mutable.Builder` using Long indexes
@@ -67,7 +68,7 @@ trait LBuilder[Elem, +To] extends WritableByteChannel {
  * common functions (e.g., resize, mkArray) using type parameter, we cannot avoid boxing/unboxing.
  *
  */
-abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
+abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] with Logger {
   protected var elems : LByteArray = _
   protected var capacity: Long = 0L
   protected var byteSize: Long = 0L
@@ -104,7 +105,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
   protected def ensureSize(size:Long) {
     val factor = 1.5
     if(capacity < size || capacity == 0L){
-      var newsize = if(capacity == 0L) 16L else (capacity * factor).toLong
+      var newsize = if(capacity <= 1L) 16L else (capacity * factor).toLong
       while(newsize < size) newsize = (newsize * factor).toLong
       resize(newsize)
     }
@@ -284,7 +285,7 @@ class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
   private def ensureSize(size:Long) {
     val factor = 1.5
     if(capacity < size || capacity == 0L){
-      var newsize = if(capacity == 0L) 16L else (capacity * factor).toLong
+      var newsize = if(capacity <= 1L) 16L else (capacity * factor).toLong
       while(newsize < size) newsize = (newsize * factor).toLong
       resize(newsize)
     }

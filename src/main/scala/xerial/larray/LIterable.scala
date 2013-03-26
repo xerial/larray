@@ -10,6 +10,7 @@ package xerial.larray
 import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
+import xerial.core.log.Logger
 
 
 /**
@@ -17,7 +18,7 @@ import collection.{AbstractIterator, Iterator}
  *
  * @author Taro L. Saito
  */
-trait LIterable[A] { self : LSeq[A] =>
+trait LIterable[A] extends Logger { self : LSeq[A] =>
 
   type Repr = LArray[A]
 
@@ -189,7 +190,7 @@ trait LIterable[A] { self : LSeq[A] =>
   def segmentLength(p: A => Boolean, from: Long): Long = {
     val len = length
     var i = from
-    while (i < len && p(this(i))) i += 1
+    while (i < len && p(self(i))) i += 1
     i - from
   }
 
@@ -279,10 +280,9 @@ trait LIterable[A] { self : LSeq[A] =>
     val lo    = math.max(from, 0L)
     val hi    = math.min(math.max(until, 0L), length)
     val elems = math.max(hi - lo, 0L)
-    // Supply array size to recuce the number of memory allocation
+    // Supply array size to reduce the number of memory allocation
     val b     = newBuilder
-    b.sizeHint(elems)
-
+    b.sizeHint(elems * elementByteSize)
     var i = lo
     while (i < hi) {
       b += self(i)
