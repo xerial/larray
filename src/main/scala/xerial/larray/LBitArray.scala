@@ -276,6 +276,8 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
    */
   private[larray] def elementByteSize: Int =
     throw new UnsupportedOperationException("elementByteSize of LBitArray")
+
+  def view(from: Long, to: Long) = new LArrayView.LBitArrayView(this, from, to-from)
 }
 
 

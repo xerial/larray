@@ -26,6 +26,18 @@ object UInt32Array {
       else new UInt32Array(byteSize / 4, mkArray(byteSize).m)
     }
   }
+
+
+
+}
+
+
+private[larray] class UInt32ArrayView(base:UInt32Array, offset:Long, val size:Long) extends LArrayView[Long] {
+  protected[this] def newBuilder: LBuilder[Long, UInt32Array] = UInt32Array.newBuilder
+  def apply(i: Long) = base.apply(offset + i)
+  private[larray] def elementByteSize = base.elementByteSize
+  def copyTo(dst: LByteArray, dstOffset: Long) { base.copyTo(offset, dst, dstOffset, byteLength) }
+  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) { base.copyTo(offset+srcOffset, dst, dstOffset, blen) }
 }
 
 /**
@@ -33,7 +45,7 @@ object UInt32Array {
  *
  * @author Taro L. Saito
  */
-class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] {
+class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] { self =>
   def this(size:Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
   import UnsafeUtil.unsafe
@@ -56,4 +68,8 @@ class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   private[larray] def elementByteSize: Int = 4
 
 
+  def view(from: Long, to: Long) : LArrayView[Long] = new UInt32ArrayView(self, from, to - from)
+
 }
+
+

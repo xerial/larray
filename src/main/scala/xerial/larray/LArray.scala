@@ -15,6 +15,7 @@ import sun.nio.ch.DirectBuffer
 import java.lang
 import java.io.{FileInputStream, FileOutputStream, File}
 
+
 /**
  * Read-only interface of [[xerial.larray.LArray]]
  * @tparam A
@@ -84,7 +85,7 @@ trait LSeq[A] extends LIterable[A] {
    */
   def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long)
 
-  //def view(from:Long, to:Long) : LArrayView[A]
+
 
 }
 
@@ -133,6 +134,8 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
    * @return the value
    */
   def update(i: Long, v: A): A
+
+  def view(from:Long, to:Long) : LArrayView[A]
 }
 
 
@@ -193,6 +196,8 @@ object LArray {
     def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, len:Long) {
       // do nothing
     }
+
+    def view(from: Long, to: Long) = LArrayView.EmptyView
   }
 
 
@@ -579,6 +584,8 @@ class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: M
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize: Int = 2
+  def view(from: Long, to: Long) = new LArrayView.LCharArrayView(this, from, to - from)
+
 }
 
 /**
@@ -610,6 +617,9 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize: Int = 4
+
+  def view(from: Long, to: Long) = new LArrayView.LIntArrayView(this, from, to - from)
+
 }
 
 /**
@@ -638,6 +648,9 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
     unsafe.putLong(m.address + (i << 3), v)
     v
   }
+
+  def view(from: Long, to: Long) = new LArrayView.LLongArrayView(this, from, to - from)
+
 }
 
 
@@ -711,6 +724,9 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
     sort(0L, size-1L)
   }
 
+
+  def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from, to - from)
+
 }
 
 class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -738,6 +754,8 @@ class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: M
   }
 
   protected[this] def newBuilder: LBuilder[Double, LArray[Double]] = new LDoubleArrayBuilder
+
+  def view(from: Long, to: Long) = new LArrayView.LDoubleArrayView(this, from, to - from)
 }
 
 class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -763,6 +781,8 @@ class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   }
 
   protected[this] def newBuilder: LBuilder[Float, LArray[Float]] = new LFloatArrayBuilder
+
+  def view(from: Long, to: Long) = new LArrayView.LFloatArrayView(this, from, to - from)
 }
 
 class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
@@ -788,6 +808,8 @@ class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   }
 
   protected[this] def newBuilder: LBuilder[Short, LArray[Short]] = new LShortArrayBuilder
+
+  def view(from: Long, to: Long) = new LArrayView.LShortArrayView(this, from, to - from)
 }
 
 
@@ -842,6 +864,7 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
     throw new UnsupportedOperationException("copyTo(Long, LByteArray, Long, Long)")
   }
 
+  def view(from: Long, to: Long) = new LArrayView.LObjectArrayView[A](this, from, to - from)
 }
 
 /**
@@ -896,4 +919,7 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
   def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }
   def free { array = null }
   private[larray] def elementByteSize = 4
+
+  def view(from: Long, to: Long) = new LArrayView.LObjectArrayView[A](this, from, to - from)
+
 }

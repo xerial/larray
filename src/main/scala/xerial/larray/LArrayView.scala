@@ -8,6 +8,7 @@
 package xerial.larray
 
 import reflect.ClassTag
+import xerial.larray.LArray.EmptyArray
 
 /**
  * Provides view of LArray
@@ -91,7 +92,37 @@ object LArrayView {
     private[larray] def elementByteSize: Int = 8
   }
 
+  class LObjectArrayView[A : ClassTag](base:LArray[A], offset:Long, size:Long) extends AbstractLArrayView[A](base, offset, size) {
+    protected[this] def newBuilder: LBuilder[A, LArray[A]] = new LObjectArrayBuilder
+    private[larray] def elementByteSize: Int = 4
+  }
 
+  object EmptyView extends LArrayView[Nothing] {
+    protected[this] def newBuilder = EmptyArray.newBuilder
+    def size = 0L
+    def apply(i: Long) = EmptyArray.apply(i)
+
+    /**
+     * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+     */
+    private[larray] def elementByteSize = EmptyArray.elementByteSize
+
+    /**
+     * Copy the contents of this LSeq[A] into the target LByteArray
+     * @param dst
+     * @param dstOffset
+     */
+    def copyTo(dst: LByteArray, dstOffset: Long) { EmptyArray.copyTo(dst, dstOffset)}
+
+    /**
+     * Copy the contents of this sequence into the target LByteArray
+     * @param srcOffset
+     * @param dst
+     * @param dstOffset
+     * @param blen the byte length to copy
+     */
+    def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) { EmptyArray.copyTo(srcOffset, dst, dstOffset, blen)}
+  }
 
 }
 
@@ -125,7 +156,7 @@ abstract class AbstractLArrayView[A : ClassTag](base:LSeq[A], offset:Long, val s
    * @param blen the byte length to copy
    */
   def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
-    base.copyTo(srcOffset, dst, dstOffset, blen)
+    base.copyTo(offset + srcOffset, dst, dstOffset, blen)
   }
 
 }

@@ -16,11 +16,13 @@ trait AltLIntArrayImpl extends LArray[Int] {
   def copyTo(srcOffset:Long, dest:LByteArray, destOffset:Long, blen:Long) {
     throw new UnsupportedOperationException("copyTo")
   }
+
+  def view(from: Long, to: Long) = new LArrayView.LIntArrayView(this, from, to - from)
 }
 
 /**
- * Alternative implementation of LArray that might be inefficient.
- * Wrapping Array[Int] to support Long-type indexes
+ * Alternative implementation of LArray that might be inefficient, but written for the performance comparison.
+ * LIntArraySimple wraps Array[Int] to support Long-type indexes
  * @param size array size
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] with AltLIntArrayImpl {
@@ -61,6 +63,9 @@ class LIntArraySimple(val size: Long) extends LArray[Int] with AltLIntArrayImpl 
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize: Int = 4
+
+
+
 }
 
 
@@ -113,5 +118,6 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] with AltLIntArrayI
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
    */
   def free {}
+
 
 }
