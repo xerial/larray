@@ -72,7 +72,12 @@ trait LSeq[A] extends LIterable[A] {
       fout.close
   }
 
-
+  /**
+   * Copy the contents of this LSeq[A] into the target LByteArray
+   * @param dst
+   * @param dstOffset
+   */
+  def copyTo(dst:LByteArray, dstOffset:Long)
 
   //  def view(from:Long, to:Long) : LArrayView[A] = {
   //
@@ -173,7 +178,9 @@ object LArray {
     def free {
       /* do nothing */
     }
-
+    def copyTo(dst: LByteArray, dstOffset: Long) {
+      // do nothing
+    }
   }
 
   import _root_.java.{lang=>jl}
@@ -501,6 +508,11 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     readLen
   }
 
+  def copyTo(dst: LByteArray, dstOffset: Long) {
+    unsafe.copyMemory(address, dst.address + dstOffset, byteLength)
+  }
+
+
   def readByte(index:Long) = m.getByte(index)
 
   /**
@@ -798,6 +810,11 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
   }
 
   private[larray] def elementByteSize = 4
+
+  def copyTo(dst: LByteArray, dstOffset: Long) {
+    throw new UnsupportedOperationException("copyTo(LByteArray, Long)")
+  }
+
 }
 
 /**
@@ -839,6 +856,9 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
     }
   }
 
+  def copyTo(dst: LByteArray, dstOffset: Long) {
+    throw new UnsupportedOperationException("copyTo(LByteArray, Long)")
+  }
 
   def apply(i: Long) = array(index(i))(offset(i))
   def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }

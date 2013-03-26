@@ -23,6 +23,8 @@ trait LBuilder[-Elem, +To] extends WritableByteChannel {
 
   def append(elem:Elem) : this.type = +=(elem)
 
+  def append(seq:LSeq[Elem]) : this.type
+
   /** Adds a single element to the builder.
     *  @param elem the element to be added.
     *  @return the builder itself.
@@ -76,6 +78,14 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
     byteSize += len
     this
   }
+
+  def append(seq:LSeq[A]) : this.type = {
+    ensureSize(byteSize + seq.byteLength)
+    seq.copyTo(elems, byteSize)
+    byteSize += seq.byteLength
+    this
+  }
+
 
   protected def mkArray(size:Long) : LByteArray = {
     val newArray = new LByteArray(size)
@@ -306,6 +316,12 @@ class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
   def isOpen: Boolean = true
 
   def close() { clear }
+
+  def append(seq: LSeq[A]): LObjectArrayBuilder[A] = {
+    ensureSize(size + seq.length)
+    seq.foreach { e => elems(size) = e; size += 1 }
+    this
+  }
 }
 
 /**
