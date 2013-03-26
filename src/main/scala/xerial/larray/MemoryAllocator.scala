@@ -73,7 +73,7 @@ trait MemoryAllocator extends Logger {
   private def checkAddr(addr:Long, doRelease:Boolean) {
     trace(f"Found unreleased address:${addr}%x")
     if(!hasDisplayedMemoryWarning) {
-      debug("It looks like LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+      debug("It looks like LArray.free is not called for some instances. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
       hasDisplayedMemoryWarning = true
     }
     if(doRelease)
