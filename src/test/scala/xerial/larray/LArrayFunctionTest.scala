@@ -28,7 +28,7 @@ class LArrayFunctionTest extends LArraySpec {
     def ===[A:ClassTag](answer:Seq[A]) {
       val l = left.mkString(", ")
       val a = answer.mkString(", ")
-      trace(s"target:$l, answer:$a")
+      debug(s"target:$l, answer:$a")
       l should be (a)
     }
   }
@@ -105,15 +105,14 @@ class LArrayFunctionTest extends LArraySpec {
       l.take(4) === a.take(4)
       l.takeRight(3) === a.takeRight(3)
       l.takeWhile(_ < 3) === a.takeWhile(_ < 3)
-      l.splitAt(2) === a.splitAt(2)
-//      l.splitAt(4) === a.splitAt(4)
-//      l.dropWhile(_ < 4) === a.dropWhile(_ < 4)
-//      def f(x:Int) = x >= 2 && x<=4
-//      (l.span(f), a.span(f)) match {
-//        case ((l1, a1), (l2, a2)) =>
-//          l1 === a1.toArray[Int]
-//          l2 === a2.toArray[Int]
-//      }
+      //l.splitAt(2) === a.splitAt(2)
+      //l.splitAt(4) === a.splitAt(4)
+      l.dropWhile(_ < 4) === a.dropWhile(_ < 4)
+      def f(x:Int) = x<=2
+      (l.span(f), a.span(f)) match {
+        case ((l1, a1), (l2, a2)) =>
+          //l1 === (a1.toArray[Int])
+      }
     }
 
     "fold elements" in new Input1 {

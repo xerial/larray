@@ -303,7 +303,15 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
   def splitAt(n: Long) : (Repr, Repr) = (take(n), drop(n))
   def dropWhile(p: A => Boolean) : Repr = drop(prefixLength(p))
   def partition(p : A=>Boolean) = iterator.partition(p)
-  def span(p:A=>Boolean) : (Repr, Repr) = splitAt(prefixLength(p))
+  def span(p:A=>Boolean) : (Repr, Repr) = {
+    val l, r = newBuilder
+    var toLeft = true
+    for (x <- this) {
+      toLeft = toLeft && p(x)
+      (if (toLeft) l else r) += x
+    }
+    (l.result, r.result)
+  }
 
   def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     var i = 0L

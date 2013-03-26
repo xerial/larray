@@ -136,6 +136,8 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
   def update(i: Long, v: A): A
 
   def view(from:Long, to:Long) : LArrayView[A]
+
+  override def toString = mkString(", ")
 }
 
 
