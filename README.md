@@ -57,7 +57,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
 You can use LArray in the same manner with the standard Scala Arrays: 
 
 ```scala
-import xerial.larray.LArray
+import xerial.larray._
 
 val l = LArray(1, 2, 3)
 val e = l(0) // 1
