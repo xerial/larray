@@ -48,16 +48,7 @@ package object larray {
   }
 
   implicit class AsLRange(from:Long) {
-    def Until(to:Long) : LIterator[Long] = new AbstractLIterator[Long] {
-      private var cursor = from
-      def hasNext = cursor < to
-      def next() = {
-        val v = cursor
-        cursor += 1
-        v
-      }
-    }
-
+    def Until(to:Long) : LIterator[Long] = Until(to, 1)
     def Until(to:Long, step:Long) : LIterator[Long] = new AbstractLIterator[Long] {
       private var cursor = from
       def hasNext = cursor < to
@@ -69,15 +60,7 @@ package object larray {
     }
 
 
-    def To(to:Long) : LIterator[Long] = new AbstractLIterator[Long] {
-      private var cursor = from
-      def hasNext = cursor <= to
-      def next() = {
-        val v = cursor
-        cursor += 1
-        v
-      }
-    }
+    def To(to:Long) : LIterator[Long] = To(to, 1)
 
     def To(to:Long, step:Long) : LIterator[Long] = new AbstractLIterator[Long] {
       private var cursor = from

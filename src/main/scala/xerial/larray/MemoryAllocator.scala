@@ -174,7 +174,7 @@ class DefaultAllocator(allocatedMemoryReferences : mutable.Map[Long, MemoryRefer
         while(true) {
           try {
             val ref = queue.remove.asInstanceOf[MemoryReference]
-            trace(f"GC collected memory ${ref.address}%x")
+            trace(f"GC collected memory ref at ${ref.address}%x")
             release(ref.address)
           }
           catch {
