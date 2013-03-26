@@ -58,7 +58,7 @@ class LArrayExample {
 
   // Save to a file
   import java.io.File
-  val file = l.saveTo(new File("larray.tmp"))
+  val file = l.saveTo(new File("target/larray.tmp"))
   file.deleteOnExit()
   // Load from a file
   val l3 = LArray.loadFrom[Int](file) // LArray(0, 1, 2, 3, 4)

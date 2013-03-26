@@ -55,7 +55,7 @@ public class LArrayJavaExample {
         System.out.println(lb.mkString(", "));
 
         // Save to a file
-        File file = l.saveTo(new File("larray.tmp"));
+        File file = l.saveTo(new File("target/larray.tmp"));
         file.deleteOnExit();
 
         // Load from a file
