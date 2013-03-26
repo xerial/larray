@@ -37,7 +37,7 @@ private[larray] class UInt32ArrayView(base:UInt32Array, offset:Long, val size:Lo
   def apply(i: Long) = base.apply(offset + i)
   private[larray] def elementByteSize = base.elementByteSize
   def copyTo(dst: LByteArray, dstOffset: Long) { base.copyTo(offset, dst, dstOffset, byteLength) }
-  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) { base.copyTo(offset+srcOffset, dst, dstOffset, blen) }
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) { base.copyTo(offset+srcOffset, dst, dstOffset, blen) }
 }
 
 /**

@@ -41,7 +41,7 @@ object LArrayView {
      * @param dstOffset
      * @param blen the byte length to copy
      */
-    def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+    def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
       throw new UnsupportedOperationException("copyTo of LBitArray")
     }
 
@@ -121,7 +121,7 @@ object LArrayView {
      * @param dstOffset
      * @param blen the byte length to copy
      */
-    def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) { EmptyArray.copyTo(srcOffset, dst, dstOffset, blen)}
+    def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) { EmptyArray.copyTo(srcOffset, dst, dstOffset, blen)}
   }
 
 }
@@ -155,8 +155,8 @@ abstract class AbstractLArrayView[A : ClassTag](base:LSeq[A], offset:Long, val s
    * @param dstOffset
    * @param blen the byte length to copy
    */
-  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
-    base.copyTo(offset + srcOffset, dst, dstOffset, blen)
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
+    base.copyTo[B](offset + srcOffset, dst, dstOffset, blen)
   }
 
 }

@@ -69,6 +69,12 @@ class LByteBuffer(buf:LByteArray, private var cursor:Long, private var bufLimit:
     cursor += len
     this
   }
+  def put[A](b:LArray[A], offset:Long, len:Long) : this.type = {
+    b.copyTo(offset, buf, cursor, len)
+    cursor += len
+    this
+  }
+
   def putBoolean(v:Boolean) : this.type = { buf.putByte(cursor, if(v) 1 else 0); cursor += 1; this }
   def putByte(v:Byte) : this.type = { buf.putByte(cursor, v); cursor += 1; this }
   def putChar(v:Char) : this.type = { buf.putChar(cursor, v); cursor += 2; this }
@@ -81,6 +87,11 @@ class LByteBuffer(buf:LByteArray, private var cursor:Long, private var bufLimit:
   def get(b:Array[Byte]) : this.type = get(b, 0, b.length)
   def get(b:Array[Byte], offset:Int, len:Int) : this.type = {
     buf.writeToArray(cursor, b, offset, len)
+    this
+  }
+  def get[A](b:RawByteArray[A], offset:Long, len:Long) : this.type = {
+    buf.copyTo(cursor, b, offset, len)
+    cursor += len
     this
   }
   def getBoolean: Boolean = { val v = if(buf.getByte(cursor) == 0) false else true; cursor += 1; v}

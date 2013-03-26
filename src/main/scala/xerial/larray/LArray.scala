@@ -83,7 +83,7 @@ trait LSeq[A] extends LIterable[A] {
    * @param dstOffset
    * @param blen the byte length to copy
    */
-  def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long)
+  def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, blen:Long)
 
 
 
@@ -193,7 +193,7 @@ object LArray {
       // do nothing
     }
 
-    def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, len:Long) {
+    def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, len:Long) {
       // do nothing
     }
 
@@ -530,7 +530,7 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     unsafe.copyMemory(address, dst.address + dstOffset, byteLength)
   }
 
-  def copyTo(srcOffset:Long, dst:LByteArray, dstOffset:Long, blen:Long) {
+  def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, blen:Long) {
     unsafe.copyMemory(address + srcOffset, dst.address + dstOffset, blen)
   }
 
@@ -860,7 +860,7 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
    * @param dstOffset
    * @param blen the byte length to copy
    */
-  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
     throw new UnsupportedOperationException("copyTo(Long, LByteArray, Long, Long)")
   }
 
@@ -910,7 +910,7 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
     throw new UnsupportedOperationException("copyTo(LByteArray, Long)")
   }
 
-  def copyTo(srcOffset: Long, dst: LByteArray, dstOffset: Long, blen: Long) {
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
     throw new UnsupportedOperationException("copyTo(Long, LByteArray, Long, Long)")
   }
 

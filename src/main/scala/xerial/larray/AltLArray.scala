@@ -13,7 +13,7 @@ trait AltLIntArrayImpl extends LArray[Int] {
     throw new UnsupportedOperationException("copyTo")
   }
 
-  def copyTo(srcOffset:Long, dest:LByteArray, destOffset:Long, blen:Long) {
+  def copyTo[B](srcOffset:Long, dest:RawByteArray[B], destOffset:Long, blen:Long) {
     throw new UnsupportedOperationException("copyTo")
   }
 
