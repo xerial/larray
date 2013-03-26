@@ -30,7 +30,7 @@ public class LArrayJavaExample {
         // Traverse the elements
         int index = 0;
         for(Object e : l.ji()) {
-            System.out.println(String.format("l(%d) = %d", index, ((Integer)e).intValue()));
+            System.out.println(String.format("l(%d) = %d", index, (Integer)e));
             index += 1;
         }
 
@@ -52,9 +52,11 @@ public class LArrayJavaExample {
         for(int i=0; i<10; i += 3)
             b.append(i);
         LIntArray lb = b.result(); // LArray(0, 3, 6, 9)
+        System.out.println(lb.mkString(", "));
 
         // Save to a file
         File file = l.saveTo(new File("larray.tmp"));
+        file.deleteOnExit();
 
         // Load from a file
         LArray l3 = LArrayJ.loadLIntArrayFrom(file); // LArray(0, 1, 2, 3, 4)

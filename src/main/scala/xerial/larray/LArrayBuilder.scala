@@ -102,9 +102,10 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
   }
 
   protected def ensureSize(size:Long) {
+    val factor = 1.5
     if(capacity < size || capacity == 0L){
-      var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
-      while(newsize < size) newsize *= 2
+      var newsize = if(capacity == 0L) 16L else (capacity * factor).toLong
+      while(newsize < size) newsize = (newsize * factor).toLong
       resize(newsize)
     }
   }
@@ -281,9 +282,10 @@ class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
   }
 
   private def ensureSize(size:Long) {
+    val factor = 1.5
     if(capacity < size || capacity == 0L){
-      var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
-      while(newsize < size) newsize *= 2
+      var newsize = if(capacity == 0L) 16L else (capacity * factor).toLong
+      while(newsize < size) newsize = (newsize * factor).toLong
       resize(newsize)
     }
   }
