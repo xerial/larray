@@ -9,11 +9,24 @@ package xerial.larray
 
 import sun.misc.Unsafe
 import xerial.core.log.Logger
-import java.lang.ref.ReferenceQueue
+import java.lang.ref.{PhantomReference, ReferenceQueue}
 import collection.mutable
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
+import xerial.core.util.DataUnit
+
+
+/**
+ * Phantom reference to the allocated memory
+ * @param m the allocated memory
+ * @param queue the reference queue where GCed refrence will be put
+ * @param address the allocated memory address
+ * @param size the size of the allocated memory
+ */
+class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long, val size:Long) extends PhantomReference[Memory](m, queue) {
+  def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
+}
 
 /**
  * Accessor to the allocated memory
@@ -38,7 +51,7 @@ case class Memory(address: Long, size: Long, alloc: MemoryAllocator) {
   @inline def putLong(offset: Long, v: Long): Unit = unsafe.putLong(address + offset, v)
   @inline def putDouble(offset: Long, v: Double): Unit = unsafe.putDouble(address + offset, v)
 
-  def free = alloc.release(address, size)
+  def free = alloc.release(address, size, isGC=false)
 }
 
 
@@ -104,7 +117,7 @@ trait MemoryAllocator extends Logger {
   def allocatedSize : Long
 
   /**
-   * Allocate a memory of the specified byte length. The allocated memory must be released via [[xerial.larray.MemoryAllocator# r e l e a s e]]
+   * Allocate a memory of the specified byte length. The allocated memory must be released via [[xerial.larray.MemoryAllocator#release]]
    * as in malloc() in C/C++.
    * @param size byte length of the memory
    * @return adress of the allocated mmoery.
@@ -112,12 +125,12 @@ trait MemoryAllocator extends Logger {
   def allocate(size: Long): Memory
 
   /**
-   * Release the memory allocated by [[xerial.larray.MemoryAllocator# a l l o c a t e]]
-   * @param ref the reference to the memory allocated by  [[xerial.larray.MemoryAllocator# a l l o c a t e]]
+   * Release the memory allocated by [[xerial.larray.MemoryAllocator#allocate]]
+   * @param ref the reference to the memory allocated by  [[xerial.larray.MemoryAllocator#allocate]]
    */
-  def release(ref: MemoryReference): Unit = release(ref.address, ref.size)
+  def release(ref: MemoryReference, isGC:Boolean=false): Unit = release(ref.address, ref.size, isGC)
 
-  def release(addr: Long, size: Long): Unit
+  def release(addr: Long, size: Long, isGC:Boolean): Unit
 }
 
 object UnsafeUtil extends Logger {
@@ -181,8 +194,7 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
         while (true) {
           try {
             val ref = queue.remove.asInstanceOf[MemoryReference]
-            trace(f"GC collected memory ref at ${ref.address}%x")
-            release(ref)
+            release(ref, isGC=true)
           }
           catch {
             case e: Exception => warn(e)
@@ -209,9 +221,9 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
     allocateInternal(size)
   }
 
-  def release(addr: Long, size: Long) {
+  def release(addr: Long, size: Long, isGC:Boolean) {
     synchronized {
-      releaseInternal(addr, size)
+      releaseInternal(addr, size, isGC)
     }
   }
 
@@ -219,16 +231,16 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
     if (size == 0L)
       return Memory(0, 0, this)
     val m = Memory(unsafe.allocateMemory(size), size, this)
-    trace(f"allocated memory of size $size%,d at ${m.address}%x")
+    trace(f"allocated memory address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(size)}")
     val ref = new MemoryReference(m, queue)
     allocatedMemoryReferences += m.address -> ref
     totalAllocatedSize.getAndAdd(size)
     m
   }
 
-  protected def releaseInternal(addr: Long, size: Long) {
+  protected def releaseInternal(addr: Long, size: Long, isGC:Boolean) {
     if (allocatedMemoryReferences.contains(addr)) {
-      trace(f"released memory at ${addr}%x")
+      trace(f"${if(isGC) "[GC] " else ""}released memory  address:${addr}%x, size:${DataUnit.toHumanReadableFormat(size)}")
       val ref = allocatedMemoryReferences(addr)
       unsafe.freeMemory(ref.address)
       ref.clear()
@@ -248,6 +260,6 @@ class ConcurrentMemoryAllocator(memMap: collection.mutable.Map[Long, MemoryRefer
 
   override def allocate(size: Long): Memory = allocateInternal(size)
 
-  override def release(addr: Long, size: Long): Unit = releaseInternal(addr, size)
+  override def release(addr: Long, size: Long, isGC:Boolean): Unit = releaseInternal(addr, size, isGC)
 
 }
