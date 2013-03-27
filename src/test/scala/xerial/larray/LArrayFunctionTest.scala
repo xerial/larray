@@ -33,7 +33,7 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
     def ===[A: ClassTag](answer: Seq[A]) {
       val l = stringRepr(left)
       val a = stringRepr(answer)
-      debug(s"target:$l, answer:$a")
+      trace(s"target:$l, answer:$a")
       l should be(a)
     }
   }

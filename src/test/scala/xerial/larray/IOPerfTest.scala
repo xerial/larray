@@ -21,7 +21,7 @@ class IOPerfTest extends LArraySpec {
     file.deleteOnExit()
     val b = new Array[Byte](1024 * 1024)
     //val P = 1024 * 1024
-    val P = 64
+    val P = 256
     val f = new FileOutputStream(file)
     for(i <- 0 until P) {
       Random.nextBytes(b)
@@ -33,17 +33,18 @@ class IOPerfTest extends LArraySpec {
 
   "LArray" should {
     "compare I/O performance" in {
-      val f = createSampleFile
+
+      val f1 = createSampleFile
+
       time("read", repeat=10) {
         block("LArray.loadFrom") {
-          debug("Loading to LArray")
-          val l = LArray.loadFrom[Byte](f)
+          trace("Loading to LArray")
+          val l = LArray.loadFrom[Byte](f1)
           l.free
         }
-
         block("FileOutputStream") {
-          debug("Loading to Array")
-          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f))) { buf =>
+          trace("Loading to Array")
+          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f1))) { buf =>
             // do nothing
           }
         }
