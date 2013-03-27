@@ -149,6 +149,9 @@ object LArray {
 
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
+
+  import _root_.java.{lang=>jl}
+
   /**
    * Load the contents of a file into LArray
    * @param f the file to read
@@ -157,15 +160,34 @@ object LArray {
    */
   def loadFrom[A : ClassTag](f:File) : LArray[A] = {
     val fin = new FileInputStream(f).getChannel
+    val tag = implicitly[ClassTag[A]]
     try {
-      var pos = 0L
-      val fileSize = fin.size()
-      val b = LArray.newBuilder[A]
-      b.sizeHint(fileSize)
-      while(pos < fileSize) {
-        pos += fin.transferTo(pos, fileSize - pos, b)
+      tag.runtimeClass match {
+        case jl.Boolean.TYPE =>  {
+          val arr = new Array[Byte](8)
+          val bb = ByteBuffer.wrap(arr)
+          fin.read(bb)
+          val numBits = bb.getLong(0)
+          val fileSize = fin.size()
+          val b = new LBitArrayBuilder
+          var pos = 8L
+          b.sizeHint(numBits)
+          while(pos < fileSize) {
+            pos += fin.transferTo(pos, fileSize - pos, b)
+          }
+          b.result(numBits).asInstanceOf[LArray[A]]
+        }
+        case _ => {
+          var pos = 0L
+          val fileSize = fin.size()
+          val b = LArray.newBuilder[A]
+          b.sizeHint(fileSize)
+          while(pos < fileSize) {
+            pos += fin.transferTo(pos, fileSize - pos, b)
+          }
+          b.result()
+        }
       }
-      b.result()
     }
     finally
       fin.close
@@ -209,7 +231,6 @@ object LArray {
   }
 
 
-  import _root_.java.{lang=>jl}
 
   def of[A : ClassTag](size:Long) : LArray[A] = {
     val tag = implicitly[ClassTag[A]]

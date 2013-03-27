@@ -9,6 +9,7 @@ package xerial.larray
 
 import xerial.core.log.Logger
 import java.nio.ByteBuffer
+import java.io.{FileOutputStream, File}
 
 
 /**
@@ -281,6 +282,28 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
     throw new UnsupportedOperationException("elementByteSize of LBitArray")
 
   def view(from: Long, to: Long) = new LArrayView.LBitArrayView(this, from, to-from)
+
+  /**
+   * Save to a file.
+   * @param f
+   * @return
+   */
+  override def saveTo(f:File) : File = {
+    val fout = new FileOutputStream(f).getChannel
+    try {
+      // LBitArray need to record numBits
+      val b = new Array[Byte](8)
+      val bb = ByteBuffer.wrap(b).putLong(numBits)
+      bb.flip()
+      fout.write(bb)
+      fout.write(this.toDirectByteBuffer)
+      f
+    }
+    finally
+      fout.close
+  }
+
+
 }
 
 
@@ -340,6 +363,12 @@ class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray] with Logger
     else
       new LBitArray(new LLongArray(s, mkArray(s).m), numBits)
   }
+
+  def result(numBits:Long) : LBitArray = {
+    this.numBits = numBits
+    result()
+  }
+
 
   override def toString = result.toString
 
