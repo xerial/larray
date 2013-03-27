@@ -43,14 +43,14 @@ trait LSeq[A] extends LIterable[A] {
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
-  private[larray] def elementByteSize : Int
+  private[larray] def elementByteSize: Int
 
 
   /**
    * Create a sequence of DirectByteBuffer that projects LArray contents
    * @return sequence of `java.nio.ByteBuffer`
    */
-  def toDirectByteBuffer : Array[ByteBuffer] =
+  def toDirectByteBuffer: Array[ByteBuffer] =
     throw new UnsupportedOperationException("toDirectByteBuffer")
 
 
@@ -59,7 +59,7 @@ trait LSeq[A] extends LIterable[A] {
    * @param f
    * @return
    */
-  def saveTo(f:File) : File = {
+  def saveTo(f: File): File = {
     val fout = new FileOutputStream(f).getChannel
     try {
       fout.write(this.toDirectByteBuffer)
@@ -74,7 +74,7 @@ trait LSeq[A] extends LIterable[A] {
    * @param dst
    * @param dstOffset
    */
-  def copyTo(dst:LByteArray, dstOffset:Long)
+  def copyTo(dst: LByteArray, dstOffset: Long)
 
   /**
    * Copy the contents of this sequence into the target LByteArray
@@ -83,8 +83,7 @@ trait LSeq[A] extends LIterable[A] {
    * @param dstOffset
    * @param blen the byte length to copy
    */
-  def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, blen:Long)
-
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long)
 
 
 }
@@ -95,17 +94,82 @@ trait LSeq[A] extends LIterable[A] {
  * The differences from the standard Array[A] are:
  *
  *  - LArray accepts Long type indexes, so it is possible to have more than 2G (2^31-1) entries, which is a limitation of the standard Array[A].
- *  - The memory resource of LArray[A] resides outside of the normal garbage-collected JVM heap and can be released via [[xerial.larray.LArray#free]].
- *    - If [[LArray#free]] is not called, the acquried memory stays until LArray is collected by GC.
- *  - LArray elements are not initialized, so explicit initialization using [[LArray#clear]] is necessary.
+ *  - The memory resource of LArray[A] resides outside of the normal garbage-collected JVM heap and can be released via [[xerial.larray.LArray.free]].
+ *  - If [[LArray.free]] is not called, the acquried memory stays until LArray is collected by GC.
+ *  - LArray elements are not initialized, so explicit initialization using [[LArray.clear]] is necessary.
+ *
+ * == Usage ==
+ * {{{
+  import xerial.larray._
+
+  // Create a new LArray of Int type
+  val l = LArray.of[Int](5)
+
+  // Create an LArray with initial values
+  val ll = LArray(3, 5, 9, 10)
+
+  // Set elements
+  for(i <- 0 until l.size.toInt)
+    l(i) = i
+
+  // Read elements
+  val e0 = l(0)
+  val e1 = l(1)
+
+  // Print the elements
+  println(l.mkString(", ")) // 0, 1, 2, 3, 4
+
+  // Traverse the elements with their indexes
+  for((e, i) <- l.zipWithIndex)
+    println(s"l(\$i) = \$e") // l(0) = 0, l(1) = 1, ...
+
+  // Manipulate LArray
+  val l2 = l.map(_ * 10) // LArray(0, 10, 20, 30, 40)
+  val f = l.filter(_ % 2 == 0) // LArray(0, 2, 4)
+  val s = l.slice(2) // LArray(2, 3, 4)
+  l.foreach(println(_))
+
+  // Build LArray
+  val b = LArray.newBuilder[Int]
+  for(i <- 0 until (10, step=3))
+    b += i
+  val lb = b.result // LArray(0, 3, 6, 9)
+
+  // Convert to Scala Array
+  val arr = l.toArray
+  println(arr.mkString(", ")) // 0, 1, 2, 3, 4
+
+  // Convert Scala Array to LArray
+  val arr2 = Array(1, 3, 5)
+  val la = arr2.toLArray
+
+  // Save to a file
+  import java.io.File
+  val file = l.saveTo(new File("target/larray.tmp"))
+  // Load from a file
+  val l3 = LArray.loadFrom[Int](file) // LArray(0, 1, 2, 3, 4)
+
+  // Initialize the array
+  l.clear()
+  println(l.mkString(", ")) // 0, 0, 0, 0, 0
+
+  // Release the memory contents.
+  l.free
+  l3.free
+
+  // You can omit calling free, because GC collects unused LArrays
+}}}
+
  *
  * @tparam A element type
  */
-trait LArray[A] extends LSeq[A] with WritableByteChannel  {
+trait LArray[A] extends LSeq[A] with WritableByteChannel {
 
   def isOpen: Boolean = true
 
-  def close() { free }
+  def close() {
+    free
+  }
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
@@ -116,14 +180,14 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
    * Wraps with immutable interface
    * @return
    */
-  def toLSeq : LSeq[A] = this.asInstanceOf[LSeq[A]]
+  def toLSeq: LSeq[A] = this.asInstanceOf[LSeq[A]]
 
   /**
    * Clear the contents of the array. It simply fills the array with zero bytes.
    */
   def clear()
 
-  def write(src:ByteBuffer) : Int =
+  def write(src: ByteBuffer): Int =
     throw new UnsupportedOperationException("writeToArray(ByteBuffer)")
 
 
@@ -135,7 +199,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
    */
   def update(i: Long, v: A): A
 
-  def view(from:Long, to:Long) : LArrayView[A]
+  def view(from: Long, to: Long): LArrayView[A]
 
   override def toString = mkString(", ")
 }
@@ -143,14 +207,23 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel  {
 
 /**
  * LArray factory
+ *
+ * {{{
+ *
+ *   // Create a new LArray[Int] of size 10
+ *   LArray.of[Int](10)
+ * }}}
  * @author Taro L. Saito
  */
 object LArray {
 
+  /**
+   * Load the native JNI code
+   */
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
 
-  import _root_.java.{lang=>jl}
+  import _root_.java.{lang => jl}
 
   /**
    * Load the contents of a file into LArray
@@ -158,12 +231,12 @@ object LArray {
    * @tparam A the element type
    * @return LArray contains the file contents
    */
-  def loadFrom[A : ClassTag](f:File) : LArray[A] = {
+  def loadFrom[A: ClassTag](f: File): LArray[A] = {
     val fin = new FileInputStream(f).getChannel
     val tag = implicitly[ClassTag[A]]
     try {
       tag.runtimeClass match {
-        case jl.Boolean.TYPE =>  {
+        case jl.Boolean.TYPE => {
           val arr = new Array[Byte](8)
           val bb = ByteBuffer.wrap(arr)
           fin.read(bb)
@@ -172,7 +245,7 @@ object LArray {
           val b = new LBitArrayBuilder
           var pos = 8L
           b.sizeHint(fileSize - pos)
-          while(pos < fileSize) {
+          while (pos < fileSize) {
             pos += fin.transferTo(pos, fileSize - pos, b)
           }
           b.result(numBits).asInstanceOf[LArray[A]]
@@ -182,7 +255,7 @@ object LArray {
           val fileSize = fin.size()
           val b = LArray.newBuilder[A]
           b.sizeHint(fileSize)
-          while(pos < fileSize) {
+          while (pos < fileSize) {
             pos += fin.transferTo(pos, fileSize - pos, b)
           }
           b.result()
@@ -194,11 +267,10 @@ object LArray {
   }
 
 
-  object EmptyArray
+  private[larray] object EmptyArray
     extends LArray[Nothing]
-    with LIterable[Nothing]
-  {
-    private[larray] def elementByteSize : Int = 0
+    with LIterable[Nothing] {
+    private[larray] def elementByteSize: Int = 0
 
     def clear() {}
 
@@ -219,11 +291,12 @@ object LArray {
     def free {
       /* do nothing */
     }
+
     def copyTo(dst: LByteArray, dstOffset: Long) {
       // do nothing
     }
 
-    def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, len:Long) {
+    def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, len: Long) {
       // do nothing
     }
 
@@ -231,8 +304,13 @@ object LArray {
   }
 
 
-
-  def of[A : ClassTag](size:Long) : LArray[A] = {
+  /**
+   * Creates a new LArray of the specified type and size
+   * @param size the array size
+   * @tparam A the element type
+   * @return a new instance of LArray[A] of the given size
+   */
+  def of[A: ClassTag](size: Long): LArray[A] = {
     val tag = implicitly[ClassTag[A]]
     tag.runtimeClass match {
       case jl.Integer.TYPE => new LIntArray(size).asInstanceOf[LArray[A]]
@@ -248,41 +326,57 @@ object LArray {
   }
 
   val emptyBooleanArray = LArray.of[Boolean](0)
-  val emptyByteArray    = LArray.of[Byte](0)
-  val emptyCharArray    = LArray.of[Char](0)
-  val emptyDoubleArray  = LArray.of[Double](0)
-  val emptyFloatArray   = LArray.of[Float](0)
-  val emptyIntArray     = LArray.of[Int](0)
-  val emptyLongArray    = LArray.of[Long](0)
-  val emptyShortArray   = LArray.of[Short](0)
-  val emptyObjectArray  = LArray.of[Object](0)
+  val emptyByteArray = LArray.of[Byte](0)
+  val emptyCharArray = LArray.of[Char](0)
+  val emptyDoubleArray = LArray.of[Double](0)
+  val emptyFloatArray = LArray.of[Float](0)
+  val emptyIntArray = LArray.of[Int](0)
+  val emptyLongArray = LArray.of[Long](0)
+  val emptyShortArray = LArray.of[Short](0)
+  val emptyObjectArray = LArray.of[Object](0)
 
-  def empty[A : ClassTag] : LArray[A] = {
+  /**
+   * Empty array
+   * @tparam A
+   * @return
+   */
+  def empty[A: ClassTag]: LArray[A] = {
     val tag = implicitly[ClassTag[A]]
     tag.runtimeClass match {
-    case jl.Integer.TYPE => emptyIntArray.asInstanceOf[LArray[A]]
-    case jl.Byte.TYPE => emptyByteArray.asInstanceOf[LArray[A]]
-    case jl.Character.TYPE => emptyCharArray.asInstanceOf[LArray[A]]
-    case jl.Short.TYPE => emptyShortArray.asInstanceOf[LArray[A]]
-    case jl.Long.TYPE => emptyLongArray.asInstanceOf[LArray[A]]
-    case jl.Float.TYPE => emptyFloatArray.asInstanceOf[LArray[A]]
-    case jl.Double.TYPE => emptyDoubleArray.asInstanceOf[LArray[A]]
-    case jl.Boolean.TYPE => emptyBooleanArray.asInstanceOf[LArray[A]]
-    case _ => emptyObjectArray.asInstanceOf[LArray[A]]
+      case jl.Integer.TYPE => emptyIntArray.asInstanceOf[LArray[A]]
+      case jl.Byte.TYPE => emptyByteArray.asInstanceOf[LArray[A]]
+      case jl.Character.TYPE => emptyCharArray.asInstanceOf[LArray[A]]
+      case jl.Short.TYPE => emptyShortArray.asInstanceOf[LArray[A]]
+      case jl.Long.TYPE => emptyLongArray.asInstanceOf[LArray[A]]
+      case jl.Float.TYPE => emptyFloatArray.asInstanceOf[LArray[A]]
+      case jl.Double.TYPE => emptyDoubleArray.asInstanceOf[LArray[A]]
+      case jl.Boolean.TYPE => emptyBooleanArray.asInstanceOf[LArray[A]]
+      case _ => emptyObjectArray.asInstanceOf[LArray[A]]
     }
   }
 
-  def apply() = EmptyArray
+  /**
+   * Get an empty array
+   * @tparam A the element type
+   * @return an empty array of the specified type
+   */
+  def apply[A: ClassTag]() = empty[A]
 
-
-  private[larray] def wrap[A:ClassTag](byteSize:Long, m:Memory) : LArray[A] = {
+  /**
+   * Wrap a raw memory with a new LArray class
+   * @param byteSize the byte size of memory
+   * @param m the raw memory address
+   * @tparam A the element type of the array
+   * @return new instance of LArray[A]
+   */
+  private[larray] def wrap[A: ClassTag](byteSize: Long, m: Memory): LArray[A] = {
     val tag = implicitly[ClassTag[A]]
     tag.runtimeClass match {
       case jl.Integer.TYPE => new LIntArray(byteSize / 4, m).asInstanceOf[LArray[A]]
       case jl.Byte.TYPE => new LByteArray(byteSize, m).asInstanceOf[LArray[A]]
       case jl.Long.TYPE => new LLongArray(byteSize / 8, m).asInstanceOf[LArray[A]]
       case jl.Character.TYPE => new LCharArray(byteSize / 2, m).asInstanceOf[LArray[A]]
-      case jl.Short.TYPE => new LShortArray(byteSize/ 2, m).asInstanceOf[LArray[A]]
+      case jl.Short.TYPE => new LShortArray(byteSize / 2, m).asInstanceOf[LArray[A]]
       case jl.Float.TYPE => new LFloatArray(byteSize / 4, m).asInstanceOf[LArray[A]]
       case jl.Double.TYPE => new LDoubleArray(byteSize / 8, m).asInstanceOf[LArray[A]]
       //case jl.Boolean.TYPE => new LBitArray(byteSize * 8, m).asInstanceOf[LArray[A]]
@@ -291,7 +385,13 @@ object LArray {
   }
 
 
-  def toLArray[A:ClassTag](it:LIterator[A]) : LArray[A] = {
+  /**
+   * Convert iterator to LArray
+   * @param it
+   * @tparam A
+   * @return
+   */
+  def toLArray[A: ClassTag](it: LIterator[A]): LArray[A] = {
     val b = newBuilder[A]
     it.foreach(b += _)
     b.result
@@ -303,11 +403,13 @@ object LArray {
    * @param xs the elements to put in the array
    * @return an array containing all elements from xs.
    */
-  def apply[A : ClassTag](xs: A*): LArray[A] = {
+  def apply[A: ClassTag](xs: A*): LArray[A] = {
     val size = xs.size
     val arr = new LObjectArray32[A](size)
     var i = 0
-    for(x <- xs) { arr(i) = x; i += 1 }
+    for (x <- xs) {
+      arr(i) = x; i += 1
+    }
     arr
   }
 
@@ -386,20 +488,29 @@ object LArray {
     arr
   }
 
-  def copy[A](src:LArray[A], srcPos:Long, dest:LArray[A], destPos:Long, length:Long) {
+  /**
+   * Copy LArray elements to the destination LArray
+   * @param src the source LArray
+   * @param srcPos the element index to start copy
+   * @param dest the destination LArray
+   * @param destPos the element index of the destination array to start copy
+   * @param length the number of elements to copy
+   * @tparam A the element type
+   */
+  def copy[A](src: LArray[A], srcPos: Long, dest: LArray[A], destPos: Long, length: Long) {
     import UnsafeUtil.unsafe
     val copyLen = math.min(length, math.min(src.size - srcPos, dest.size - destPos))
 
     (src, dest) match {
-      case (a:UnsafeArray[A], b:UnsafeArray[A]) =>
+      case (a: UnsafeArray[A], b: UnsafeArray[A]) =>
         val elemSize = a.elementByteSize
         // Use fast memcopy
         unsafe.copyMemory(a.m.address + srcPos * elemSize, b.m.address + destPos * elemSize, copyLen * elemSize)
       case _ =>
         // slow copy
         var i = 0L
-        while(i < copyLen) {
-          dest(destPos+i) = src(srcPos+i)
+        while (i < copyLen) {
+          dest(destPos + i) = src(srcPos + i)
           i += 1
         }
     }
@@ -410,33 +521,36 @@ object LArray {
    * @tparam A
    * @return
    */
-  def newBuilder[A : ClassTag] : LBuilder[A, LArray[A]] = LArrayBuilder.make[A]
+  def newBuilder[A: ClassTag]: LBuilder[A, LArray[A]] = LArrayBuilder.make[A]
 
 
   /** Creates LArary with given dimensions */
-  def ofDim[A:ClassTag](size:Long) = LArray.of[A](size)
+  def ofDim[A: ClassTag](size: Long) = LArray.of[A](size)
 
 
   /**
    * Creates a 2-dimensional array. Returned LArray[LArray[A]] cannot be released immediately. If you need
    * relesable arrays, use [[xerial.larray.LArray2D]].
    *
-   * */
+   **/
   def ofDim[A: ClassTag](n1: Long, n2: Long): LArray[LArray[A]] = {
     val arr: LArray[LArray[A]] = LArray.of[LArray[A]](n1)
     var i = 0L
-    while(i < n1) {
+    while (i < n1) {
       arr(i) = LArray.of[A](n2)
       i += 1
     }
     arr
   }
+
   /** Creates a 3-dimensional array */
   def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long): LArray[LArray[LArray[A]]] =
     tabulate(n1)(_ => ofDim[A](n2, n3))
+
   /** Creates a 4-dimensional array */
   def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long, n4: Long): LArray[LArray[LArray[LArray[A]]]] =
     tabulate(n1)(_ => ofDim[A](n2, n3, n4))
+
   /** Creates a 5-dimensional array */
   def ofDim[A: ClassTag](n1: Long, n2: Long, n3: Long, n4: Long, n5: Long): LArray[LArray[LArray[LArray[LArray[A]]]]] =
     tabulate(n1)(_ => ofDim[A](n2, n3, n4, n5))
@@ -461,13 +575,13 @@ object LArray {
  */
 trait RawByteArray[A] extends LArray[A] {
 
-  def address : Long
+  def address: Long
 
   /**
    * Get a byte at the index
    * @return
    */
-  def readByte(index:Long) : Int
+  def readByte(index: Long): Int
 
 
   /**
@@ -478,7 +592,7 @@ trait RawByteArray[A] extends LArray[A] {
    * @param length the byte length to write
    * @return byte length to write
    */
-  def writeToArray(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
+  def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int
 
   /**
    * Read the contents from a given source buffer
@@ -487,39 +601,49 @@ trait RawByteArray[A] extends LArray[A] {
    * @param destOffset byte offset from the destination address
    * @param length byte length to read from the source
    */
-  def readFromArray(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
+  def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int
 
 
   /**
    * Create an input stream for reading LArray byte contents
    * @return
    */
-  def toInputStream : java.io.InputStream = LArrayInputStream(this)
+  def toInputStream: java.io.InputStream = LArrayInputStream(this)
 
 
-  def getByte(offset:Long) : Byte
-  def getChar(offset:Long) : Char
-  def getShort(offset:Long) : Short
-  def getInt(offset:Long) : Int
-  def getFloat(offset:Long) : Float
-  def getLong(offset:Long) : Long
-  def getDouble(offset:Long) : Double
+  def getByte(offset: Long): Byte
 
-  def putByte(offset:Long, v:Byte)
-  def putChar(offset:Long, v:Char)
-  def putShort(offset:Long, v:Short)
-  def putInt(offset:Long, v:Int)
-  def putFloat(offset:Long, v:Float)
-  def putLong(offset:Long, v:Long)
-  def putDouble(offset:Long, v:Double)
+  def getChar(offset: Long): Char
+
+  def getShort(offset: Long): Short
+
+  def getInt(offset: Long): Int
+
+  def getFloat(offset: Long): Float
+
+  def getLong(offset: Long): Long
+
+  def getDouble(offset: Long): Double
+
+  def putByte(offset: Long, v: Byte)
+
+  def putChar(offset: Long, v: Char)
+
+  def putShort(offset: Long, v: Short)
+
+  def putInt(offset: Long, v: Int)
+
+  def putFloat(offset: Long, v: Float)
+
+  def putLong(offset: Long, v: Long)
+
+  def putDouble(offset: Long, v: Double)
 
 }
 
 
-
-
-
-private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self: LArray[T] =>
+private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
+  self: LArray[T] =>
 
   private[larray] def m: Memory
 
@@ -534,17 +658,17 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
   }
 
 
-  override def write(src:ByteBuffer) : Int = {
+  override def write(src: ByteBuffer): Int = {
     val len = math.max(src.limit - src.position, 0)
     val writeLen = src match {
-      case d:DirectBuffer =>
+      case d: DirectBuffer =>
         unsafe.copyMemory(d.address() + src.position(), m.address + cursor, len)
         len
       case arr if src.hasArray =>
         readFromArray(src.array(), src.position(), cursor, len)
       case _ =>
         var i = 0L
-        while(i < len) {
+        while (i < len) {
           m.putByte(m.address + i, src.get((src.position() + i).toInt))
           i += 1
         }
@@ -559,8 +683,8 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     var pos = 0L
     val b = Array.newBuilder[ByteBuffer]
     val limit = byteLength
-    while(pos < limit){
-      val len : Long = math.min(limit - pos, Int.MaxValue)
+    while (pos < limit) {
+      val len: Long = math.min(limit - pos, Int.MaxValue)
       b += UnsafeUtil.newDirectByteBuffer(m.address + pos, len.toInt)
       pos += len
     }
@@ -582,8 +706,8 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     writeLen
   }
 
-  def readFromArray(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
-    val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length)).toInt
+  def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int = {
+    val readLen = math.min(src.length - srcOffset, math.min(byteLength - destOffset, length)).toInt
     LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen
   }
@@ -592,44 +716,58 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger { self:
     unsafe.copyMemory(address, dst.address + dstOffset, byteLength)
   }
 
-  def copyTo[B](srcOffset:Long, dst:RawByteArray[B], dstOffset:Long, blen:Long) {
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
     unsafe.copyMemory(address + srcOffset, dst.address + dstOffset, blen)
   }
 
-  def readByte(index:Long) = m.getByte(index)
+  def readByte(index: Long) = m.getByte(index)
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
    */
-  def free { m.free }
+  def free {
+    m.free
+  }
 
 
-  def getByte(offset:Long) : Byte = m.getByte(offset)
-  def getChar(offset:Long) : Char = m.getChar(offset)
-  def getShort(offset:Long) : Short = m.getShort(offset)
-  def getInt(offset:Long) : Int = m.getInt(offset)
-  def getFloat(offset:Long) : Float = m.getFloat(offset)
-  def getLong(offset:Long) : Long = m.getLong(offset)
-  def getDouble(offset:Long) : Double = m.getDouble(offset)
+  def getByte(offset: Long): Byte = m.getByte(offset)
 
-  def putByte(offset:Long, v:Byte) = m.putByte(offset, v)
-  def putChar(offset:Long, v:Char) = m.putChar(offset, v)
-  def putShort(offset:Long, v:Short) = m.putShort(offset, v)
-  def putInt(offset:Long, v:Int) = m.putInt(offset, v)
-  def putFloat(offset:Long, v:Float) = m.putFloat(offset, v)
-  def putLong(offset:Long, v:Long) = m.putLong(offset, v)
-  def putDouble(offset:Long, v:Double) = m.putDouble(offset, v)
+  def getChar(offset: Long): Char = m.getChar(offset)
+
+  def getShort(offset: Long): Short = m.getShort(offset)
+
+  def getInt(offset: Long): Int = m.getInt(offset)
+
+  def getFloat(offset: Long): Float = m.getFloat(offset)
+
+  def getLong(offset: Long): Long = m.getLong(offset)
+
+  def getDouble(offset: Long): Double = m.getDouble(offset)
+
+  def putByte(offset: Long, v: Byte) = m.putByte(offset, v)
+
+  def putChar(offset: Long, v: Char) = m.putChar(offset, v)
+
+  def putShort(offset: Long, v: Short) = m.putShort(offset, v)
+
+  def putInt(offset: Long, v: Int) = m.putInt(offset, v)
+
+  def putFloat(offset: Long, v: Float) = m.putFloat(offset, v)
+
+  def putLong(offset: Long, v: Long) = m.putLong(offset, v)
+
+  def putDouble(offset: Long, v: Double) = m.putDouble(offset, v)
 
 }
 
 
-class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: MemoryAllocator)
+class LCharArray(val size: Long, private[larray] val m: Memory)(implicit alloc: MemoryAllocator)
   extends LArray[Char]
-  with UnsafeArray[Char]
-{
+  with UnsafeArray[Char] {
   protected[this] def newBuilder = new LCharArrayBuilder
 
   def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 1))
+
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Char = {
@@ -646,6 +784,7 @@ class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: M
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize: Int = 2
+
   def view(from: Long, to: Long) = new LArrayView.LCharArrayView(this, from, to - from)
 
 }
@@ -656,13 +795,13 @@ class LCharArray(val size: Long, private[larray] val m:Memory)(implicit alloc: M
  * @param m allocated memory
  * @param alloc memory allocator
  */
-class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: MemoryAllocator)
+class LIntArray(val size: Long, private[larray] val m: Memory)(implicit alloc: MemoryAllocator)
   extends LArray[Int]
-  with UnsafeArray[Int]
-{
+  with UnsafeArray[Int] {
   protected[this] def newBuilder = new LIntArrayBuilder
 
   def this(size: Long)(implicit alloc: MemoryAllocator = MemoryAllocator.default) = this(size, alloc.allocate(size << 2))
+
   import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
@@ -690,13 +829,13 @@ class LIntArray(val size: Long, private[larray] val m:Memory)(implicit alloc: Me
  * @param m allocated memory
  * @param mem memory allocator
  */
-class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+class LLongArray(val size: Long, private[larray] val m: Memory)(implicit mem: MemoryAllocator)
   extends LArray[Long]
-  with UnsafeArray[Long]
-{
+  with UnsafeArray[Long] {
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
   protected[this] def newBuilder = new LLongArrayBuilder
+
   private[larray] def elementByteSize: Int = 8
 
   import UnsafeUtil.unsafe
@@ -722,10 +861,9 @@ class LLongArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
  * @param m allocated memory
  * @param mem memory allocator
  */
-class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+class LByteArray(val size: Long, private[larray] val m: Memory)(implicit mem: MemoryAllocator)
   extends LArray[Byte]
-  with UnsafeArray[Byte]
-{
+  with UnsafeArray[Byte] {
   self =>
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
@@ -756,34 +894,40 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 
   def sort {
 
-    def sort(left:Long, right:Long) {
+    def sort(left: Long, right: Long) {
       val NUM_BYTE_VALUES = 256
       // counting sort
       val count: Array[Int] = new Array[Int](NUM_BYTE_VALUES)
 
       {
-        var i : Long = left - 1
-        while ({ i += 1; i <= right}) {
+        var i: Long = left - 1
+        while ( {
+          i += 1; i <= right
+        }) {
           count(self(i) - Byte.MinValue) += 1
         }
       }
 
       {
         var i = NUM_BYTE_VALUES
-        var k : Long = right + 1
+        var k: Long = right + 1
         while (k > left) {
-          while({ i -= 1; count(i) == 0} ) {}
+          while ( {
+            i -= 1; count(i) == 0
+          }) {}
           val value: Byte = (i + Byte.MinValue).toByte
           var s = count(i)
           do {
             k -= 1
             self(k) = value
-          } while (({s -= 1; s}) > 0)
+          } while (({
+            s -= 1; s
+          }) > 0)
         }
       }
     }
 
-    sort(0L, size-1L)
+    sort(0L, size - 1L)
   }
 
 
@@ -791,26 +935,22 @@ class LByteArray(val size: Long, private[larray] val m:Memory)(implicit mem: Mem
 
 }
 
-class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+class LDoubleArray(val size: Long, private[larray] val m: Memory)(implicit mem: MemoryAllocator)
   extends LArray[Double]
-  with UnsafeArray[Double]
-{
-  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
+  with UnsafeArray[Double] {
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 3))
 
 
-
-  private [larray] def elementByteSize = 8
+  private[larray] def elementByteSize = 8
 
   import UnsafeUtil.unsafe
 
-  def apply(i: Long): Double =
-  {
+  def apply(i: Long): Double = {
     unsafe.getDouble(m.address + (i << 3))
   }
 
   // a(i) = a(j) = 1
-  def update(i: Long, v: Double): Double =
-  {
+  def update(i: Long, v: Double): Double = {
     unsafe.putDouble(m.address + (i << 2), v)
     v
   }
@@ -820,24 +960,21 @@ class LDoubleArray(val size: Long, private[larray] val m:Memory)(implicit mem: M
   def view(from: Long, to: Long) = new LArrayView.LDoubleArrayView(this, from, to - from)
 }
 
-class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+class LFloatArray(val size: Long, private[larray] val m: Memory)(implicit mem: MemoryAllocator)
   extends LArray[Float]
-  with UnsafeArray[Float]
-{
-  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
+  with UnsafeArray[Float] {
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
-  private [larray] def elementByteSize = 4
+  private[larray] def elementByteSize = 4
 
   import UnsafeUtil.unsafe
 
-  def apply(i: Long): Float =
-  {
+  def apply(i: Long): Float = {
     unsafe.getFloat(m.address + (i << 2))
   }
 
   // a(i) = a(j) = 1
-  def update(i: Long, v: Float): Float =
-  {
+  def update(i: Long, v: Float): Float = {
     unsafe.putFloat(m.address + (i << 2), v)
     v
   }
@@ -847,24 +984,21 @@ class LFloatArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
   def view(from: Long, to: Long) = new LArrayView.LFloatArrayView(this, from, to - from)
 }
 
-class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator)
+class LShortArray(val size: Long, private[larray] val m: Memory)(implicit mem: MemoryAllocator)
   extends LArray[Short]
-  with UnsafeArray[Short]
-{
-  def this(size: Long)(implicit  mem: MemoryAllocator) = this(size, mem.allocate(size << 1))
+  with UnsafeArray[Short] {
+  def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 1))
 
-  private [larray] def elementByteSize = 2
+  private[larray] def elementByteSize = 2
 
   import UnsafeUtil.unsafe
 
-  def apply(i: Long): Short =
-  {
+  def apply(i: Long): Short = {
     unsafe.getShort(m.address + (i << 1))
   }
 
   // a(i) = a(j) = 1
-  def update(i: Long, v: Short): Short =
-  {
+  def update(i: Long, v: Short): Short = {
     unsafe.putShort(m.address + (i << 1), v)
     v
   }
@@ -876,8 +1010,8 @@ class LShortArray(val size: Long, private[larray] val m:Memory)(implicit mem: Me
 
 
 object LObjectArray {
-  def ofDim[A:ClassTag](size:Long) =
-    if(size < Int.MaxValue)
+  def ofDim[A: ClassTag](size: Long) =
+    if (size < Int.MaxValue)
       new LObjectArray32[A](size)
     else
       new LObjectArrayLarge[A](size)
@@ -888,7 +1022,7 @@ object LObjectArray {
  * @param size array size
  * @tparam A object type
  */
-class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
+class LObjectArray32[A: ClassTag](val size: Long) extends LArray[A] {
   require(size < Int.MaxValue)
   private var array = new Array[A](size.toInt)
 
@@ -900,10 +1034,12 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
   }
 
   def apply(i: Long) = array(i.toInt)
+
   def update(i: Long, v: A) = {
     array(i.toInt) = v
     v
   }
+
   def free {
     // Dereference the array to let the array garbage-collected
     array = null
@@ -934,7 +1070,7 @@ class LObjectArray32[A : ClassTag](val size:Long) extends LArray[A] {
  * @param size array size
  * @tparam A object type
  */
-class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
+class LObjectArrayLarge[A: ClassTag](val size: Long) extends LArray[A] {
 
   protected[this] def newBuilder = new LObjectArrayBuilder[A]
 
@@ -944,16 +1080,17 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
   private val B = 31
   private val mask = (1L << B) - 1L
 
-  @inline private def index(i:Long) : Int = (i >>> B).toInt
-  @inline private def offset(i:Long) : Int = (i & mask).toInt
+  @inline private def index(i: Long): Int = (i >>> B).toInt
 
-  private var array : Array[Array[A]] = {
+  @inline private def offset(i: Long): Int = (i & mask).toInt
+
+  private var array: Array[Array[A]] = {
     val BLOCK_SIZE = (1L << B).toInt
-    val NUM_BLOCKS = index(size-1) + 1
+    val NUM_BLOCKS = index(size - 1) + 1
     // initialize the array
     val a = new Array[Array[A]](NUM_BLOCKS)
     var remaining = size
-    for(i <- 0 until NUM_BLOCKS) {
+    for (i <- 0 until NUM_BLOCKS) {
       val s = math.min(remaining, BLOCK_SIZE).toInt
       a(i) = new Array[A](s)
       remaining -= s
@@ -962,7 +1099,7 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
   }
 
   def clear() {
-    for(arr <- array) {
+    for (arr <- array) {
       val a = arr.asInstanceOf[Array[AnyRef]]
       java.util.Arrays.fill(a, 0, a.length, null)
     }
@@ -978,8 +1115,15 @@ class LObjectArrayLarge[A : ClassTag](val size:Long) extends LArray[A] {
 
 
   def apply(i: Long) = array(index(i))(offset(i))
-  def update(i: Long, v: A) = { array(index(i))(offset(i)) = v; v }
-  def free { array = null }
+
+  def update(i: Long, v: A) = {
+    array(index(i))(offset(i)) = v; v
+  }
+
+  def free {
+    array = null
+  }
+
   private[larray] def elementByteSize = 4
 
   def view(from: Long, to: Long) = new LArrayView.LObjectArrayView[A](this, from, to - from)
