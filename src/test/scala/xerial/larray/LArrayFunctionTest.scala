@@ -46,8 +46,8 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
   import LArrayFunctionTest._
 
-  def validDoubleArray(arr:Seq[Double]) {
-    val l: LArray[Double] = arr.toLArray
+  def validArray[A : ClassTag](arr:Seq[A]) {
+    val l: LArray[A] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ")})")
 
@@ -60,43 +60,25 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.size shouldBe arr.size
     }
 
-    "map elements" in {
-      l.map(_ * 2) === arr.map(_ * 2)
-      l.map(_.toInt) === arr.map(_.toInt)
-    }
-
-    "flatMap nested elements" in {
-      l.flatMap(x => (0 Until x.toInt).map(x => x)) === arr.flatMap(x => (0 until x.toInt).map(x => x))
-    }
-
-    "filter elements" in {
-      l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
-      l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
-    }
-
     "reverse elements" in {
       l.reverse === arr.reverse
       l.reverseIterator.toLArray === arr.reverse
     }
 
-    "find an element" taggedAs("fel") in {
-      l.find(_ == 4d) shouldBe arr.find(_ == 4d)
-      l.find(_ == 10d) shouldBe arr.find(_ == 10d)
-      l.contains(3d) should be(arr.contains(3d))
-      l.exists(_ == 1d) should be(arr.exists(_ == 1d))
+    "flatMap nested elements" in {
+      l.flatMap(x => (0 Until 3).map(x => x)) === arr.flatMap(x => (0 until 3).map(x => x))
     }
 
     "be used in for-comprehension" in {
       l.map(x => x) === (for (e <- arr) yield e)
       for (e <- l) yield e === (for (e <- arr) yield e)
-
-      for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
     }
 
     "slice elements" in {
       l.slice(1, 3) === arr.slice(1, 3)
       l.slice(2) === arr.slice(2, arr.length)
     }
+
 
     "drop elements" taggedAs ("drop") in {
       val da = arr.drop(4)
@@ -106,7 +88,7 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
     "report head/tail" in {
       if(!l.isEmpty) {
-        l.head shouldBe arr.head
+        l.head should be (arr.head)
         l.tail === arr.tail
       }
     }
@@ -117,13 +99,74 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       }
       l.take(4) === arr.take(4)
       l.takeRight(3) === arr.takeRight(3)
-      l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
-      l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
     }
 
     "split elements" in {
       l.splitAt(2) === arr.splitAt(2)
       l.splitAt(4) === arr.splitAt(4)
+    }
+
+    "transform to array" in {
+      l.toArray shouldBe arr.toArray
+    }
+
+    "copy to array" in {
+      val b = new Array[A](l.length.toInt)
+      l.copyToArray(b, 0, b.length)
+      b shouldBe arr.toArray
+    }
+
+    "zip with elements" in {
+      l.zipWithIndex === arr.zipWithIndex
+      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
+      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
+    }
+
+    "make strings" in {
+      l.mkString("--") shouldBe arr.mkString("--")
+      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
+    }
+
+    "read from/write to file" in {
+      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
+      file.deleteOnExit()
+      LArray.loadFrom[A](file) === arr
+    }
+  }
+
+
+  def validDoubleArray(arr:Seq[Double]) {
+    val l: LArray[Double] = arr.toLArray
+
+    When(s"input is (${arr.mkString(", ")})")
+
+    "map elements" in {
+      l.map(_ * 2) === arr.map(_ * 2)
+      l.map(_.toInt) === arr.map(_.toInt)
+    }
+
+    "filter elements" in {
+      l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
+      l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
+    }
+
+    "be used in for-comprehension with if statment" in {
+      for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
+    }
+
+    "find an element" taggedAs("fel") in {
+      l.find(_ == 4d) shouldBe arr.find(_ == 4d)
+      l.find(_ == 10d) shouldBe arr.find(_ == 10d)
+      l.contains(3d) should be(arr.contains(3d))
+      l.exists(_ == 1d) should be(arr.exists(_ == 1d))
+    }
+
+    "take/drop while a condition is satisfied" in {
+      l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
+      l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
+    }
+
+    "partition elements" in {
       def f(x: Double) = x <= 2.0
       l.span(f) === arr.span(f)
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
@@ -163,33 +206,6 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.collectFirst(f) shouldBe arr.collectFirst(f)
     }
 
-    "transform to array" in {
-      l.toArray shouldBe arr.toArray
-    }
-
-    "copy to array" in {
-      val b = new Array[Double](l.length.toInt)
-      l.copyToArray(b, 0, b.length)
-      b shouldBe arr.toArray
-    }
-
-    "zip with elements" in {
-      l.zipWithIndex === arr.zipWithIndex
-      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
-      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
-    }
-
-    "make strings" in {
-      l.mkString("--") shouldBe arr.mkString("--")
-      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
-    }
-
-    "read from/write to file" in {
-      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
-      file.deleteOnExit()
-      LArray.loadFrom[Double](file) === arr
-    }
-
   }
 
 
@@ -199,32 +215,14 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
     When(s"input is (${arr.mkString(", ")})")
 
-    "have iterator" in {
-      l.iterator === arr
-    }
-
-    "check status" in {
-      l.isEmpty should be (arr.isEmpty)
-      l.size shouldBe arr.size
-    }
-
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
       l.map(_.toInt) === arr.map(_.toInt)
     }
 
-    "flatMap nested elements" in {
-      l.flatMap(x => (0 Until x.toInt).map(x => x)) === arr.flatMap(x => (0 until x.toInt).map(x => x))
-    }
-
     "filter elements" in {
       l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
       l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
-    }
-
-    "reverse elements" in {
-      l.reverse === arr.reverse
-      l.reverseIterator.toLArray === arr.reverse
     }
 
     "find an element" taggedAs("fel") in {
@@ -236,44 +234,16 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.exists(_ == 1f) should be(arr.exists(_ == 1f))
     }
 
-    "be used in for-comprehension" in {
-      l.map(x => x) === (for (e <- arr) yield e)
-      for (e <- l) yield e === (for (e <- arr) yield e)
-
+    "be used in for-comprehension with if statements" in {
       for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
     }
 
-    "slice elements" in {
-      l.slice(1, 3) === arr.slice(1, 3)
-      l.slice(2) === arr.slice(2, arr.length)
-    }
-
-    "drop elements" taggedAs ("drop") in {
-      val da = arr.drop(4)
-      debug(s"drop(4): ${da.mkString(", ")}")
-      l.drop(4) === arr.drop(4)
-    }
-
-    "report head/tail" in {
-      if(!l.isEmpty) {
-        l.head shouldBe arr.head
-        l.tail === arr.tail
-      }
-    }
-
-    "retrieve elements" in {
-      if(!l.isEmpty) {
-        l.init === arr.init
-      }
-      l.take(4) === arr.take(4)
-      l.takeRight(3) === arr.takeRight(3)
+    "take/drop elements while a condition is satisfied" in {
       l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
       l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
     }
 
-    "split elements" in {
-      l.splitAt(2) === arr.splitAt(2)
-      l.splitAt(4) === arr.splitAt(4)
+    "partition elements" in {
       def f(x: Float) = x <= 2.0
       l.span(f) === arr.span(f)
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
@@ -313,33 +283,6 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.collectFirst(f) shouldBe arr.collectFirst(f)
     }
 
-    "transform to array" in {
-      l.toArray shouldBe arr.toArray
-    }
-
-    "copy to array" in {
-      val b = new Array[Float](l.length.toInt)
-      l.copyToArray(b, 0, b.length)
-      b shouldBe arr.toArray
-    }
-
-    "zip with elements" in {
-      l.zipWithIndex === arr.zipWithIndex
-      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
-      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
-    }
-
-    "make strings" in {
-      l.mkString("--") shouldBe arr.mkString("--")
-      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
-    }
-
-    "read from/write to file" in {
-      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
-      file.deleteOnExit()
-      LArray.loadFrom[Float](file) === arr
-    }
-
   }
 
 
@@ -348,32 +291,14 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
     When(s"input is (${arr.mkString(", ")})")
 
-    "have iterator" in {
-      l.iterator === arr
-    }
-
-    "check status" in {
-      l.isEmpty should be (arr.isEmpty)
-      l.size shouldBe arr.size
-    }
-
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
       l.map(_.toFloat) === arr.map(_.toFloat)
     }
 
-    "flatMap nested elements" in {
-      l.flatMap(x => (0 Until x).map(x => x)) === arr.flatMap(x => (0 until x).map(x => x))
-    }
-
     "filter elements" in {
       l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
       l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
-    }
-
-    "reverse elements" in {
-      l.reverse === arr.reverse
-      l.reverseIterator.toLArray === arr.reverse
     }
 
     "find an element" in {
@@ -384,44 +309,16 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.exists(_ == 1) should be(arr.exists(_ == 1))
     }
 
-    "be used in for-comprehension" in {
-      l.map(x => x) === (for (e <- arr) yield e)
-      for (e <- l) yield e === (for (e <- arr) yield e)
-
+    "be used in for-comprehension with if statments" in {
       for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
     }
 
-    "slice elements" in {
-      l.slice(1, 3) === arr.slice(1, 3)
-      l.slice(2) === arr.slice(2, arr.length)
-    }
-
-    "drop elements" taggedAs ("drop") in {
-      val da = arr.drop(4)
-      debug(s"drop(4): ${da.mkString(", ")}")
-      l.drop(4) === arr.drop(4)
-    }
-
-    "report head/tail" in {
-      if(!l.isEmpty) {
-        l.head shouldBe arr.head
-        l.tail === arr.tail
-      }
-    }
-
-    "retrieve elements" in {
-      if(!l.isEmpty) {
-        l.init === arr.init
-      }
-      l.take(4) === arr.take(4)
-      l.takeRight(3) === arr.takeRight(3)
+    "take/drop elements while some condition is satisfied" in {
       l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
       l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
     }
 
-    "split elements" in {
-      l.splitAt(2) === arr.splitAt(2)
-      l.splitAt(4) === arr.splitAt(4)
+    "partition elements" in {
       def f(x: Int) = x <= 2
       l.span(f) === arr.span(f)
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
@@ -461,32 +358,6 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.collectFirst(f) shouldBe arr.collectFirst(f)
     }
 
-    "transform to array" in {
-      l.toArray shouldBe arr.toArray
-    }
-
-    "copy to array" in {
-      val b = new Array[Int](l.length.toInt)
-      l.copyToArray(b, 0, b.length)
-      b shouldBe arr.toArray
-    }
-
-    "zip with elements" in {
-      l.zipWithIndex === arr.zipWithIndex
-      l.zipAll(l.drop(3), -1f, 255f) === arr.zipAll(arr.drop(3), -1f, 255f)
-      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
-    }
-
-    "make strings" in {
-      l.mkString("--") shouldBe arr.mkString("--")
-      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
-    }
-
-    "read from/write to file" in {
-      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
-      file.deleteOnExit()
-      LArray.loadFrom[Int](file) === arr
-    }
   }
 }
 
@@ -496,27 +367,39 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
 
   "int test1" should {
-    behave like validIntArray(Seq(0, 1, 2, 3, 4, 5))
+    val input = Seq(0, 1, 2, 3, 4, 5)
+    behave like validArray(input)
+    behave like validIntArray(input)
   }
 
   "int test2" should {
-    behave like validIntArray(Seq(4, 3, 1, 10, 3, 5, 3, 9))
+    val input = Seq(4, 3, 1, 10, 3, 5, 3, 9)
+    behave like validArray(input)
+    behave like validIntArray(input)
   }
 
   "empty test" should {
-    behave like validIntArray(Seq())
+    val input = Seq.empty[Int]
+    behave like validArray(input)
+    behave like validIntArray(input)
   }
 
   "float test1" should {
-    behave like validFloatArray(Seq(0f, 1f, 2f, 3f, 4f, 5f))
+    val input = Seq(0f, 1f, 2f, 3f, 4f, 5f)
+    behave like validArray(input)
+    behave like validFloatArray(input)
   }
 
   "float test2" should {
-    behave like validFloatArray(Seq(3.5f, 1.2f, 2.9f, 0.3f, 3.8f, 7f))
+    val input = Seq(3.5f, 1.2f, 2.9f, 0.3f, 3.8f, 7f)
+    behave like validArray(input)
+    behave like validFloatArray(input)
   }
 
   "double test2" should {
-    behave like validDoubleArray(Seq(3.5d, 1.2d, 2.0d, 0.3d, 3.8d, 4d))
+    val input = Seq(3.5d, 1.2d, 2.0d, 0.3d, 3.8d, 4d)
+    behave like validArray(input)
+    behave like validDoubleArray(input)
   }
 
 }
