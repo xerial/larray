@@ -10,7 +10,7 @@ package xerial.larray
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
 import java.nio.ByteBuffer
-import java.nio.channels.WritableByteChannel
+import java.nio.channels.{FileChannel, WritableByteChannel}
 import sun.nio.ch.DirectBuffer
 import java.lang
 import java.io.{FileInputStream, FileOutputStream, File}
@@ -149,6 +149,12 @@ object LArray {
 
   private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
+  /**
+   * Load the contents of a file into LArray
+   * @param f the file to read
+   * @tparam A the element type
+   * @return LArray contains the file contents
+   */
   def loadFrom[A : ClassTag](f:File) : LArray[A] = {
     val fin = new FileInputStream(f).getChannel
     try {
