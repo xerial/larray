@@ -42,7 +42,7 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
 
 }
 
-trait LIntArrayBehaviour { this: LArraySpec =>
+trait LArrayBehaviour { this: LArraySpec =>
 
   import LArrayFunctionTest._
 
@@ -439,7 +439,7 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 /**
  * @author Taro L. Saito
  */
-class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
+class LArrayFunctionTest extends LArraySpec with LArrayBehaviour {
 
   "int test1" should {
     val input = Seq(0, 1, 2, 3, 4, 5)
@@ -482,6 +482,7 @@ class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
     behave like validArray(input)
     behave like validDoubleArray(input)
   }
+
 
 }
 

@@ -7,6 +7,9 @@
 
 package xerial.larray
 
+import xerial.core.log.Logger
+import java.nio.ByteBuffer
+
 
 /**
  * Helper methods for packing bit sequences into Array[Long]
@@ -124,12 +127,11 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   def apply(index: Long): Boolean = {
     val pos = blockIndex(index)
     val offset = blockOffset(index)
-    val code = ((m.getLong(pos) >>> offset) & 0x01).toInt
+    val code = ((m.getLong(pos) >>> offset) & 1L).toInt
     table(code)
   }
 
   def update(index:Long, v:Boolean) : Boolean = {
-    // TODO
     val pos = blockIndex(index)
     val offset = blockOffset(index)
     if(v)
@@ -235,6 +237,7 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
 
     val sliceLen = end - start
     val newSeq = new LLongArray(minArraySize(sliceLen))
+    newSeq.clear
 
     var i = 0L
     while (i < sliceLen) {
@@ -284,7 +287,7 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
 /**
  * BitVector builder
  */
-class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray]
+class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray] with Logger
 {
   import BitEncoder._
 
@@ -295,14 +298,16 @@ class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray]
    * @param v
    */
   override def +=(v: Boolean) : this.type = {
-    val index = numBits + 1
-    sizeHint(index)
-    val pos = blockIndex(index)
-    val offset = blockOffset(index)
+    ensureSize(minArraySize(numBits + 1) * 8)
+    val pos = blockIndex(numBits)
+    val offset = blockOffset(numBits)
+    if(offset == 0)
+      byteSize += 8
+    val prev = elems.getLong(pos)
     if(v)
-      elems.putLong(pos, elems.getLong(pos) | (1L << offset))
+      elems.putLong(pos, prev | (1L << offset))
     else
-      elems.putLong(pos, elems.getLong(pos) & ~(1L << offset))
+      elems.putLong(pos, prev & ~(1L << offset))
     numBits += 1
     this
   }
@@ -319,11 +324,17 @@ class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray]
 
 
   override def sizeHint(numBits:Long) {
-    super.sizeHint(minArraySize(numBits))
+    super.sizeHint(minArraySize(numBits) * 8)
+  }
+
+
+  override def write(src: ByteBuffer) = {
+    numBits += src.remaining() * 8
+    super.write(src)
   }
 
   def result() : LBitArray = {
-    val s = minArraySize(numBits)
+    val s = minArraySize(numBits) * 8
     if(capacity != 0L && capacity == s)
       new LBitArray(new LLongArray(s, elems.m), numBits)
     else

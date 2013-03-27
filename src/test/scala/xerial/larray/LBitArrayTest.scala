@@ -10,7 +10,7 @@ package xerial.larray
 /**
  * @author Taro L. Saito
  */
-class LBitArrayTest extends LArraySpec {
+class LBitArrayTest extends LArraySpec with LArrayBehaviour {
   "LBitArray" should {
 
     "have constructor" in {
@@ -49,6 +49,22 @@ class LBitArrayTest extends LArraySpec {
         b(pos) should be (false)
       }
     }
+
+    "have builder" in {
+
+      val b = LArray.newBuilder[Boolean]
+      val in = Seq(true, false, false, true, true, false, false, true, true)
+      in.foreach( b += _ )
+      val l = b.result()
+
+      debug(l)
+
+      l.toString should be (in.map(v => if(v) "1" else "0").mkString)
+
+    }
+
+    val input = Seq(true, false, true, false, false, false, true, true)
+    behave like validArray(input)
 
   }
 }
