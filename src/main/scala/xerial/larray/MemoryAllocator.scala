@@ -20,7 +20,7 @@ import xerial.core.util.DataUnit
 /**
  * Phantom reference to the allocated memory
  * @param m the allocated memory
- * @param queue the reference queue where GCed refrence will be put
+ * @param queue the reference queue to which GCed reference of the Memory will be put
  * @param address the allocated memory address
  * @param size the size of the allocated memory
  */
