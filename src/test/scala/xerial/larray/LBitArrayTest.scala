@@ -7,6 +7,8 @@
 
 package xerial.larray
 
+import scala.util.Random
+
 /**
  * @author Taro L. Saito
  */
@@ -63,8 +65,15 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     }
 
-    val input = Seq(true, false, true, false, false, false, true, true)
-    behave like validArray(input)
+    "behave like valid LArray" should {
+      val input = Seq(true, false, true, false, false, false, true, true)
+      behave like validArray(input)
+    }
+
+    "behave like valid LArray for large input" should {
+      val input2 = (for(i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
+      behave like validArray(input2)
+    }
 
   }
 }

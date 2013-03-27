@@ -16,10 +16,23 @@ import java.io.File
 
 object LArrayFunctionTest extends Logger with ShouldMatchers {
 
-  abstract class LMatcher[A](left: LSeq[A]) {
+  def stringRepr[A : ClassTag](l:LSeq[A]) : String = {
+    val tag = implicitly[ClassTag[A]]
+    val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
+    if(isBoolean) l.toString else l.mkString(", ")
+  }
+  def stringRepr[A : ClassTag](l:Seq[A]) : String = {
+    val tag = implicitly[ClassTag[A]]
+    val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
+    if(isBoolean) l.map(v => if(v.asInstanceOf[Boolean]) "1" else "0").mkString else l.mkString(", ")
+  }
+
+
+  abstract class LMatcher[A:ClassTag](left: LSeq[A]) {
+
     def ===[A: ClassTag](answer: Seq[A]) {
-      val l = left.mkString(", ")
-      val a = answer.mkString(", ")
+      val l = stringRepr(left)
+      val a = stringRepr(answer)
       debug(s"target:$l, answer:$a")
       l should be(a)
     }
@@ -49,7 +62,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validArray[A : ClassTag](arr:Seq[A]) {
     val l: LArray[A] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${stringRepr(arr)})")
 
     "have iterator" in {
       l.iterator === arr
@@ -107,13 +120,13 @@ trait LArrayBehaviour { this: LArraySpec =>
     }
 
     "transform to array" in {
-      l.toArray shouldBe arr.toArray
+      stringRepr(l.toArray) shouldBe stringRepr(arr.toArray)
     }
 
     "copy to array" in {
       val b = new Array[A](l.length.toInt)
       l.copyToArray(b, 0, b.length)
-      b shouldBe arr.toArray
+      stringRepr(b) shouldBe stringRepr(arr.toArray)
     }
 
     "zip with elements" in {

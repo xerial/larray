@@ -111,7 +111,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] wit
     }
   }
 
-  private def resize(size:Long) {
+  protected def resize(size:Long) {
     elems = mkArray(size)
     capacity = size
   }

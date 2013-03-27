@@ -171,7 +171,7 @@ object LArray {
           val fileSize = fin.size()
           val b = new LBitArrayBuilder
           var pos = 8L
-          b.sizeHint(numBits)
+          b.sizeHint(fileSize - pos)
           while(pos < fileSize) {
             pos += fin.transferTo(pos, fileSize - pos, b)
           }

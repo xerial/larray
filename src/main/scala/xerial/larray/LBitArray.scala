@@ -24,6 +24,7 @@ object BitEncoder {
     arraySize
   }
 
+  @inline def blockAddr(pos: Long): Long = blockIndex(pos) << 3
   @inline def blockIndex(pos: Long): Long = (pos >>> 6)
   @inline def blockOffset(pos: Long): Int = (pos & 0x3FL).toInt
 
@@ -126,19 +127,19 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
    * @return
    */
   def apply(index: Long): Boolean = {
-    val pos = blockIndex(index)
+    val addr = blockAddr(index)
     val offset = blockOffset(index)
-    val code = ((m.getLong(pos) >>> offset) & 1L).toInt
+    val code = ((m.getLong(addr) >>> offset) & 1L).toInt
     table(code)
   }
 
   def update(index:Long, v:Boolean) : Boolean = {
-    val pos = blockIndex(index)
+    val addr = blockAddr(index)
     val offset = blockOffset(index)
     if(v)
-      m.putLong(pos, m.getLong(pos) | (1L << offset))
+      m.putLong(addr, m.getLong(addr) | (1L << offset))
     else
-      m.putLong(pos, m.getLong(pos) & ~(1L << offset))
+      m.putLong(addr, m.getLong(addr) & (~(1L << offset)))
     v
   }
 
@@ -316,44 +317,26 @@ class LBitArrayBuilder extends LArrayBuilder[Boolean, LBitArray] with Logger
 
   private var numBits: Long = 0L
 
+
   /**
    * Append a bit value
    * @param v
    */
   override def +=(v: Boolean) : this.type = {
     ensureSize(minArraySize(numBits + 1) * 8)
-    val pos = blockIndex(numBits)
+    val addr = blockAddr(numBits)
     val offset = blockOffset(numBits)
     if(offset == 0)
       byteSize += 8
-    val prev = elems.getLong(pos)
-    if(v)
-      elems.putLong(pos, prev | (1L << offset))
-    else
-      elems.putLong(pos, prev & ~(1L << offset))
+    val prev = elems.getLong(addr)
+    if(v) {
+      elems.putLong(addr, prev | (1L << offset))
+    }
+    else {
+      elems.putLong(addr, prev & (~(1L << offset)))
+    }
     numBits += 1
     this
-  }
-
-  override protected def mkArray(size:Long) : LByteArray = {
-    val newArray = new LByteArray(size)
-    newArray.clear() // initialize
-    if(this.byteSize > 0L) {
-      LArray.copy(elems, 0L, newArray, 0L, this.byteSize)
-      elems.free
-    }
-    newArray
-  }
-
-
-  override def sizeHint(numBits:Long) {
-    super.sizeHint(minArraySize(numBits) * 8)
-  }
-
-
-  override def write(src: ByteBuffer) = {
-    numBits += src.remaining() * 8
-    super.write(src)
   }
 
   def result() : LBitArray = {
