@@ -53,7 +53,7 @@ object Build extends sbt.Build {
         crossPaths := false,
         libraryDependencies ++= Seq(
           // Add dependent jars here
-          "org.xerial" % "xerial-core" % "3.1",
+          "org.xerial" % "xerial-core" % "3.1.1",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
