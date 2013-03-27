@@ -399,7 +399,7 @@ object LArray {
   /**
    * Creates a 2-dimensional array. Returned LArray[LArray[A]] cannot be released immediately. If you need
    * relesable arrays, use [[xerial.larray.LArray2D]].
-   * 
+   *
    * */
   def ofDim[A: ClassTag](n1: Long, n2: Long): LArray[LArray[A]] = {
     val arr: LArray[LArray[A]] = LArray.of[LArray[A]](n1)

@@ -13,10 +13,11 @@ package xerial.larray
 class LBitArrayTest extends LArraySpec {
   "LBitArray" should {
 
-    "have consturctor" in {
+    "have constructor" in {
       val b = new LBitArray(6)
       b.size should be (6)
 
+      b.clear
       b.on(1)
       b.toString should be ("010000")
 
