@@ -87,7 +87,7 @@ trait MemoryAllocator extends Logger {
     trace(f"Found unreleased memory address:${addr}%x of size ${ref.size}%,d")
     if (!hasDisplayedMemoryWarning) {
       debug("Some instances of LArray are not freed nor collected by GC. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
-      debug(f"Unreleased total memory size: $allocatedSize%,d")
+      debug(f"The total amount of unreleased memory: ${DataUnit.toHumanReadableFormat(allocatedSize)}")
       hasDisplayedMemoryWarning = true
     }
     if (doRelease)
@@ -203,7 +203,7 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
       }
     })
     worker.setDaemon(true)
-    debug("Started memory collector")
+    trace("Started memory collector")
     worker.start
   }
 
