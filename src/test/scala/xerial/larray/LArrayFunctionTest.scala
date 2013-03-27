@@ -359,6 +359,81 @@ trait LIntArrayBehaviour { this: LArraySpec =>
     }
 
   }
+
+  def validLongArray(arr:Seq[Long]) {
+    val l: LArray[Long] = arr.toLArray
+
+    When(s"input is (${arr.mkString(", ")})")
+
+    "map elements" in {
+      l.map(_ * 2) === arr.map(_ * 2)
+      l.map(_.toFloat) === arr.map(_.toFloat)
+    }
+
+    "filter elements" in {
+      l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
+      l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
+    }
+
+    "find an element" in {
+      l.find(_ == 4) shouldBe arr.find(_ == 4)
+      l.find(_ == 10) shouldBe arr.find(_ == 10)
+
+      l.contains(3) should be(arr.contains(3))
+      l.exists(_ == 1) should be(arr.exists(_ == 1))
+    }
+
+    "be used in for-comprehension with if statements" in {
+      for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
+    }
+
+    "take/drop elements while some condition is satisfied" in {
+      l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
+      l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
+    }
+
+    "partition elements" in {
+      def f(x: Long) = x <= 2
+      l.span(f) === arr.span(f)
+      l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
+    }
+
+    "fold elements" in {
+      l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
+      (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
+      l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
+      (l :\ 0L)(_ + _) shouldBe (arr :\ 0L)(_ + _)
+    }
+
+    "reduce elements" in {
+      def sum(a: Long, b: Long): Long = a + b
+      if(!l.isEmpty) {
+        l.reduce(sum) shouldBe arr.reduce(sum)
+        l.aggregate(100L)(sum, sum) shouldBe arr.aggregate(100L)(sum, sum)
+      }
+    }
+
+    "scan elements" in {
+      l.scanLeft(100L)(_ * _) === arr.scanLeft(100L)(_ * _)
+    }
+
+    "concatenate elements" in {
+      l ++ l === arr ++ arr
+      l.concat(l) === arr ++ arr
+      l :+ 10L === arr :+ 10L
+      7L +: l === 7L +: arr
+    }
+
+    "collect elements" in {
+      def f: PartialFunction[Long, Long] = {
+        case i: Long if i % 2 == 0 => i
+      }
+      l.collect(f) === arr.collect(f)
+      l.collectFirst(f) shouldBe arr.collectFirst(f)
+    }
+
+  }
+
 }
 
 /**
@@ -376,6 +451,12 @@ class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
     val input = Seq(4, 3, 1, 10, 3, 5, 3, 9)
     behave like validArray(input)
     behave like validIntArray(input)
+  }
+
+  "long test1" should {
+    val input = Seq(4L, 3L, 1L, 10L, 3L, 5L, 3L, 9L)
+    behave like validArray(input)
+    behave like validLongArray(input)
   }
 
   "empty test" should {
