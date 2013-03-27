@@ -11,7 +11,7 @@ import reflect.ClassTag
 import org.scalatest.{WordSpec, FlatSpec}
 import org.scalatest.matchers.ShouldMatchers
 import xerial.core.log.Logger
-
+import java.io.File
 
 
 object LArrayFunctionTest extends Logger with ShouldMatchers {
@@ -46,13 +46,167 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
   import LArrayFunctionTest._
 
-  def validArray(arr:Seq[Int]) {
+  def validFloatArray(arr:Seq[Float]) {
+    val l: LArray[Float] = arr.toLArray
+
+    When(s"input is (${arr.mkString(", ")})")
+
+    "have iterator" in {
+      l.iterator === arr
+    }
+
+    "check status" in {
+      l.isEmpty should be (arr.isEmpty)
+      l.size shouldBe arr.size
+    }
+
+    "map elements" in {
+      l.map(_ * 2) === arr.map(_ * 2)
+      l.map(_.toInt) === arr.map(_.toInt)
+    }
+
+    "flatMap nested elements" in {
+      l.flatMap(x => (0 Until x.toInt).map(x => x)) === arr.flatMap(x => (0 until x.toInt).map(x => x))
+    }
+
+    "filter elements" in {
+      l.filter(_ % 2 == 1) === arr.filter(_ % 2 == 1)
+      l.filterNot(_ % 2 == 1) === arr.filterNot(_ % 2 == 1)
+    }
+
+    "reverse elements" in {
+      l.reverse === arr.reverse
+      l.reverseIterator.toLArray === arr.reverse
+    }
+
+    "find an element" taggedAs("fel") in {
+      l.find(_ == 4f) shouldBe arr.find(_ == 4f)
+      l.find(_ == 10f) shouldBe arr.find(_ == 10f)
+      //debug(s"l:${l.mkString(", ")}, l.contains(3f):${l.contains(3f)}, segmentLength(_ == 3f): ${l.segmentLength(_ == 3f, 0)}")
+      //debug(s"3.5f == 3f ${3.5f==3f}")
+      l.contains(3f) should be(arr.contains(3f))
+      l.exists(_ == 1f) should be(arr.exists(_ == 1f))
+    }
+
+    "be used in for-comprehension" in {
+      l.map(x => x) === (for (e <- arr) yield e)
+      for (e <- l) yield e === (for (e <- arr) yield e)
+
+      for (e <- l if e > 3) yield e === (for (e <- arr if e > 3) yield e)
+    }
+
+    "slice elements" in {
+      l.slice(1, 3) === arr.slice(1, 3)
+      l.slice(2) === arr.slice(2, arr.length)
+    }
+
+    "drop elements" taggedAs ("drop") in {
+      val da = arr.drop(4)
+      debug(s"drop(4): ${da.mkString(", ")}")
+      l.drop(4) === arr.drop(4)
+    }
+
+    "report head/tail" in {
+      if(!l.isEmpty) {
+        l.head shouldBe arr.head
+        l.tail === arr.tail
+      }
+    }
+
+    "retrieve elements" in {
+      if(!l.isEmpty) {
+        l.init === arr.init
+      }
+      l.take(4) === arr.take(4)
+      l.takeRight(3) === arr.takeRight(3)
+      l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
+      l.dropWhile(_ < 4) === arr.dropWhile(_ < 4)
+    }
+
+    "split elements" in {
+      l.splitAt(2) === arr.splitAt(2)
+      l.splitAt(4) === arr.splitAt(4)
+      def f(x: Float) = x <= 2.0
+      l.span(f) === arr.span(f)
+      l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
+    }
+
+    "fold elements" in {
+      l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
+      (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
+      l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
+      (l :\ 0f)(_ + _) shouldBe (arr :\ 0f)(_ + _)
+    }
+
+    "reduce elements" in {
+      def sum(a: Float, b: Float): Float = a + b
+      if(!l.isEmpty) {
+        l.reduce(sum) shouldBe arr.reduce(sum)
+        l.aggregate(100f)(sum, sum) shouldBe arr.aggregate(100f)(sum, sum)
+      }
+    }
+
+    "scan elements" in {
+      l.scanLeft(100f)(_ * _) === arr.scanLeft(100f)(_ * _)
+    }
+
+    "concatenate elements" in {
+      l ++ l === arr ++ arr
+      l.concat(l) === arr ++ arr
+      l :+ 10f === arr :+ 10f
+      7f +: l === 7f +: arr
+    }
+
+    "collect elements" in {
+      def f: PartialFunction[Float, Float] = {
+        case i: Float if i % 2 == 0 => i
+      }
+      l.collect(f) === arr.collect(f)
+      l.collectFirst(f) shouldBe arr.collectFirst(f)
+    }
+
+    "transform to array" in {
+      l.toArray shouldBe arr.toArray
+    }
+
+    "copy to array" in {
+      val b = new Array[Float](l.length.toInt)
+      l.copyToArray(b, 0, b.length)
+      b shouldBe arr.toArray
+    }
+
+    "zip with elements" in {
+      l.zipWithIndex === arr.zipWithIndex
+      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
+      l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
+    }
+
+    "make strings" in {
+      l.mkString("--") shouldBe arr.mkString("--")
+      l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
+    }
+
+    "read from/write to file" in {
+      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
+      file.deleteOnExit()
+      LArray.loadFrom[Float](file) === arr
+    }
+
+  }
+
+
+  def validIntArray(arr:Seq[Int]) {
     val l: LArray[Int] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ")})")
 
     "have iterator" in {
       l.iterator === arr
+    }
+
+    "check status" in {
+      l.isEmpty should be (arr.isEmpty)
+      l.size shouldBe arr.size
     }
 
     "map elements" in {
@@ -108,6 +262,9 @@ trait LIntArrayBehaviour { this: LArraySpec =>
     }
 
     "retrieve elements" in {
+      if(!l.isEmpty) {
+        l.init === arr.init
+      }
       l.take(4) === arr.take(4)
       l.takeRight(3) === arr.takeRight(3)
       l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
@@ -168,13 +325,19 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
     "zip with elements" in {
       l.zipWithIndex === arr.zipWithIndex
-      l.zipAll(l.drop(3), -1, 255) === arr.zipAll(arr.drop(3), -1, 255)
+      l.zipAll(l.drop(3), -1f, 255f) === arr.zipAll(arr.drop(3), -1f, 255f)
       l.zip(l.takeRight(4)) === arr.zip(arr.takeRight(4))
     }
 
     "make strings" in {
       l.mkString("--") shouldBe arr.mkString("--")
       l.mkString("(", ",", ")") shouldBe arr.mkString("(", ",", ")")
+    }
+
+    "read from/write to file" in {
+      val file = l.saveTo(File.createTempFile("sample", ".larray", new File("target")))
+      file.deleteOnExit()
+      LArray.loadFrom[Int](file) === arr
     }
   }
 }
@@ -184,16 +347,25 @@ trait LIntArrayBehaviour { this: LArraySpec =>
  */
 class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
 
-  "test1" should {
-    behave like validArray(Seq(0, 1, 2, 3, 4, 5))
+  "int test1" should {
+    behave like validIntArray(Seq(0, 1, 2, 3, 4, 5))
   }
 
-  "test2" should {
-    behave like validArray(Seq(4, 3, 1, 10, 3, 5, 3, 9))
+  "int test2" should {
+    behave like validIntArray(Seq(4, 3, 1, 10, 3, 5, 3, 9))
   }
 
   "empty test" should {
-    behave like validArray(Seq())
+    behave like validIntArray(Seq())
+  }
+
+  "float test1" should {
+    behave like validFloatArray(Seq(0f, 1f, 2f, 3f, 4f, 5f))
+  }
+
+  "float test2" should {
+    behave like validFloatArray(Seq(3.5f, 1.2f, 2.9f, 0.3f, 3.8f, 7f))
   }
 
 }
+

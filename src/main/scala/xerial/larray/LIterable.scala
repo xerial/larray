@@ -171,7 +171,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
   }
 
   def contains(elem: A): Boolean = exists(_ == elem)
-  def exists(p: A => Boolean) : Boolean = prefixLength(p(_)) != length
+  def exists(p: A => Boolean) : Boolean = iterator.exists(p)
 
   def find(p: A => Boolean): Option[A] = {
     val i = prefixLength(!p(_))
