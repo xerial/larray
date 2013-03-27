@@ -33,7 +33,7 @@ class SnappyCompressTest extends LArraySpec {
       Snappy.rawUncompress(compressed.address, compressed.byteLength, uncompressed.address)
 
       debug(s"byteLength:${l.byteLength}, max compressed length:$maxLen ,compressed length:$compressedLen")
-      l.toString shouldBe uncompressed.toString
+      l.sameElements(uncompressed) should be (true)
     }
   }
 }
