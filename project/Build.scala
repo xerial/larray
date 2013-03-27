@@ -51,9 +51,11 @@ object Build extends sbt.Build {
         // custom settings here
         scalaVersion := SCALA_VERSION,
         crossPaths := false,
+        resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
         libraryDependencies ++= Seq(
           // Add dependent jars here
-          "org.xerial" % "xerial-core" % "3.1",
+          "org.xerial" % "xerial-core" % "3.1.1",
+          "org.xerial.snappy" % "snappy-java" % "1.1.0-M1" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",

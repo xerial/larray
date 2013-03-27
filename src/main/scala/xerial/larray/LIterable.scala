@@ -10,7 +10,7 @@ package xerial.larray
 import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
-import scala.Iterator
+import xerial.core.log.Logger
 
 
 /**
@@ -18,12 +18,99 @@ import scala.Iterator
  *
  * @author Taro L. Saito
  */
-trait LIterable[A] { self : LArray[A] =>
+trait LIterable[A] extends Logger { self : LSeq[A] =>
 
   type Repr = LArray[A]
 
-  protected[this] def newBuilder : LBuilder[A, LArray[A]]
+  /**
+   * Create a new array that concatenates two arrays
+   * @param other
+   * @return
+   */
+  def concat(other:LSeq[A]) : Repr = {
+    val b = newBuilder
+    b.sizeHint(this.byteLength + other.byteLength)
+    b.append(self)
+    b.append(other)
+    b.result()
+  }
 
+  /**
+   * Create a new array that concatenates two arrays
+   * @param other
+   * @return
+   */
+  def ++(other:LSeq[A]) : Repr = concat(other)
+
+  /**
+   * fold left
+   * @param z the start value
+   * @param op the binary operator
+   * @tparam B the result type of the binary operator
+   * @return the result of inserting op between consecutive elements of this array, going left to right with the start value z on the left:
+   *         {{{ op(...op(op(z, x1), x2), ..., xn))) }}}
+   */
+  def /:[B](z:B)(op:(B, A) => B) : B = foldLeft(z)(op)
+
+  /**
+   * fold right
+   * @param z the start value
+   * @param op the binary operator
+   * @tparam B the result type of the binary operator
+   * @return the result of inserting op between consecutive elements of this array, going right to left with the start value z on the right:
+   *         {{{ op(x1, op(x2, ..., op(xn, z)...)) }}}
+   *
+   */
+  def :\[B](z:B)(op:(A, B) => B) : B = foldRight(z)(op)
+
+  /**
+   * Copy of this array with an element appended.
+   * @param elem the appended element
+   * @return a new array consisting of all elements of this array follwed by the new elem
+   */
+  def :+(elem:A) : Repr = {
+    val b = newBuilder
+    b.sizeHint((size + 1) * elementByteSize)
+    b.append(self)
+    b.append(elem)
+    b.result()
+  }
+
+  /**
+   * Copy of thie array with an element prepended.
+   * @param elem the prepended element.
+   * @return a new array consisting ofall elements of this array preceded by the new elem.
+   */
+  def +:(elem:A) : Repr = {
+    val b = newBuilder
+    b.sizeHint((size + 1) * elementByteSize)
+    b.append(elem)
+    b.append(self)
+    b.result()
+  }
+
+  /**
+   * Provides the Iterable interface for Java
+   * @return
+   */
+  def ji : java.lang.Iterable[A] = new java.lang.Iterable[A] {
+    def iterator(): java.util.Iterator[A] = new java.util.Iterator[A] {
+      private var index = 0L
+      def hasNext: Boolean = index < size
+      def next(): A = {
+        val v = self(index)
+        index += 1
+        v
+      }
+      def remove() { throw new UnsupportedOperationException("remove") }
+    }
+  }
+
+  protected[this] def newBuilder : LBuilder[A, Repr]
+
+  /**
+   * Creates a new iterator over all elements contained in this collection
+   */
   def iterator : LIterator[A] = new AbstractLIterator[A] {
     private var index = 0L
     override def size = self.size
@@ -46,17 +133,45 @@ trait LIterable[A] { self : LArray[A] =>
   }
 
   def toIterator : LIterator[A] = iterator
+
+  /**
+   * Creates a copy of this array in the form of the standard Scala Array
+   * @tparam A1
+   * @return
+   */
   def toArray[A1 >: A : ClassTag] : Array[A1] = {
     val b = Array.newBuilder[A1]
     foreach(b += _)
     b.result()
   }
 
+  /**
+   * Tests whether this sequence is empty
+   * @return
+   */
   def isEmpty : Boolean = { size == 0L }
 
+  /**
+   * Builds a new collection by applying a partial function to all elments of this array on which the function is defined.
+   */
   def collect[B](pf:PartialFunction[A, B]) : LIterator[B] = iterator.collect(pf)
+
+  /**
+   * Finds the first element of this array on which the given partial function is defined, and applies the partial function to it.
+   * @param pf partial function
+   * @tparam B return type
+   * @return an option value containing pf applied to the first value for which the function is defined, or None if not exists.
+   */
+  def collectFirst[B](pf:PartialFunction[A, B]) : Option[B] = {
+    for (x <- self.toIterator) { // make sure to use an iterator or `seq`
+      if (pf isDefinedAt x)
+        return Some(pf(x))
+    }
+    None
+  }
+
   def contains(elem: A): Boolean = exists(_ == elem)
-  def exists(p: A => Boolean) : Boolean = prefixLength(p(_)) != length
+  def exists(p: A => Boolean) : Boolean = iterator.exists(p)
 
   def find(p: A => Boolean): Option[A] = {
     val i = prefixLength(!p(_))
@@ -75,7 +190,7 @@ trait LIterable[A] { self : LArray[A] =>
   def segmentLength(p: A => Boolean, from: Long): Long = {
     val len = length
     var i = from
-    while (i < len && p(this(i))) i += 1
+    while (i < len && p(self(i))) i += 1
     i - from
   }
 
@@ -84,7 +199,7 @@ trait LIterable[A] { self : LArray[A] =>
   def withFilter(p: A=>Boolean) : LIterator[A] = iterator.filter(p)
 
   def map[B](f:A=>B): LIterator[B] = iterator.map(f)
-  def flatMap[B](f: A => LIterable[B]) : LIterator[B] = iterator.flatMap(f)
+  def flatMap[B](f: A => LIterator[B]) : LIterator[B] = iterator.flatMap(f)
 
   def reverse[A]: Repr = {
     val b = newBuilder
@@ -165,10 +280,9 @@ trait LIterable[A] { self : LArray[A] =>
     val lo    = math.max(from, 0L)
     val hi    = math.min(math.max(until, 0L), length)
     val elems = math.max(hi - lo, 0L)
-    // Supply array size to recuce the number of memory allocation
+    // Supply array size to reduce the number of memory allocation
     val b     = newBuilder
-    b.sizeHint(elems)
-
+    b.sizeHint(elems * elementByteSize)
     var i = lo
     while (i < hi) {
       b += self(i)
@@ -189,7 +303,15 @@ trait LIterable[A] { self : LArray[A] =>
   def splitAt(n: Long) : (Repr, Repr) = (take(n), drop(n))
   def dropWhile(p: A => Boolean) : Repr = drop(prefixLength(p))
   def partition(p : A=>Boolean) = iterator.partition(p)
-  def span(p:A=>Boolean) : (Repr, Repr) = splitAt(prefixLength(p))
+  def span(p:A=>Boolean) : (Repr, Repr) = {
+    val l, r = newBuilder
+    var toLeft = true
+    for (x <- this) {
+      toLeft = toLeft && p(x)
+      (if (toLeft) l else r) += x
+    }
+    (l.result, r.result)
+  }
 
   def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     var i = 0L
@@ -215,11 +337,12 @@ trait LIterable[A] { self : LArray[A] =>
 
   def sameElements[B >: A](that: LIterable[B]): Boolean = iterator.sameElements(that.toIterator)
 
-  def zipAll[B, A1 >: A, B1 >: B](that: LIterator[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] =
-    iterator.zipAll(that, thisElem, thatElem)
+  def zipAll[B, A1 >: A, B1 >: B](that: LIterable[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] =
+    iterator.zipAll(that.toIterator, thisElem, thatElem)
 
   def zipWithIndex : LIterator[(A, Long)] = iterator.zipWithIndex
 
+  def zip[B](that: LIterable[B]): LIterator[(A, B)] = iterator.zip(that.toIterator)
 
   def addString(b: StringBuilder, start: String, sep: String, end: String): StringBuilder =
     iterator.addString(b, start, sep, end)

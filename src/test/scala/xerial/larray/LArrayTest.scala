@@ -91,7 +91,7 @@ class LArrayTest extends LArraySpec {
         case l: RawByteArray[_] =>
           debug(s"LArray: [${l.mkString(", ")}]")
           debug(s"Array[Byte]: [${b.mkString(", ")}]")
-          l.write(0, b, 0, l.byteLength.toInt)
+          l.writeToArray(0, b, 0, l.byteLength.toInt)
         case _ => fail("cannot reach here")
       }
 
@@ -99,7 +99,7 @@ class LArrayTest extends LArraySpec {
       val l2 = LArray(0, 0)
       l2 match {
         case l2: RawByteArray[_] =>
-          l2.read(b, 0, 0, b.length)
+          l2.readFromArray(b, 0, 0, b.length)
           debug(s"LArray2: [${l2.mkString(", ")}]")
           l.sameElements(l2) should be(true)
         case _ => fail("cannot reach here")

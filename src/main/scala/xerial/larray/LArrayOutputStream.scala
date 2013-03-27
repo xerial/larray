@@ -11,7 +11,7 @@ import java.io.OutputStream
 import reflect.ClassTag
 
 /**
- * Create LArray using [[java.io.OutputStream]] interface
+ * Create LArray using `java.io.OutputStream` interface
  *
  * @author Taro L. Saito
  */

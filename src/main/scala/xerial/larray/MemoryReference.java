@@ -9,9 +9,11 @@ import java.lang.ref.ReferenceQueue;
  */
 public class MemoryReference extends PhantomReference<Memory> {
     public long address;
+    public long size;
 
     public MemoryReference(Memory m, ReferenceQueue queue) {
         super(m, queue);
         address = m.address();
+        size = m.size();
     }
 }

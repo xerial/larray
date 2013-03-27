@@ -50,12 +50,16 @@ class LArrayExample {
 
   // Convert to Scala Array
   val arr = l.toArray
-  print(arr.mkString(", ")) // 0, 1, 2, 3, 4
+  println(arr.mkString(", ")) // 0, 1, 2, 3, 4
+
+  // Convert Scala Array to LArray
+  val arr2 = Array(1, 3, 5)
+  val la = arr2.toLArray
 
   // Save to a file
   import java.io.File
-  val file = l.saveTo(new File("larray.tmp"))
-
+  val file = l.saveTo(new File("target/larray.tmp"))
+  file.deleteOnExit()
   // Load from a file
   val l3 = LArray.loadFrom[Int](file) // LArray(0, 1, 2, 3, 4)
 

@@ -1,5 +1,7 @@
 package xerial
 
+import reflect.ClassTag
+
 /**
  * == LArray ==
  * A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
@@ -18,7 +20,6 @@ package xerial
  *  - LArray uses off-heap memory, so it is free from the limitation of JVM memory manager.
  *    - LArray uses memory space outside of the default JVM heap, so creating LArrays with more than -Xmx(maximum memory size) is possible. This is useful when you need large amount of memory or the amount of memory required in your application is unknown.
  *  - Fast copy and memory allocation
- *    - LArray internally uses concurrent memory allocator suited to multi-threaded programs.
  *  - Rich set of operations for LArray[A]
  *    - map, filter, reduce, zip, etc.
  *
@@ -29,6 +30,50 @@ package xerial
  *
  */
 package object larray {
+
+  implicit class ConvertArrayToLArray[A : ClassTag](arr:Array[A]) {
+    def toLArray : LArray[A] = {
+      val l = LArray.of[A](arr.length).asInstanceOf[RawByteArray[A]]
+      LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(arr, 0, l.address, l.byteLength.toInt)
+      l
+    }
+  }
+
+  implicit class ConvertIterableToLArray[A : ClassTag](it:Iterable[A]) {
+    def toLArray : LArray[A] = {
+      val b = LArray.newBuilder[A]
+      it.foreach(b += _)
+      b.result
+    }
+  }
+
+  implicit class AsLRange(from:Long) {
+    def Until(to:Long) : LIterator[Long] = Until(to, 1)
+    def Until(to:Long, step:Long) : LIterator[Long] = new AbstractLIterator[Long] {
+      private var cursor = from
+      def hasNext = cursor < to
+      def next() = {
+        val v = cursor
+        cursor += step
+        v
+      }
+    }
+
+
+    def To(to:Long) : LIterator[Long] = To(to, 1)
+
+    def To(to:Long, step:Long) : LIterator[Long] = new AbstractLIterator[Long] {
+      private var cursor = from
+      def hasNext = cursor <= to
+      def next() = {
+        val v = cursor
+        cursor += step
+        v
+      }
+    }
+
+  }
+
 
 
 }

@@ -7,16 +7,19 @@
 
 package xerial.larray
 
+import scala.util.Random
+
 /**
  * @author Taro L. Saito
  */
-class LBitArrayTest extends LArraySpec {
+class LBitArrayTest extends LArraySpec with LArrayBehaviour {
   "LBitArray" should {
 
-    "have consturctor" in {
+    "have constructor" in {
       val b = new LBitArray(6)
       b.size should be (6)
 
+      b.clear
       b.on(1)
       b.toString should be ("010000")
 
@@ -47,6 +50,29 @@ class LBitArrayTest extends LArraySpec {
         b.off(pos)
         b(pos) should be (false)
       }
+    }
+
+    "have builder" in {
+
+      val b = LArray.newBuilder[Boolean]
+      val in = Seq(true, false, false, true, true, false, false, true, true)
+      in.foreach( b += _ )
+      val l = b.result()
+
+      debug(l)
+
+      l.toString should be (in.map(v => if(v) "1" else "0").mkString)
+
+    }
+
+    "behave like valid LArray" should {
+      val input = Seq(true, false, true, false, false, false, true, true)
+      behave like validArray(input)
+    }
+
+    "behave like valid LArray for large input" should {
+      val input2 = (for(i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
+      behave like validArray(input2)
     }
 
   }

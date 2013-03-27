@@ -122,7 +122,6 @@ trait LIterator[+A] {
 
   /** Returns the index of the first occurrence of the specified
     *  object in this iterable object.
-    *  $mayNotTerminateInf
     *
     *  @param  elem  element to search for.
     *  @return the index of the first occurrence of `elem` in the values produced by this iterator,
@@ -155,10 +154,10 @@ trait LIterator[+A] {
     def hasNext: Boolean = self.hasNext
   }
 
-  def flatMap[B](f: A => LIterable[B]) : LIterator[B] = new AbstractLIterator[B] {
+  def flatMap[B](f: A => LIterator[B]) : LIterator[B] = new AbstractLIterator[B] {
     private var current : LIterator[B] = empty
     def hasNext: Boolean =
-      current.hasNext || self.hasNext && { current = f(self.next()).toIterator; hasNext }
+      current.hasNext || self.hasNext && { current = f(self.next()); hasNext }
     def next(): B = (if(hasNext) current else empty).next()
   }
 
@@ -185,7 +184,7 @@ trait LIterator[+A] {
     private var head : A = _
     private var headDefined : Boolean = false
     def next(): A = if(hasNext) { headDefined = false; head } else empty.next()
-    def hasNext: Boolean = {
+    def hasNext: Boolean = headDefined || {
       do {
         if(!self.hasNext) return false
         head = self.next()
@@ -408,6 +407,21 @@ trait LIterator[+A] {
     }
     def hasNext: Boolean = self.hasNext
   }
+
+  def zip[B](that: LIterator[B]): LIterator[(A, B)] = new AbstractLIterator[(A, B)] {
+    def hasNext = self.hasNext && that.hasNext
+    def next = (self.next, that.next)
+  }
+
+
+  def toLArray[B >: A : ClassTag] : LArray[B] = {
+    val b = LArray.newBuilder[B]
+    self.foreach(b += _)
+    b.result
+  }
+
+
+
 }
 
 object LIterator {

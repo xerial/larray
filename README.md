@@ -57,7 +57,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
 You can use LArray in the same manner with the standard Scala Arrays: 
 
 ```scala
-import xerial.larray.LArray
+import xerial.larray._
 
 val l = LArray(1, 2, 3)
 val e = l(0) // 1
@@ -65,7 +65,7 @@ println(l.mkString(", ")) // 1, 2, 3
 l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
-val l2 = LArray.ofDim[Int](10000L)
+val l2 = LArray.of[Int](10000L)
 
 // Release the memory resource
 l2.free 
@@ -80,16 +80,17 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](https://githu
 In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
-import xerial.larray.japi.LArray;
+import xerial.larray.japi.LArrayJ;
 import xerial.larray.LIntArray;
 
-LIntArray l = LArray.newLIntArray(10000L);
+LIntArray l = LArrayJ.newLIntArray(10000L);
 l.update(0L, 20); // Set l[0L] = 20
-l.apply(0L);  //  Get l[0L]
+int e0 = l.apply(0L);  //  Get l[0L]
 
 // release 
 l.free();
 ```
+For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://github.com/xerial/larray/blob/develop/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 

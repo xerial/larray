@@ -13,13 +13,18 @@ import reflect.ClassTag
 import java.nio.channels.WritableByteChannel
 import java.nio.ByteBuffer
 import sun.nio.ch.DirectBuffer
+import xerial.core.log.Logger
 
 /**
- * Extention of [[scala.collection.mutable.Builder]] to Long indexes
+ * Extension of `scala.collection.mutable.Builder` using Long indexes
  * @tparam Elem element type
  * @tparam To LArray type to generate
  */
-trait LBuilder[-Elem, +To] extends WritableByteChannel {
+trait LBuilder[Elem, +To] extends WritableByteChannel {
+
+  def append(elem:Elem) : this.type = +=(elem)
+
+  def append(seq:LSeq[Elem]) : this.type
 
   /** Adds a single element to the builder.
     *  @param elem the element to be added.
@@ -58,17 +63,30 @@ trait LBuilder[-Elem, +To] extends WritableByteChannel {
 }
 
 
-abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
+/**
+ * In the following, we need to define builders for every primitive types because if we extract
+ * common functions (e.g., resize, mkArray) using type parameter, we cannot avoid boxing/unboxing.
+ *
+ */
+abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] with Logger {
   protected var elems : LByteArray = _
   protected var capacity: Long = 0L
   protected var byteSize: Long = 0L
 
   def append(b:Array[Byte], offset:Int, len:Int) = {
     ensureSize(byteSize + len)
-    elems.read(b, offset, byteSize, len)
+    elems.readFromArray(b, offset, byteSize, len)
     byteSize += len
     this
   }
+
+  def append(seq:LSeq[A]) : this.type = {
+    ensureSize(byteSize + seq.byteLength)
+    seq.copyTo(elems, byteSize)
+    byteSize += seq.byteLength
+    this
+  }
+
 
   protected def mkArray(size:Long) : LByteArray = {
     val newArray = new LByteArray(size)
@@ -85,14 +103,15 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
   }
 
   protected def ensureSize(size:Long) {
+    val factor = 2L
     if(capacity < size || capacity == 0L){
-      var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
-      while(newsize < size) newsize *= 2
+      var newsize = if(capacity <= 1L) 16L else capacity * factor
+      while(newsize < size) newsize *= factor
       resize(newsize)
     }
   }
 
-  private def resize(size:Long) {
+  protected def resize(size:Long) {
     elems = mkArray(size)
     capacity = size
   }
@@ -114,7 +133,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr]  {
         unsafe.copyMemory(d.address() + src.position, elems.address + byteSize, len)
         len
       case arr if src.hasArray =>
-        elems.read(src.array(), src.position(), byteSize, len)
+        elems.readFromArray(src.array(), src.position(), byteSize, len)
       case _ =>
         var i = 0L
         while(i < len) {
@@ -151,6 +170,163 @@ class LByteArrayBuilder extends LArrayBuilder[Byte, LByteArray] {
 
 }
 
+
+class LCharArrayBuilder extends LArrayBuilder[Char, LCharArray] {
+  def +=(elem: Char): this.type = {
+    ensureSize(byteSize + 2)
+    elems.putChar(byteSize, elem)
+    byteSize += 2
+    this
+  }
+  def result(): LCharArray = {
+    if(capacity != 0L && capacity == byteSize) new LCharArray(byteSize / 2, elems.m)
+    else new LCharArray(byteSize / 2, mkArray(byteSize).m)
+  }
+}
+
+
+class LShortArrayBuilder extends LArrayBuilder[Short, LShortArray] {
+  def +=(elem: Short): this.type = {
+    ensureSize(byteSize + 2)
+    elems.putShort(byteSize, elem)
+    byteSize += 2
+    this
+  }
+  def result(): LShortArray = {
+    if(capacity != 0L && capacity == byteSize) new LShortArray(byteSize / 2, elems.m)
+    else new LShortArray(byteSize / 2, mkArray(byteSize).m)
+  }
+}
+
+
+
+class LIntArrayBuilder extends LArrayBuilder[Int, LIntArray] {
+
+  def +=(elem: Int): this.type = {
+    ensureSize(byteSize + 4)
+    elems.putInt(byteSize, elem)
+    byteSize += 4
+    this
+  }
+
+  def result(): LIntArray = {
+    if(capacity != 0L && capacity == byteSize) new LIntArray(byteSize / 4, elems.m)
+    else new LIntArray(byteSize / 4, mkArray(byteSize).m)
+  }
+}
+
+class LFloatArrayBuilder extends LArrayBuilder[Float, LFloatArray] {
+
+  def +=(elem: Float): this.type = {
+    ensureSize(byteSize + 4)
+    elems.putFloat(byteSize, elem)
+    byteSize += 4
+    this
+  }
+
+  def result(): LFloatArray = {
+    if(capacity != 0L && capacity == byteSize) new LFloatArray(byteSize / 4, elems.m)
+    else new LFloatArray(byteSize / 4, mkArray(byteSize).m)
+  }
+}
+
+class LLongArrayBuilder extends LArrayBuilder[Long, LLongArray] {
+
+  def +=(elem: Long): this.type = {
+    ensureSize(byteSize + 8)
+    elems.putLong(byteSize, elem)
+    byteSize += 8
+    this
+  }
+
+  def result(): LLongArray = {
+    if(capacity != 0L && capacity == byteSize) new LLongArray(byteSize / 8, elems.m)
+    else new LLongArray(byteSize / 8, mkArray(byteSize).m)
+  }
+
+}
+
+
+class LDoubleArrayBuilder extends LArrayBuilder[Double, LDoubleArray] {
+
+  def +=(elem: Double): this.type = {
+    ensureSize(byteSize + 8)
+    elems.putDouble(byteSize, elem)
+    byteSize += 8
+    this
+  }
+
+  def result(): LDoubleArray = {
+    if(capacity != 0L && capacity == byteSize) new LDoubleArray(byteSize / 8, elems.m)
+    else new LDoubleArray(byteSize / 8, mkArray(byteSize).m)
+  }
+}
+
+
+class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
+
+  private var elems : LArray[A] = _
+  private var capacity: Long = 0L
+  private[larray] var size: Long = 0L
+
+  private def mkArray(size:Long) : LArray[A] = {
+    val newArray = LObjectArray.ofDim[A](size)
+    if(this.size > 0L) {
+      LArray.copy(elems, 0L, newArray, 0L, this.size)
+      elems.free
+    }
+    newArray
+  }
+
+  override def sizeHint(size:Long) {
+    if(capacity < size) resize(size)
+  }
+
+  private def ensureSize(size:Long) {
+    val factor = 2L
+    if(capacity < size || capacity == 0L){
+      var newsize = if(capacity <= 1L) 16L else capacity * factor
+      while(newsize < size) newsize *= factor
+      resize(newsize)
+    }
+  }
+
+  private def resize(size:Long) {
+    elems = mkArray(size)
+    capacity = size
+  }
+
+  def +=(elem: A): this.type = {
+    ensureSize(size + 1)
+    elems(size) = elem
+    size += 1
+    this
+  }
+
+  def clear() {
+    elems = null
+    size = 0L
+    capacity = 0L
+  }
+
+  def result(): LArray[A] = {
+    if(capacity != 0L && capacity == size) elems
+    else mkArray(size)
+  }
+
+  def write(src: ByteBuffer): Int = throw new UnsupportedOperationException("LBuilder[A].writeToArray(ByteBuffer)")
+
+  def isOpen: Boolean = true
+
+  def close() { clear }
+
+  def append(seq: LSeq[A]) = {
+    ensureSize(size + seq.length)
+    seq.foreach { e => elems(size) = e; size += 1 }
+    this
+  }
+}
+
 /**
  * @author Taro L. Saito
  */
@@ -165,135 +341,18 @@ object LArrayBuilder {
     val tag = implicitly[ClassTag[T]]
     tag.runtimeClass match {
       case java.lang.Byte.TYPE      => new LByteArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
-      case java.lang.Short.TYPE     => sys.error("Not yet implemented")
-      case java.lang.Character.TYPE => sys.error("Not yet implemented")
-      case java.lang.Integer.TYPE   => ofInt.asInstanceOf[LBuilder[T, LArray[T]]]
-      case java.lang.Long.TYPE      => sys.error("Not yet implemented")
-      case java.lang.Float.TYPE     => sys.error("Not yet implemented")
-      case java.lang.Double.TYPE    => sys.error("Not yet implemented")
-      case java.lang.Boolean.TYPE   => sys.error("Not yet implemented")
-      case java.lang.Void.TYPE      => sys.error("Not yet implemented")
-      case _                        => ofObject[T].asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Short.TYPE     => new LShortArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Character.TYPE => new LCharArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Integer.TYPE   => new LIntArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Long.TYPE      => new LLongArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Float.TYPE     => new LFloatArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Double.TYPE    => new LDoubleArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case java.lang.Boolean.TYPE   => new LBitArrayBuilder().asInstanceOf[LBuilder[T, LArray[T]]]
+      case _                        => new LObjectArrayBuilder[T].asInstanceOf[LBuilder[T, LArray[T]]]
     }
   }
 
 
-  /**
-   * In the following, we need to define builders for every primitive types because if we extract
-   * common functions (e.g., resize, mkArray) using type parameter, we cannot avoid boxing/unboxing.
-   *
-   */
 
-
-  def ofInt = new LArrayBuilder[Int, LIntArray] {
-
-    def +=(elem: Int): this.type = {
-      ensureSize(byteSize + 4)
-      elems.putInt(byteSize, elem)
-      byteSize += 4
-      this
-    }
-
-    def result(): LIntArray = {
-      if(capacity != 0L && capacity == byteSize) new LIntArray(byteSize / 4, elems.m)
-      else new LIntArray(byteSize / 4, mkArray(byteSize).m)
-    }
-  }
-
-  def ofFloat = new LArrayBuilder[Float, LFloatArray] {
-
-    def +=(elem: Float): this.type = {
-      ensureSize(byteSize + 4)
-      elems.putFloat(byteSize, elem)
-      byteSize += 4
-      this
-    }
-
-    def result(): LFloatArray = {
-      if(capacity != 0L && capacity == byteSize) new LFloatArray(byteSize / 4, elems.m)
-      else new LFloatArray(byteSize / 4, mkArray(byteSize).m)
-    }
-  }
-
-
-  def ofDouble = new LArrayBuilder[Double, LDoubleArray] {
-
-    def +=(elem: Double): this.type = {
-      ensureSize(byteSize + 8)
-      elems.putDouble(byteSize, elem)
-      byteSize += 8
-      this
-    }
-
-    def result(): LDoubleArray = {
-      if(capacity != 0L && capacity == byteSize) new LDoubleArray(byteSize / 8, elems.m)
-      else new LDoubleArray(byteSize / 8, mkArray(byteSize).m)
-    }
-
-  }
-
-  // TODO ofChar
-  // TODO ofShort
-  // TODO ofFloat
-  // TODO ofLong
-  // TODO ofDouble
-
-
-  def ofObject[A:ClassTag] = new LBuilder[A, LArray[A]] {
-
-    private var elems : LArray[A] = _
-    private var capacity: Long = 0L
-    private[larray] var size: Long = 0L
-
-    private def mkArray(size:Long) : LArray[A] = {
-      val newArray = LObjectArray.ofDim[A](size)
-      if(this.size > 0L) {
-        LArray.copy(elems, 0L, newArray, 0L, this.size)
-        elems.free
-      }
-      newArray
-    }
-
-    override def sizeHint(size:Long) {
-      if(capacity < size) resize(size)
-    }
-
-    private def ensureSize(size:Long) {
-      if(capacity < size || capacity == 0L){
-        var newsize = if(capacity == 0L) 16L else (capacity * 1.5).toLong
-        while(newsize < size) newsize *= 2
-        resize(newsize)
-      }
-    }
-
-    private def resize(size:Long) {
-      elems = mkArray(size)
-      capacity = size
-    }
-
-    def +=(elem: A): this.type = {
-      ensureSize(size + 1)
-      elems(size) = elem
-      size += 1
-      this
-    }
-
-    def clear() {
-      elems = null
-      size = 0L
-      capacity = 0L
-    }
-
-    def result(): LArray[A] = {
-      if(capacity != 0L && capacity == size) elems
-      else mkArray(size)
-    }
-
-    def write(src: ByteBuffer): Int = throw new UnsupportedOperationException("LBuilder[A].write(ByteBuffer)")
-
-    def isOpen: Boolean = true
-
-    def close() { clear }
-  }
 
 }
