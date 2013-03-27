@@ -49,7 +49,7 @@ trait LIntArrayBehaviour { this: LArraySpec =>
   def validArray(arr:Seq[Int]) {
     val l: LArray[Int] = arr.toLArray
 
-    When(s"input is ${arr.mkString(", ")}")
+    When(s"input is (${arr.mkString(", ")})")
 
     "have iterator" in {
       l.iterator === arr
@@ -100,10 +100,14 @@ trait LIntArrayBehaviour { this: LArraySpec =>
       l.drop(4) === arr.drop(4)
     }
 
-    "retrieve elements" in {
-      l.head shouldBe arr.head
-      l.tail === arr.tail
+    "report head/tail" in {
+      if(!l.isEmpty) {
+        l.head shouldBe arr.head
+        l.tail === arr.tail
+      }
+    }
 
+    "retrieve elements" in {
       l.take(4) === arr.take(4)
       l.takeRight(3) === arr.takeRight(3)
       l.takeWhile(_ < 3) === arr.takeWhile(_ < 3)
@@ -127,8 +131,10 @@ trait LIntArrayBehaviour { this: LArraySpec =>
 
     "reduce elements" in {
       def sum(a: Int, b: Int): Int = a + b
-      l.reduce(sum) shouldBe arr.reduce(sum)
-      l.aggregate(100)(sum, sum) shouldBe arr.aggregate(100)(sum, sum)
+      if(!l.isEmpty) {
+        l.reduce(sum) shouldBe arr.reduce(sum)
+        l.aggregate(100)(sum, sum) shouldBe arr.aggregate(100)(sum, sum)
+      }
     }
 
     "scan elements" in {
@@ -185,4 +191,9 @@ class LArrayFunctionTest extends LArraySpec with LIntArrayBehaviour {
   "test2" should {
     behave like validArray(Seq(4, 3, 1, 10, 3, 5, 3, 9))
   }
+
+  "empty test" should {
+    behave like validArray(Seq())
+  }
+
 }
