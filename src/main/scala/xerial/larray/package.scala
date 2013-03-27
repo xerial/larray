@@ -4,7 +4,7 @@ import reflect.ClassTag
 
 /**
  * == LArray ==
- * A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
+ * [[xerial.larray.LArray]] is a large off-heap array that can hold more than 2G (2^31) entries.
  *
  * === Features ===
  *
@@ -22,6 +22,7 @@ import reflect.ClassTag
  *  - Fast copy and memory allocation
  *  - Rich set of operations for LArray[A]
  *    - map, filter, reduce, zip, etc.
+ *    - See [[xerial.larray.LArray]]
  *
  * === Limitations ===
  *

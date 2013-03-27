@@ -117,7 +117,7 @@ trait MemoryAllocator extends Logger {
   def allocatedSize : Long
 
   /**
-   * Allocate a memory of the specified byte length. The allocated memory must be released via [[xerial.larray.MemoryAllocator#release]]
+   * Allocate a memory of the specified byte length. The allocated memory must be released via `release`
    * as in malloc() in C/C++.
    * @param size byte length of the memory
    * @return adress of the allocated mmoery.
