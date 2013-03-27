@@ -21,7 +21,7 @@ class IOPerfTest extends LArraySpec {
     file.deleteOnExit()
     val b = new Array[Byte](1024 * 1024)
     //val P = 1024 * 1024
-    val P = 256
+    val P = 64
     val f = new FileOutputStream(file)
     for(i <- 0 until P) {
       Random.nextBytes(b)
