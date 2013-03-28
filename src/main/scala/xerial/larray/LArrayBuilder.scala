@@ -22,6 +22,8 @@ import xerial.core.log.Logger
  */
 trait LBuilder[Elem, +To] extends WritableByteChannel {
 
+  def elementSize : Long
+
   def append(elem:Elem) : this.type = +=(elem)
 
   def append(seq:LSeq[Elem]) : this.type
@@ -58,7 +60,7 @@ trait LBuilder[Elem, +To] extends WritableByteChannel {
     *
     *  @param size  the hint how many elements will be added.
     */
-  def sizeHint(size: Long) {}
+  def sizeHint(size: Long) : Unit
 
 }
 
@@ -71,34 +73,40 @@ trait LBuilder[Elem, +To] extends WritableByteChannel {
 abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] with Logger {
   protected var elems : LByteArray = _
   protected var capacity: Long = 0L
-  protected var byteSize: Long = 0L
+  /**
+   * Current cursor position in LByteArray
+   */
+  protected var cursor : Long = 0L
+
+  protected def numElems : Long = cursor / elementSize
 
   def append(b:Array[Byte], offset:Int, len:Int) = {
-    ensureSize(byteSize + len)
-    elems.readFromArray(b, offset, byteSize, len)
-    byteSize += len
+    val elemsToAdd = (len + elementSize - 1) / elementSize
+    ensureSize(numElems + elemsToAdd)
+    elems.readFromArray(b, offset, cursor, len)
+    cursor += len
     this
   }
 
   def append(seq:LSeq[A]) : this.type = {
-    ensureSize(byteSize + seq.byteLength)
-    seq.copyTo(elems, byteSize)
-    byteSize += seq.byteLength
+    val n = seq.size
+    ensureSize(numElems + n)
+    seq.copyTo(elems, cursor)
+    cursor += n * elementSize
     this
   }
 
-
   protected def mkArray(size:Long) : LByteArray = {
-    val newArray = new LByteArray(size)
-    if(this.byteSize > 0L) {
-      LArray.copy(elems, 0L, newArray, 0L, this.byteSize)
+    val newArray = new LByteArray(size * elementSize)
+    if(this.numElems > 0L) {
+      LArray.copy(elems, newArray)
       elems.free
     }
     newArray
   }
 
 
-  override def sizeHint(size:Long) {
+  def sizeHint(size:Long) {
     if(capacity < size) resize(size)
   }
 
@@ -117,32 +125,33 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] wit
   }
 
   def clear() {
-    if(byteSize > 0)
+    if(numElems > 0)
       elems.free
     capacity = 0L
-    byteSize = 0L
+    cursor = 0L
   }
-
 
   def write(src: ByteBuffer): Int = {
     import UnsafeUtil.unsafe
     val len = math.max(src.limit - src.position, 0)
-    ensureSize(byteSize + len)
+    val toAdd = (len + elementSize - 1) / elementSize
+    ensureSize(numElems + toAdd)
     val writeLen = src match {
       case d:DirectBuffer =>
-        unsafe.copyMemory(d.address() + src.position, elems.address + byteSize, len)
+        unsafe.copyMemory(d.address() + d.position, elems.address + cursor, len)
         len
       case arr if src.hasArray =>
-        elems.readFromArray(src.array(), src.position(), byteSize, len)
+        elems.readFromArray(src.array(), src.position(), cursor, len)
       case _ =>
         var i = 0L
+        val c = cursor
         while(i < len) {
-          elems.putByte(byteSize + i, src.get((src.position() + i).toInt))
+          elems.putByte(c + i, src.get((src.position() + i).toInt))
           i += 1
         }
         len
     }
-    byteSize += writeLen
+    cursor += writeLen
     src.position(src.position + writeLen)
     writeLen
   }
@@ -154,116 +163,126 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] wit
 
 
 class LByteArrayBuilder extends LArrayBuilder[Byte, LByteArray] {
-
-  def result(): LByteArray = {
-    if(capacity != 0L && capacity == byteSize) elems
-    else mkArray(byteSize)
-  }
-
+  def elementSize = 1
 
   def +=(elem: Byte): this.type = {
-    ensureSize(byteSize + 1)
-    elems(byteSize) = elem
-    byteSize += 1
+    val i = numElems
+    ensureSize(i + 1)
+    elems(i) = elem
+    cursor += elementSize
     this
   }
 
+  def result(): LByteArray = {
+    if(capacity != 0L && capacity == numElems) elems
+    else mkArray(numElems)
+  }
 }
 
 
 class LCharArrayBuilder extends LArrayBuilder[Char, LCharArray] {
+  def elementSize = 2
+
   def +=(elem: Char): this.type = {
-    ensureSize(byteSize + 2)
-    elems.putChar(byteSize, elem)
-    byteSize += 2
+    ensureSize(numElems + 1)
+    elems.putChar(cursor, elem)
+    cursor += elementSize
     this
   }
   def result(): LCharArray = {
-    if(capacity != 0L && capacity == byteSize) new LCharArray(byteSize / 2, elems.m)
-    else new LCharArray(byteSize / 2, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LCharArray(numElems, elems.m)
+    else new LCharArray(numElems, mkArray(numElems).m)
   }
 }
 
 
 class LShortArrayBuilder extends LArrayBuilder[Short, LShortArray] {
+  def elementSize = 2
+
   def +=(elem: Short): this.type = {
-    ensureSize(byteSize + 2)
-    elems.putShort(byteSize, elem)
-    byteSize += 2
+    ensureSize(numElems + 1)
+    elems.putShort(cursor, elem)
+    cursor += elementSize
     this
   }
   def result(): LShortArray = {
-    if(capacity != 0L && capacity == byteSize) new LShortArray(byteSize / 2, elems.m)
-    else new LShortArray(byteSize / 2, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LShortArray(numElems, elems.m)
+    else new LShortArray(numElems, mkArray(numElems).m)
   }
 }
 
 
 
 class LIntArrayBuilder extends LArrayBuilder[Int, LIntArray] {
+  def elementSize = 4
 
   def +=(elem: Int): this.type = {
-    ensureSize(byteSize + 4)
-    elems.putInt(byteSize, elem)
-    byteSize += 4
+    ensureSize(numElems + 1)
+    elems.putInt(cursor, elem)
+    cursor += elementSize
     this
   }
 
   def result(): LIntArray = {
-    if(capacity != 0L && capacity == byteSize) new LIntArray(byteSize / 4, elems.m)
-    else new LIntArray(byteSize / 4, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LIntArray(numElems, elems.m)
+    else new LIntArray(numElems, mkArray(numElems).m)
   }
 }
 
 class LFloatArrayBuilder extends LArrayBuilder[Float, LFloatArray] {
+  def elementSize = 4
 
   def +=(elem: Float): this.type = {
-    ensureSize(byteSize + 4)
-    elems.putFloat(byteSize, elem)
-    byteSize += 4
+    ensureSize(numElems + 1)
+    elems.putFloat(cursor, elem)
+    cursor += elementSize
     this
   }
 
   def result(): LFloatArray = {
-    if(capacity != 0L && capacity == byteSize) new LFloatArray(byteSize / 4, elems.m)
-    else new LFloatArray(byteSize / 4, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LFloatArray(numElems, elems.m)
+    else new LFloatArray(numElems, mkArray(numElems).m)
   }
 }
 
 class LLongArrayBuilder extends LArrayBuilder[Long, LLongArray] {
+  def elementSize = 8
 
   def +=(elem: Long): this.type = {
-    ensureSize(byteSize + 8)
-    elems.putLong(byteSize, elem)
-    byteSize += 8
+    ensureSize(numElems + 1)
+    elems.putLong(cursor, elem)
+    cursor += elementSize
     this
   }
 
   def result(): LLongArray = {
-    if(capacity != 0L && capacity == byteSize) new LLongArray(byteSize / 8, elems.m)
-    else new LLongArray(byteSize / 8, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LLongArray(numElems, elems.m)
+    else new LLongArray(numElems, mkArray(numElems).m)
   }
 
 }
 
 
 class LDoubleArrayBuilder extends LArrayBuilder[Double, LDoubleArray] {
+  def elementSize = 8
 
   def +=(elem: Double): this.type = {
-    ensureSize(byteSize + 8)
-    elems.putDouble(byteSize, elem)
-    byteSize += 8
+    ensureSize(numElems +1)
+    elems.putDouble(cursor, elem)
+    cursor += elementSize
     this
   }
 
   def result(): LDoubleArray = {
-    if(capacity != 0L && capacity == byteSize) new LDoubleArray(byteSize / 8, elems.m)
-    else new LDoubleArray(byteSize / 8, mkArray(byteSize).m)
+    if(capacity != 0L && capacity == numElems) new LDoubleArray(numElems, elems.m)
+    else new LDoubleArray(numElems, mkArray(numElems).m)
   }
 }
 
 
 class LObjectArrayBuilder[A:ClassTag] extends LBuilder[A, LArray[A]] {
+
+  def elementSize = 4
 
   private var elems : LArray[A] = _
   private var capacity: Long = 0L

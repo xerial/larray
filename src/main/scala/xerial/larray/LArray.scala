@@ -242,19 +242,19 @@ object LArray {
           fin.read(bb)
           val numBits = bb.getLong(0)
           val fileSize = fin.size()
-          val b = new LBitArrayBuilder
+          val b = new LLongArrayBuilder()
           var pos = 8L
-          b.sizeHint(fileSize - pos)
+          b.sizeHint((fileSize - pos) / 8L)
           while (pos < fileSize) {
             pos += fin.transferTo(pos, fileSize - pos, b)
           }
-          b.result(numBits).asInstanceOf[LArray[A]]
+          new LBitArray(b.result, numBits).asInstanceOf[LArray[A]]
         }
         case _ => {
           var pos = 0L
           val fileSize = fin.size()
           val b = LArray.newBuilder[A]
-          b.sizeHint(fileSize)
+          b.sizeHint(fileSize / b.elementSize)
           while (pos < fileSize) {
             pos += fin.transferTo(pos, fileSize - pos, b)
           }
@@ -355,12 +355,6 @@ object LArray {
     }
   }
 
-  /**
-   * Get an empty array
-   * @tparam A the element type
-   * @return an empty array of the specified type
-   */
-  def apply[A: ClassTag]() = empty[A]
 
   /**
    * Wrap a raw memory with a new LArray class
@@ -487,6 +481,8 @@ object LArray {
     }
     arr
   }
+
+  def copy[A](src:LArray[A], dest:LArray[A]) { copy(src, 0L, dest, 0L, src.size) }
 
   /**
    * Copy LArray elements to the destination LArray

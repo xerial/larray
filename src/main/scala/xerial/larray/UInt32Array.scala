@@ -10,10 +10,11 @@ package xerial.larray
 object UInt32Array {
 
   def newBuilder = new LArrayBuilder[Long, UInt32Array] {
+
     def +=(v: Long): this.type = {
-      ensureSize(byteSize + 4)
-      elems.putInt(byteSize,  (v & 0xFFFFFFFFL).toInt)
-      byteSize += 4
+      ensureSize(numElems + 1)
+      elems.putInt(cursor,  (v & 0xFFFFFFFFL).toInt)
+      cursor += elementSize
       this
     }
 
@@ -22,9 +23,11 @@ object UInt32Array {
       * @return a collection containing the elements added to this builder.
       */
     def result(): UInt32Array = {
-      if(capacity != 0L && capacity == byteSize) new UInt32Array(byteSize / 4, elems.m)
-      else new UInt32Array(byteSize / 4, mkArray(byteSize).m)
+      if(capacity != 0L && capacity == numElems) new UInt32Array(numElems, elems.m)
+      else new UInt32Array(numElems, mkArray(numElems).m)
     }
+
+    def elementSize = 4
   }
 
 
