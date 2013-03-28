@@ -67,5 +67,7 @@ public class LArrayJavaExample {
 
         // Release the memory contents
         l.free();
+
+        System.out.println("done.");
     }
 }

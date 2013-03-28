@@ -17,11 +17,13 @@ class LArrayExampleTest extends LArraySpec {
 
   "LArrayExample" should {
     "run Scala API" in {
-      new LArrayExample
+      val out = captureOut(new LArrayExample)
+      out should (include ("done."))
     }
 
     "run Java API" in {
-      LArrayJavaExample.main(Array.empty[String])
+      val out = captureSystemOut(LArrayJavaExample.main(Array.empty[String]))
+      out should (include ("done."))
     }
 
   }

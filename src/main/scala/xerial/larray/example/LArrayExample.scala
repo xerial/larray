@@ -73,4 +73,6 @@ class LArrayExample {
   l3.free
 
   // You can omit calling free, because GC collects unused LArrays
+
+  println("done.")
 }

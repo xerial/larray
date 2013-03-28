@@ -10,7 +10,7 @@ package xerial.larray
 import org.scalatest.matchers.{MustMatchers, ShouldMatchers}
 import xerial.core.util.Timer
 import org.scalatest._
-import java.io.ByteArrayOutputStream
+import java.io.{PrintStream, ByteArrayOutputStream}
 import scala.language.implicitConversions
 import xerial.core.io.Resource
 
@@ -35,6 +35,26 @@ trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with Giv
       body
     }
     new String(out.toByteArray)
+  }
+
+  /**
+   * Captures the output stream and returns the printed messages as a String
+   * @param body
+   * @tparam U
+   * @return
+   */
+  def captureSystemOut[U](body: => U) : String = {
+    val prev = System.out
+    val b = new ByteArrayOutputStream
+    val out = new PrintStream(b)
+    try {
+      System.setOut(out)
+      body
+      out.flush()
+    }
+    finally
+      System.setOut(prev)
+    new String(b.toByteArray)
   }
 
   def captureErr[U](body: => U) : String = {
