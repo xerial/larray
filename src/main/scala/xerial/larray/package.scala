@@ -1,5 +1,6 @@
 package xerial
 
+import larray.impl.LArrayNative
 import reflect.ClassTag
 
 /**
@@ -35,7 +36,7 @@ package object larray {
   implicit class ConvertArrayToLArray[A : ClassTag](arr:Array[A]) {
     def toLArray : LArray[A] = {
       val l = LArray.of[A](arr.length).asInstanceOf[RawByteArray[A]]
-      LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(arr, 0, l.address, l.byteLength.toInt)
+      LArrayNative.copyFromArray(arr, 0, l.address, l.byteLength.toInt)
       l
     }
   }

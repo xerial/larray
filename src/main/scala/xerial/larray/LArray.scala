@@ -7,6 +7,7 @@
 
 package xerial.larray
 
+import impl.LArrayNative
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
 import java.nio.ByteBuffer
@@ -698,13 +699,13 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
   def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
+    LArrayNative.copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
     writeLen
   }
 
   def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int = {
     val readLen = math.min(src.length - srcOffset, math.min(byteLength - destOffset, length)).toInt
-    LArray.impl.asInstanceOf[xerial.larray.impl.LArrayNativeAPI].copyFromArray(src, srcOffset, m.address + destOffset, readLen)
+    LArrayNative.copyFromArray(src, srcOffset, m.address + destOffset, readLen)
     readLen
   }
 
