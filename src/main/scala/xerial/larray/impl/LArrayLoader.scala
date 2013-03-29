@@ -119,7 +119,7 @@ object LArrayLoader extends Logger {
   private def extractLibraryFile(libFolderForCurrentOS:String, libraryFileName:String, targetFolder:String) : File =  {
     val nativeLibraryFilePath = libFolderForCurrentOS + "/" + libraryFileName
     val suffix = UUID.randomUUID().toString
-    val extractedLibFileName = s"larray-${getVersion}-${suffix}.nativelib"
+    val extractedLibFileName = s"larray-${getVersion}-${suffix}.lib"
     val extractedLibFile = new File(targetFolder, extractedLibFileName)
 
 
@@ -149,8 +149,8 @@ object LArrayLoader extends Logger {
       writer.write(buffer, 0, bytesRead);
     }
 
-    writer.close();
-    reader.close();
+    writer.close()
+    reader.close()
 
     // Set executable (x) flag to enable Java to load the native library
     if (!System.getProperty("os.name").contains("Windows")) {
