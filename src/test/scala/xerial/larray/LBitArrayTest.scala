@@ -43,7 +43,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     "on and off specific bits" in {
       val b = new LBitArray(10000)
-      b.fill
+      b.fill 
       b.forall(_ == true) should be (true)
 
       for(pos <- Seq(91, 34, 5093, 443, 4)) {
