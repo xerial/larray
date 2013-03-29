@@ -12,7 +12,6 @@ import java.io._
 import java.security.DigestInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.{UUID, Properties}
-//import xerial.core.log.Logger
 
 
 /**
