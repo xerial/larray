@@ -12,7 +12,7 @@ import java.io._
 import java.security.DigestInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.{UUID, Properties}
-import xerial.core.log.Logger
+//import xerial.core.log.Logger
 
 
 /**
@@ -48,7 +48,7 @@ import xerial.core.log.Logger
  * @author leo
  *
  */
-object LArrayLoader extends Logger {
+object LArrayLoader {
 
   val KEY_LARRAY_TEMPDIR  = "xerial.larray.tempdir"
 
@@ -66,12 +66,11 @@ object LArrayLoader extends Logger {
 
     synchronized {
       try {
-        val lib = findNativeLibrary
-        val libFile = lib.newCopy
+        val libFile = findNativeLibrary.newCopy
+        // Delete the extracted native library upon exit
         libFile.deleteOnExit()
-        debug(s"Extracted native library to: ${libFile.getAbsolutePath}")
         System.load(libFile.getAbsolutePath)
-        isLoaded = true;
+        isLoaded = true
       }
       catch {
         case e: Exception =>
@@ -108,63 +107,8 @@ object LArrayLoader extends Logger {
     }
   }
 
-  /**
-   * Extract the specified library file to the target folder
-   *
-   * @param libFolderForCurrentOS
-   * @param libraryFileName
-   * @param targetFolder
-   * @return
-   */
-  private def extractLibraryFile(libFolderForCurrentOS:String, libraryFileName:String, targetFolder:String) : File =  {
-    val nativeLibraryFilePath = libFolderForCurrentOS + "/" + libraryFileName
-    val suffix = UUID.randomUUID().toString
-    val extractedLibFileName = s"larray-${getVersion}-${suffix}.lib"
-    val extractedLibFile = new File(targetFolder, extractedLibFileName)
 
-
-    if (extractedLibFile.exists()) {
-      // test md5sum value
-      val md5sum1 = md5sum(this.getClass.getResourceAsStream(nativeLibraryFilePath))
-      val md5sum2 = md5sum(new FileInputStream(extractedLibFile))
-      if (md5sum1.equals(md5sum2)) {
-        return new File(targetFolder, extractedLibFileName)
-      }
-      else {
-        // remove old native library file
-        val deletionSucceeded = extractedLibFile.delete()
-        if (!deletionSucceeded) {
-          throw new IOException("failed to remove existing native library file: "
-            + extractedLibFile.getAbsolutePath());
-        }
-      }
-    }
-
-    // Extract a native library file into the target directory
-    val reader = this.getClass.getResourceAsStream(nativeLibraryFilePath)
-    val writer = new FileOutputStream(extractedLibFile)
-    val buffer = new Array[Byte](8192)
-    var bytesRead = 0
-    while ({bytesRead = reader.read(buffer); bytesRead != -1}) {
-      writer.write(buffer, 0, bytesRead);
-    }
-
-    writer.close()
-    reader.close()
-
-    // Set executable (x) flag to enable Java to load the native library
-    if (!System.getProperty("os.name").contains("Windows")) {
-      try {
-        Runtime.getRuntime().exec(Array("chhmod", "755", extractedLibFile.getAbsolutePath())).waitFor()
-      }
-      catch {
-        case e:Throwable => // do nothing
-      }
-    }
-    new File(targetFolder, extractedLibFileName)
-  }
-
-  private case class NativeLibPath(nativeLibFolder:String, libName:String) {
+  private case class NativeLib(nativeLibFolder:String, libName:String) {
     /** Create a new unique copy of the native library **/
     def newCopy : File = {
 
@@ -175,9 +119,65 @@ object LArrayLoader extends Logger {
 
     }
 
+    /**
+     * Extract the specified library file to the target folder
+     *
+     * @param libFolderForCurrentOS
+     * @param libraryFileName
+     * @param targetFolder
+     * @return
+     */
+    private def extractLibraryFile(libFolderForCurrentOS:String, libraryFileName:String, targetFolder:String) : File =  {
+      val nativeLibraryFilePath = libFolderForCurrentOS + "/" + libraryFileName
+      val suffix = UUID.randomUUID().toString
+      val extractedLibFileName = s"larray-${getVersion}-${suffix}.lib"
+      val extractedLibFile = new File(targetFolder, extractedLibFileName)
+
+
+      if (extractedLibFile.exists()) {
+        // test md5sum value
+        val md5sum1 = md5sum(this.getClass.getResourceAsStream(nativeLibraryFilePath))
+        val md5sum2 = md5sum(new FileInputStream(extractedLibFile))
+        if (md5sum1.equals(md5sum2)) {
+          return new File(targetFolder, extractedLibFileName)
+        }
+        else {
+          // remove old native library file
+          val deletionSucceeded = extractedLibFile.delete()
+          if (!deletionSucceeded) {
+            throw new IOException("failed to remove existing native library file: "
+              + extractedLibFile.getAbsolutePath());
+          }
+        }
+      }
+
+      // Extract a native library file into the target directory
+      val reader = this.getClass.getResourceAsStream(nativeLibraryFilePath)
+      val writer = new FileOutputStream(extractedLibFile)
+      val buffer = new Array[Byte](8192)
+      var bytesRead = 0
+      while ({bytesRead = reader.read(buffer); bytesRead != -1}) {
+        writer.write(buffer, 0, bytesRead);
+      }
+
+      writer.close()
+      reader.close()
+
+      // Set executable (x) flag to enable Java to load the native library
+      if (!System.getProperty("os.name").contains("Windows")) {
+        try {
+          Runtime.getRuntime().exec(Array("chhmod", "755", extractedLibFile.getAbsolutePath())).waitFor()
+        }
+        catch {
+          case e:Throwable => // do nothing
+        }
+      }
+      new File(targetFolder, extractedLibFileName)
+    }
+
   }
 
-  private def findNativeLibrary : NativeLibPath = {
+  private def findNativeLibrary : NativeLib = {
 
     def hasResource(path:String) = this.getClass.getResource(path) != null
 
@@ -204,7 +204,7 @@ object LArrayLoader extends Logger {
       sys.error(errorMessage)
     }
 
-    NativeLibPath(nativeLibraryPath, nativeLibraryName)
+    NativeLib(nativeLibraryPath, nativeLibraryName)
   }
 
 
@@ -231,7 +231,7 @@ object LArrayLoader extends Logger {
     catch {
       case e:IOException => System.err.println(e)
     }
-    version;
+    version
   }
 
 }
