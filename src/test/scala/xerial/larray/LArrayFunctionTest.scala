@@ -184,12 +184,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
-      (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
-      l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
-      (l :\ 0d)(_ + _) shouldBe (arr :\ 0d)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
+          (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
+          l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
+          (l :\ 0d)(_ + _) shouldBe (arr :\ 0d)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Double, b: Double): Double = a + b
@@ -259,12 +263,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
-      (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
-      l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
-      (l :\ 0f)(_ + _) shouldBe (arr :\ 0f)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
+          (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
+          l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
+          (l :\ 0f)(_ + _) shouldBe (arr :\ 0f)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Float, b: Float): Float = a + b
@@ -334,15 +342,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      if(arr.size <= 1000){
-
-      l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
-      (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
-      l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
-      (l :\ 0)(_ + _) shouldBe (arr :\ 0)(_ + _)
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
+          (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
+          l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
+          (l :\ 0)(_ + _) shouldBe (arr :\ 0)(_ + _)
+        }
       }
-    }
 
     "reduce elements" in {
       def sum(a: Int, b: Int): Int = a + b
@@ -411,12 +420,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
-      (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
-      l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
-      (l :\ 0L)(_ + _) shouldBe (arr :\ 0L)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
+          (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
+          l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
+          (l :\ 0L)(_ + _) shouldBe (arr :\ 0L)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Long, b: Long): Long = a + b
