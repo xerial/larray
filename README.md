@@ -42,7 +42,6 @@ In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since 
 Add the following sbt dependencies to your project settings:
 
 ```scala
-# In preparation 
 libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
 ```
 
