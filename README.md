@@ -3,12 +3,12 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * Supporting huge array size upto 2^63 -1 entries.
+ * LArray supports huge array size upto 2^63 -1 entries.
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory immediately. 
    * Call LArray.free 
-   * The default arrays in Java/Scala stays in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` 10,000 times. You are lucky if you don't see any OutOfMemoryException without setting `-Xmx` option adequately.
+   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see any OutOfMemoryException.
  * LArray can be collected by Garbage Collection (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List)
@@ -19,7 +19,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * LArray can be used as DirectBuffer
    * Enables zero-copy transfer to/from files, network, etc.
  * Rich set of operations for LArray[A]
-   * map, filter, reduce, zip, etc.
+   * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
 
  
 ## Limitations
@@ -39,7 +39,7 @@ LArray uses OS-specific implementation for copying memory contents between LArra
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## Usage (Scala)
-Add the following sbt dependencies to your project settings:
+Add the following sbt dependency to your project settings:
 
 ```scala
 libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
