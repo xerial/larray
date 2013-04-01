@@ -33,7 +33,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
 LArray uses OS-specific implementation for copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
 
  * Windows (32/64-bit)
- * Linux (amd64 (Intel 64-bit), arm, armhf)
+ * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
  * Mac OSX (Intel 64bit)
 
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
@@ -42,8 +42,7 @@ In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since 
 Add the following sbt dependencies to your project settings:
 
 ```scala
-# In preparation 
-libraryDependencies += "org.xerial" % "larray" % "0.1"
+libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
 ```
 
  * For using snapshot versions:
@@ -94,6 +93,6 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/snapshots/archive/org/xerial/larray/0.1-SNAPSHOT/larray-0.1-SNAPSHOT-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M1/larray-0.1-M1-javadoc.jar/!/index.html#xerial.larray.package)
  
  

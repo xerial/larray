@@ -40,7 +40,8 @@ object Build extends sbt.Build {
         },
         parallelExecution := true,
         parallelExecution in Test := false,
-        scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
+        javacOptions in Compile ++= Seq("-Xlint:unchecked"),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
         scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
           Seq("-sourcepath", bd.getAbsolutePath,
             "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
@@ -55,7 +56,7 @@ object Build extends sbt.Build {
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.1.1",
-          "org.xerial.snappy" % "snappy-java" % "1.1.0-M1" % "test",
+          "org.xerial.snappy" % "snappy-java" % "1.1.0-M3" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
@@ -63,6 +64,7 @@ object Build extends sbt.Build {
           "org.scala-lang" % "scala-reflect" % SCALA_VERSION
         ),
         pomExtra := {
+          <url>https://github.com/xerial/larray</url>
           <licenses>
             <license>
               <name>Apache 2</name>

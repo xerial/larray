@@ -15,7 +15,7 @@ import java.io.{FileInputStream, File, FileOutputStream}
  */
 class LArrayTest extends LArraySpec {
 
-  val G: Long = 1024L * 1024 * 1024
+  val G: Long = 1024L * 1024L * 1024L
 
   override def afterEach {
     //    MemoryAllocator.default.releaseAll
@@ -269,10 +269,11 @@ class LArrayTest extends LArraySpec {
 
 
     "create large array" taggedAs ("la") in {
+      info("large memory allocation test")
       for (i <- 0 until 10) {
-        val arr = new LIntArray((2.1 * G).toLong)
+        val arr = new LByteArray(2L * G)
         try {
-          arr(arr.size - 1) = 134
+          arr(arr.size - 1) = 134.toByte
         }
         finally {
           arr.free

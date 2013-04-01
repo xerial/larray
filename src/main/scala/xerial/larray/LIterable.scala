@@ -29,7 +29,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
    */
   def concat(other:LSeq[A]) : Repr = {
     val b = newBuilder
-    b.sizeHint(this.byteLength + other.byteLength)
+    b.sizeHint(this.size + other.size)
     b.append(self)
     b.append(other)
     b.result()
@@ -70,7 +70,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
    */
   def :+(elem:A) : Repr = {
     val b = newBuilder
-    b.sizeHint((size + 1) * elementByteSize)
+    b.sizeHint(size + 1)
     b.append(self)
     b.append(elem)
     b.result()
@@ -83,7 +83,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
    */
   def +:(elem:A) : Repr = {
     val b = newBuilder
-    b.sizeHint((size + 1) * elementByteSize)
+    b.sizeHint(size + 1)
     b.append(elem)
     b.append(self)
     b.result()
@@ -282,7 +282,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
     val elems = math.max(hi - lo, 0L)
     // Supply array size to reduce the number of memory allocation
     val b     = newBuilder
-    b.sizeHint(elems * elementByteSize)
+    b.sizeHint(elems)
     var i = lo
     while (i < hi) {
       b += self(i)

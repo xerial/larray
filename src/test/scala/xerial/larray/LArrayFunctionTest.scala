@@ -95,7 +95,6 @@ trait LArrayBehaviour { this: LArraySpec =>
 
     "drop elements" taggedAs ("drop") in {
       val da = arr.drop(4)
-      debug(s"drop(4): ${da.mkString(", ")}")
       l.drop(4) === arr.drop(4)
     }
 
@@ -241,8 +240,6 @@ trait LArrayBehaviour { this: LArraySpec =>
     "find an element" taggedAs("fel") in {
       l.find(_ == 4f) shouldBe arr.find(_ == 4f)
       l.find(_ == 10f) shouldBe arr.find(_ == 10f)
-      //debug(s"l:${l.mkString(", ")}, l.contains(3f):${l.contains(3f)}, segmentLength(_ == 3f): ${l.segmentLength(_ == 3f, 0)}")
-      //debug(s"3.5f == 3f ${3.5f==3f}")
       l.contains(3f) should be(arr.contains(3f))
       l.exists(_ == 1f) should be(arr.exists(_ == 1f))
     }
