@@ -6,17 +6,20 @@
 //--------------------------------------
 
 package xerial.larray
-import util.Random
+
+import scala.util.Random
+import java.io.{FileInputStream, File, FileOutputStream}
 
 /**
  * @author Taro L. Saito
  */
 class LArrayTest extends LArraySpec {
 
-  val G: Long = 1024L * 1024 * 1024
+  val G: Long = 1024L * 1024L * 1024L
 
   override def afterEach {
-    MemoryAllocator.default.releaseAll
+    //    MemoryAllocator.default.releaseAll
+    //    System.gc()
   }
 
   "LArray" should {
@@ -50,12 +53,12 @@ class LArrayTest extends LArraySpec {
 
     "have map/flatMap" in {
       val l = LArray(1, 3, 5)
-      def mul(v:Int) = v * 2
+      def mul(v: Int) = v * 2
 
       val m = l.map(mul).toArray
-      m.size should be (3)
-      for(i <- 0L until l.size)
-        m(i.toInt) should be (mul(l(i)))
+      m.size should be(3)
+      for (i <- 0L until l.size)
+        m(i.toInt) should be(mul(l(i)))
     }
 
     "read/write values correctly" in {
@@ -65,7 +68,7 @@ class LArrayTest extends LArraySpec {
       val l = new LIntArray((0.1 * G).toLong)
       try {
         def v(i: Long) = (i * 2).toInt
-        for(i <- 0L until(l.size, step)) l(i) = v(i)
+        for (i <- 0L until(l.size, step)) l(i) = v(i)
         def loop(i: Long): Boolean = {
           if (i >= l.size)
             true
@@ -80,25 +83,96 @@ class LArrayTest extends LArraySpec {
       }
     }
 
-    "read/write data to Array[Byte]" taggedAs("rw") in {
+    "read/write data to Array[Byte]" taggedAs ("rw") in {
       val l = LArray(1, 3)
       val b = new Array[Byte](l.byteLength.toInt)
 
-      debug(s"LArray: [${l.mkString(", ")}]")
-      debug(s"Array[Byte]: [${b.mkString(", ")}]")
-      l.write(0, b, 0, l.byteLength.toInt)
+      l match {
+        case l: RawByteArray[_] =>
+          debug(s"LArray: [${l.mkString(", ")}]")
+          debug(s"Array[Byte]: [${b.mkString(", ")}]")
+          l.writeToArray(0, b, 0, l.byteLength.toInt)
+        case _ => fail("cannot reach here")
+      }
 
       debug(s"Array[Byte]: [${b.mkString(", ")}]")
       val l2 = LArray(0, 0)
-      l2.read(b, 0, 0, b.length)
+      l2 match {
+        case l2: RawByteArray[_] =>
+          l2.readFromArray(b, 0, 0, b.length)
+          debug(s"LArray2: [${l2.mkString(", ")}]")
+          l.sameElements(l2) should be(true)
+        case _ => fail("cannot reach here")
+      }
 
-      debug(s"LArray2: [${l2.mkString(", ")}]")
 
-      l.sameElements(l2) should be (true)
     }
 
+    "read/write data through ByteBuffer" taggedAs ("bb") in {
+      val l = LArray(1, 3, 5, 134, 34, -3, 2)
+      debug(l.mkString(", "))
+      val bb = l.toDirectByteBuffer
+
+      val tmp = File.createTempFile("larray-dump", ".dat", new File("target"))
+      debug(s"Write LArray to file: $tmp")
+      tmp.deleteOnExit()
+      val out = new FileOutputStream(tmp).getChannel
+      out.write(bb)
+      out.close()
+
+      // read LArray from file
+      {
+        val in = new FileInputStream(tmp).getChannel
+        val fileSize = in.size()
+        val newArray = new LByteArray(fileSize)
+
+        var pos = 0L
+        while (pos < fileSize) {
+          pos += in.transferTo(pos, fileSize - pos, newArray)
+        }
+        val l2 = LArray.wrap[Int](newArray.byteLength, newArray.m)
+        debug(l2.mkString(", "))
+
+        l.sameElements(l2) should be(true)
+
+        in.close
+      }
+
+      // read LArray from File using LArrayBuilder
+      {
+        val ib = LArray.newBuilder[Int]
+        val in = new FileInputStream(tmp).getChannel
+        val fileSize = in.size()
+        var pos = 0L
+        while(pos < fileSize) {
+          pos += in.transferTo(pos, fileSize - pos, ib)
+        }
+        val l2 = ib.result()
+        debug(l2.mkString(", "))
+        l.sameElements(l2) should be (true)
+
+        in.close
+      }
+
+    }
+
+    "provide initializer" taggedAs("init") in {
+
+      {
+        val l = new LIntArray(1000)
+        l(40) = 34
+        l.clear()
+        l.forall(_ == 0) should be (true)
+      }
 
 
+      {
+        val l = new LByteArray(1000)
+        l(340) = 34.toByte
+        l.clear()
+        l.forall(_ == 0) should be (true)
+      }
+    }
 
     "compare its random access performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024
@@ -116,30 +190,30 @@ class LArrayTest extends LArraySpec {
           val a = new Array[Int](M)
           var i = 0
           while (i < M) {
-            a(i) = r.nextInt(N);
+            a(i) = r.nextInt(N)
             i += 1
           }
           a
         }
         val R = 5
         time("random access performance", repeat = 2) {
-          block("scala array", repeat=R) {
+          block("scala array", repeat = R) {
             for (i <- indexes)
               arr1(i) = 1
           }
 
-          block("LIntArray", repeat=R) {
+          block("LIntArray", repeat = R) {
             for (i <- indexes)
               arr2(i) = 1
 
           }
 
-          block("LIntArraySimple", repeat=R) {
+          block("LIntArraySimple", repeat = R) {
             for (i <- indexes)
               arr3(i) = 1
           }
 
-          block("MatrixBasedLIntArray", repeat=R) {
+          block("MatrixBasedLIntArray", repeat = R) {
             for (i <- indexes)
               arr4(i) = 1
           }
@@ -195,10 +269,11 @@ class LArrayTest extends LArraySpec {
 
 
     "create large array" taggedAs ("la") in {
+      info("large memory allocation test")
       for (i <- 0 until 10) {
-        val arr = new LIntArray((2.1 * G).toLong)
+        val arr = new LByteArray(2L * G)
         try {
-          arr(arr.size - 1) = 134
+          arr(arr.size - 1) = 134.toByte
         }
         finally {
           arr.free
@@ -214,32 +289,33 @@ class LArrayTest extends LArraySpec {
 
     "have constructor" in {
       val a = Array[Byte](1, 2, 3)
+
       val b = LArray[Byte](1, 5, 34)
 
-      b(0) should be (1.toByte)
-      b(1) should be (5.toByte)
-      b(2) should be (34.toByte)
+      b(0) should be(1.toByte)
+      b(1) should be(5.toByte)
+      b(2) should be(34.toByte)
     }
 
-    "compare performance" taggedAs("bp") in {
+    "compare performance" taggedAs ("bp") in {
 
-      val N = (0.01*G).toLong
+      val N = (0.01 * G).toLong
       val a = new Array[Byte](N.toInt)
       val b = new LByteArray(N)
       info("LByteArray performance test has started")
-      time("LByteArray random access & sort", repeat=5) {
-        block("native array")  {
-          val r= new Random(0)
-          for(i <- 0L until N) {
+      time("LByteArray random access & sort", repeat = 5) {
+        block("native array") {
+          val r = new Random(0)
+          for (i <- 0L until N) {
             val index = (i / 4) * 4
             a((index + (i % 4L)).toInt) = r.nextInt.toByte
           }
           java.util.Arrays.sort(a)
         }
 
-        block("LByteArray")  {
-          val r= new Random(0)
-          for(i <- 0L until N) {
+        block("LByteArray") {
+          val r = new Random(0)
+          for (i <- 0L until N) {
             val index = (i / 4) * 4
             b((index + (i % 4L))) = r.nextInt.toByte
           }
@@ -249,17 +325,17 @@ class LArrayTest extends LArraySpec {
       }
 
       info("sequential access test")
-      time("LByteArray sequential write", repeat=5) {
-        block("native array")  {
-          val r= new Random(0)
-          for(i <- 0L until N) {
+      time("LByteArray sequential write", repeat = 5) {
+        block("native array") {
+          val r = new Random(0)
+          for (i <- 0L until N) {
             a(i.toInt) = r.nextInt.toByte
           }
         }
 
-        block("LByteArray")  {
-          val r= new Random(0)
-          for(i <- 0L until N) {
+        block("LByteArray") {
+          val r = new Random(0)
+          for (i <- 0L until N) {
             b(i) = r.nextInt.toByte
           }
         }
