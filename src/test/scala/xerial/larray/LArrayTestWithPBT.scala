@@ -1,7 +1,9 @@
 package xerial.larray
 
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.ShouldMatchers
+import scala.util.Random
+import org.scalacheck.Gen
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,22 +11,75 @@ import org.scalatest.{FlatSpec, ShouldMatchers}
  * Date: 13/03/27
  * Time: 15:06
  */
-class LArrayTestWithPBT extends PropertyChecks with FlatSpec with ShouldMatchers
+class LArrayTestWithPBT extends PropertyChecks with ShouldMatchers with LArraySpec with LArrayBehaviour
 {
-  "LArray" should
-      "return the value it stores" in
-        {
-          forAll
-          {
-            (a: Int, b: Int) =>
-              whenever(a > 0 && b > 0)
-              {
-                val lArray = LArray(a, b)
-                val array = Array(a, b)
+  val validLength = for (l <- Gen.choose[Int](1, 10000)) yield l
+  val validSeed = for (s <- Gen.choose[Int](1, 10000)) yield s
 
-                lArray(0) should be(array(0))
-                lArray(1) should be(array(1))
-              }
+  forAll((validLength, "length"), (validSeed, "seed"))
+  {
+    (length: Int, seed: Int) =>
+      whenever(length > 0 && seed > 0)
+      {
+        "int test with length " + length + " with seed " + seed should
+          {
+            val rand = new Random(seed)
+            val input = Seq.fill(length)(rand.nextInt)
+            behave like validArray(input)
+            behave like validIntArray(input)
           }
-        }
+      }
+  }
+
+  forAll((validLength, "length"), (validSeed, "seed"))
+  {
+    (length: Int, seed: Int) =>
+      whenever(length > 0 && seed > 0)
+      {
+        "long test with length " + length + " with seed " + seed should
+          {
+            val rand = new Random(seed)
+            val input = Seq.fill(length)(rand.nextLong)
+            behave like validArray(input)
+            behave like validLongArray(input)
+          }
+      }
+  }
+
+  forAll((validLength, "length"), (validSeed, "seed"))
+  {
+    (length: Int, seed: Int) =>
+      whenever(length > 0 && seed > 0)
+      {
+        "float test with length " + length + " with seed " + seed should
+          {
+            val rand = new Random(seed)
+            val input = Seq.fill(length)(rand.nextFloat)
+            behave like validArray(input)
+            behave like validFloatArray(input)
+          }
+      }
+  }
+
+  forAll((validLength, "length"), (validSeed, "seed"))
+  {
+    (length: Int, seed: Int) =>
+      whenever(length > 0 && seed > 0)
+      {
+        "double test with length " + length + " with seed " + seed should
+          {
+            val rand = new Random(seed)
+            val input = Seq.fill(length)(rand.nextDouble)
+            behave like validArray(input)
+            behave like validDoubleArray(input)
+          }
+      }
+  }
+
+  "empty test" should
+    {
+      val input = Seq.empty[Int]
+      behave like validArray(input)
+      behave like validIntArray(input)
+    }
 }
