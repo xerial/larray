@@ -94,6 +94,6 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/snapshots/archive/org/xerial/larray/0.1-SNAPSHOT/larray-0.1-SNAPSHOT-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M1/larray-0.1-M1-javadoc.jar/!/index.html#xerial.larray.package)
  
  
