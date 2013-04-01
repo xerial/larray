@@ -63,6 +63,7 @@ object Build extends sbt.Build {
           "org.scala-lang" % "scala-reflect" % SCALA_VERSION
         ),
         pomExtra := {
+          <url>https://github.com/xerial/larray</url>
           <licenses>
             <license>
               <name>Apache 2</name>

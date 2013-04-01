@@ -43,7 +43,7 @@ Add the following sbt dependencies to your project settings:
 
 ```scala
 # In preparation 
-libraryDependencies += "org.xerial" % "larray" % "0.1"
+libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
 ```
 
  * For using snapshot versions:
