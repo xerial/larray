@@ -62,7 +62,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validArray[A : ClassTag](arr:Seq[A]) {
     val l: LArray[A] = arr.toLArray
 
-    When(s"input is (${stringRepr(arr)})")
+    When(s"input is (${stringRepr(arr).take(100)})")
 
     "have iterator" in {
       l.iterator === arr
@@ -150,7 +150,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validDoubleArray(arr:Seq[Double]) {
     val l: LArray[Double] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -225,7 +225,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validFloatArray(arr:Seq[Float]) {
     val l: LArray[Float] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -299,7 +299,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validIntArray(arr:Seq[Int]) {
     val l: LArray[Int] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -335,10 +335,13 @@ trait LArrayBehaviour { this: LArraySpec =>
     }
 
     "fold elements" in {
+      if(arr.size <= 1000){
+
       l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
       (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
       l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
       (l :\ 0)(_ + _) shouldBe (arr :\ 0)(_ + _)
+      }
     }
 
     "reduce elements" in {
@@ -373,7 +376,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validLongArray(arr:Seq[Long]) {
     val l: LArray[Long] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
