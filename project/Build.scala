@@ -19,7 +19,7 @@ object Build extends sbt.Build {
     }
   }
 
-  private val SCALA_VERSION = "2.10.0"
+  private val SCALA_VERSION = "2.10.1"
 
   lazy val root = Project(
     id = "larray",
@@ -51,16 +51,17 @@ object Build extends sbt.Build {
         },
         // custom settings here
         scalaVersion := SCALA_VERSION,
+	//	scalaOrganization := "org.scala-lang.macro-paradise",
         crossPaths := false,
-        resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
+	//        resolvers += Resolver.sonatypeRepo("snapshots"),
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.1.1",
           "org.xerial.snappy" % "snappy-java" % "1.1.0-M3" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
-          "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
-          "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
+          "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
+          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
           "org.scala-lang" % "scala-reflect" % SCALA_VERSION
         ),
         pomExtra := {

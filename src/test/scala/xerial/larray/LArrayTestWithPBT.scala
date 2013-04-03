@@ -1,7 +1,7 @@
 package xerial.larray
 
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.ShouldMatchers
+import org.scalatest.{WordSpec, ShouldMatchers}
 import scala.util.Random
 import org.scalacheck.Gen
 
@@ -11,7 +11,7 @@ import org.scalacheck.Gen
  * Date: 13/03/27
  * Time: 15:06
  */
-class LArrayTestWithPBT extends PropertyChecks with ShouldMatchers with LArraySpec with LArrayBehaviour
+class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehaviour
 {
   val validLength = for (l <- Gen.choose[Int](1, 10000)) yield l
   val validSeed = for (s <- Gen.choose[Int](1, 10000)) yield s

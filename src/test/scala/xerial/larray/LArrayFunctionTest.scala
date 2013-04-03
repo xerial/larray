@@ -8,7 +8,7 @@
 package xerial.larray
 
 import reflect.ClassTag
-import org.scalatest.{WordSpec, FlatSpec}
+import org.scalatest.{GivenWhenThen, WordSpec, FlatSpec}
 import org.scalatest.matchers.ShouldMatchers
 import xerial.core.log.Logger
 import java.io.File
@@ -55,7 +55,7 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
 
 }
 
-trait LArrayBehaviour { this: LArraySpec =>
+trait LArrayBehaviour { this : LArraySpec =>
 
   import LArrayFunctionTest._
 
