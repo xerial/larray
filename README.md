@@ -78,13 +78,14 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](https://githu
 ## Usage (Java)
 
 Add the following dependency to your pom.xml (Maven): 
-``xml
+```xml
 <dependency>
   <groupId>org.xerial</groupId>
   <artifactId>larray</artifactId>
   <version>1.0-M1</version>
 </dependency>
-``
+```
+
 ### Manual download
 
 To use LArray without sbt or Maven, append all of the following jar files to your classpath:
