@@ -11,6 +11,8 @@ import impl.LArrayNative
 import java.io.{FileDescriptor, RandomAccessFile, File}
 import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
+import sun.nio.ch.FileChannelImpl
+import java.nio.Buffer
 
 object MappedLArray {
 
@@ -30,26 +32,25 @@ object MappedLArray {
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, mode:String="rw", pageSize:Long) extends LArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw") extends LArray[Byte] {
 
-  def this(f:File, mode:String) = this(f, mode, UnsafeUtil.unsafe.pageSize())
+  import UnsafeUtil.unsafe
+  import java.{lang=>jl}
 
-  private val raf = new RandomAccessFile(f, mode)
-  private val fd = {
-    // Get file descriptoer to use in mmap
-    val jfd = raf.getFD
-    val idField = classOf[FileDescriptor].getDeclaredField("id")
-    idField.setAccessible(true)
-    idField.get(jfd).asInstanceOf[java.lang.Integer].toInt
+  private val fc = new RandomAccessFile(f, mode).getChannel
+  val size = if(_size < 0L) fc.size() - offset else _size
+
+  private val mmap = {
+    fc.map(MapMode.READ_WRITE, offset, size)
   }
-  private val fc = raf.getChannel
 
-  import MappedLArray._
+  private val address = {
+    val addrField = classOf[Buffer].getDeclaredField("address")
+    addrField.setAccessible(true)
+    addrField.get(mmap).asInstanceOf[jl.Long].toLong
+  }
 
-  private val mappedAddr = LArrayNative.mmap(-1L, fc.size(), PROT_READ | PROT_WRITE, MAP_SHARED, fd,
 
-  private def pageIndex(i:Long) = i / pageSize
-  private def pageOffset(i:Long) = i % pageSize
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
@@ -61,12 +62,7 @@ class MappedLByteArray(f:File, mode:String="rw", pageSize:Long) extends LArray[B
    * Clear the contents of the array. It simply fills the array with zero bytes.
    */
   def clear() {
-    var i = 0L
-    val s = size
-    while(i < s) {
-      mapped.put(0.toByte)
-      i+= 1
-    }
+    unsafe.setMemory(address, size, 0.toByte)
   }
 
   /**
@@ -75,26 +71,18 @@ class MappedLByteArray(f:File, mode:String="rw", pageSize:Long) extends LArray[B
    * @param v value to set
    * @return the value
    */
-  def update(i: Long, v: Byte) = {}
+  def update(i: Long, v: Byte) = { unsafe.putByte(address+i, v); v }
 
-  def view(from: Long, to: Long) = ???
+  def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from , to - from)
 
-  /**
-   * Size of this array
-   * @return size of this array
-   */
-  def size = fc.size
 
   /**
    * Retrieve an element
    * @param i index
    * @return the element value
    */
-  def apply(i: Long) = {
-    //mapped.get(i)
-    // TODO impl
-    0
-  }
+  def apply(i: Long) = unsafe.getByte(address + i)
+
 
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
@@ -106,7 +94,9 @@ class MappedLByteArray(f:File, mode:String="rw", pageSize:Long) extends LArray[B
    * @param dst
    * @param dstOffset
    */
-  def copyTo(dst: LByteArray, dstOffset: Long) {}
+  def copyTo(dst: LByteArray, dstOffset: Long) {
+
+  }
 
   /**
    * Copy the contents of this sequence into the target LByteArray
@@ -115,5 +105,7 @@ class MappedLByteArray(f:File, mode:String="rw", pageSize:Long) extends LArray[B
    * @param dstOffset
    * @param blen the byte length to copy
    */
-  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {}
+  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
+
+  }
 }

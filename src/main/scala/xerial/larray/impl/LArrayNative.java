@@ -22,5 +22,4 @@ public class LArrayNative {
     public static native int copyToArray(long srcAddress, Object destArray, int destOffset, int length);
     public static native int copyFromArray(Object srcArray, int srcOffset, long destAddress, int length);
 
-    public static native long mmap(long addr, long length, int prot, int flags, int fd, long offset);
 }

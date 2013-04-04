@@ -34,21 +34,3 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
 
 
 
-
-JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
-  (JNIEnv *env, jclass cls, jlong addr, jlong size, jint prot, jint flags, jint fd, jlong offset) {
-
-#if _WIN64 | _WIN32
-  // TODO Windows specific implementation
-  return (long) -1L;
-#else
-  void* maddr = NULL;
-  void* r;
-  if(addr != -1)
-    maddr = addr;
-
-  r = mmap(maddr, (size_t) size, (int) prot, (int) flags, (int) fd, (off_t) offset);
-
-  return (long) r;
-#endif
-}
