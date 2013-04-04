@@ -11,8 +11,8 @@ import impl.LArrayNative
 import java.io.{FileDescriptor, RandomAccessFile, File}
 import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
-import sun.nio.ch.FileChannelImpl
-import java.nio.Buffer
+import sun.nio.ch.{DirectBuffer, FileChannelImpl}
+import java.nio.{ByteBuffer, Buffer}
 
 object MappedLArray {
 
@@ -32,7 +32,7 @@ object MappedLArray {
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw") extends LArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw") extends RawByteArray[Byte] {
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
@@ -44,25 +44,25 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
     fc.map(MapMode.READ_WRITE, offset, size)
   }
 
-  private val address = {
+  val address = {
     val addrField = classOf[Buffer].getDeclaredField("address")
     addrField.setAccessible(true)
     addrField.get(mmap).asInstanceOf[jl.Long].toLong
   }
 
-
-
   protected[this] def newBuilder = new LByteArrayBuilder
 
   def free {
-    fc.close()
+    close()
   }
 
-  /**
-   * Clear the contents of the array. It simply fills the array with zero bytes.
-   */
-  def clear() {
-    unsafe.setMemory(address, size, 0.toByte)
+  def flush {
+    mmap.force()
+  }
+
+  override def close() {
+    mmap.force()
+    fc.close()
   }
 
   /**
@@ -75,7 +75,6 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
 
   def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from , to - from)
 
-
   /**
    * Retrieve an element
    * @param i index
@@ -83,29 +82,9 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
    */
   def apply(i: Long) = unsafe.getByte(address + i)
 
-
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
   private[larray] def elementByteSize = 1
 
-  /**
-   * Copy the contents of this LSeq[A] into the target LByteArray
-   * @param dst
-   * @param dstOffset
-   */
-  def copyTo(dst: LByteArray, dstOffset: Long) {
-
-  }
-
-  /**
-   * Copy the contents of this sequence into the target LByteArray
-   * @param srcOffset
-   * @param dst
-   * @param dstOffset
-   * @param blen the byte length to copy
-   */
-  def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) {
-
-  }
 }

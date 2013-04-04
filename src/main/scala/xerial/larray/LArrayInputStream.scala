@@ -40,7 +40,7 @@ private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends Inp
   private var mark = 0L
 
   def read() = {
-    val v = array.readByte(cursor)
+    val v = array.getByte(cursor)
     cursor += 1
     v
   }

@@ -575,98 +575,47 @@ trait RawByteArray[A] extends LArray[A] {
   def address: Long
 
   /**
-   * Get a byte at the index
-   * @return
-   */
-  def readByte(index: Long): Int
-
-
-  /**
-   * Write the contents of this array to the destination buffer
-   * @param srcOffset byte offset
-   * @param dest destination array
-   * @param destOffset offset in the destination array
-   * @param length the byte length to write
-   * @return byte length to write
-   */
-  def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int
-
-  /**
-   * Read the contents from a given source buffer
-   * @param src source buffer
-   * @param srcOffset byte offset in the source buffer
-   * @param destOffset byte offset from the destination address
-   * @param length byte length to read from the source
-   */
-  def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int
-
-
-  /**
    * Create an input stream for reading LArray byte contents
    * @return
    */
   def toInputStream: java.io.InputStream = LArrayInputStream(this)
 
 
-  def getByte(offset: Long): Byte
-
-  def getChar(offset: Long): Char
-
-  def getShort(offset: Long): Short
-
-  def getInt(offset: Long): Int
-
-  def getFloat(offset: Long): Float
-
-  def getLong(offset: Long): Long
-
-  def getDouble(offset: Long): Double
-
-  def putByte(offset: Long, v: Byte)
-
-  def putChar(offset: Long, v: Char)
-
-  def putShort(offset: Long, v: Short)
-
-  def putInt(offset: Long, v: Int)
-
-  def putFloat(offset: Long, v: Float)
-
-  def putLong(offset: Long, v: Long)
-
-  def putDouble(offset: Long, v: Double)
-
-}
-
-
-private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
-  self: LArray[T] =>
-
-  private[larray] def m: Memory
-
   import UnsafeUtil.unsafe
 
-  private var cursor = 0L
-
-  def address = m.address
+  def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
+  def getChar(offset: Long): Char = unsafe.getChar(address + offset)
+  def getShort(offset: Long): Short = unsafe.getShort(address + offset)
+  def getInt(offset: Long): Int = unsafe.getInt(address + offset)
+  def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
+  def getLong(offset: Long): Long = unsafe.getLong(address + offset)
+  def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
+  def putByte(offset: Long, v: Byte) = { unsafe.putByte(address+offset, v); v }
+  def putChar(offset: Long, v: Char) = { unsafe.putChar(address+offset, v); v }
+  def putShort(offset: Long, v: Short) = { unsafe.putShort(address+offset, v); v }
+  def putInt(offset: Long, v: Int) = { unsafe.putInt(address+offset, v); v }
+  def putFloat(offset: Long, v: Float) = { unsafe.putFloat(address + offset, v); v }
+  def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
+  def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
 
   def clear() {
     unsafe.setMemory(address, byteLength, 0)
   }
 
+  protected var cursor = 0L
 
   override def write(src: ByteBuffer): Int = {
     val len = math.max(src.limit - src.position, 0)
     val writeLen = src match {
       case d: DirectBuffer =>
-        unsafe.copyMemory(d.address() + src.position(), m.address + cursor, len)
+        unsafe.copyMemory(d.address() + src.position(), address + cursor, len)
         len
       case arr if src.hasArray =>
         readFromArray(src.array(), src.position(), cursor, len)
       case _ =>
         var i = 0L
         while (i < len) {
-          m.putByte(m.address + i, src.get((src.position() + i).toInt))
+          unsafe.putByte(address + i, src.get((src.position() + i).toInt))
           i += 1
         }
         len
@@ -682,7 +631,7 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
     val limit = byteLength
     while (pos < limit) {
       val len: Long = math.min(limit - pos, Int.MaxValue)
-      b += UnsafeUtil.newDirectByteBuffer(m.address + pos, len.toInt)
+      b += UnsafeUtil.newDirectByteBuffer(address + pos, len.toInt)
       pos += len
     }
     b.result()
@@ -699,13 +648,20 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
   def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
     trace("copy to array")
-    LArrayNative.copyToArray(m.address + srcOffset, dest, destOffset, writeLen)
+    LArrayNative.copyToArray(address + srcOffset, dest, destOffset, writeLen)
     writeLen
   }
 
+  /**
+   * Read the contents from a given source buffer
+   * @param src source buffer
+   * @param srcOffset byte offset in the source buffer
+   * @param destOffset byte offset from the destination address
+   * @param length byte length to read from the source
+   */
   def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int = {
     val readLen = math.min(src.length - srcOffset, math.min(byteLength - destOffset, length)).toInt
-    LArrayNative.copyFromArray(src, srcOffset, m.address + destOffset, readLen)
+    LArrayNative.copyFromArray(src, srcOffset, address + destOffset, readLen)
     readLen
   }
 
@@ -717,7 +673,14 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
     unsafe.copyMemory(address + srcOffset, dst.address + dstOffset, blen)
   }
 
-  def readByte(index: Long) = m.getByte(index)
+
+}
+
+
+private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
+  self: LArray[T] =>
+  private[larray] def m: Memory
+  def address = m.address
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
@@ -725,36 +688,6 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
   def free {
     m.free
   }
-
-
-  def getByte(offset: Long): Byte = m.getByte(offset)
-
-  def getChar(offset: Long): Char = m.getChar(offset)
-
-  def getShort(offset: Long): Short = m.getShort(offset)
-
-  def getInt(offset: Long): Int = m.getInt(offset)
-
-  def getFloat(offset: Long): Float = m.getFloat(offset)
-
-  def getLong(offset: Long): Long = m.getLong(offset)
-
-  def getDouble(offset: Long): Double = m.getDouble(offset)
-
-  def putByte(offset: Long, v: Byte) = m.putByte(offset, v)
-
-  def putChar(offset: Long, v: Char) = m.putChar(offset, v)
-
-  def putShort(offset: Long, v: Short) = m.putShort(offset, v)
-
-  def putInt(offset: Long, v: Int) = m.putInt(offset, v)
-
-  def putFloat(offset: Long, v: Float) = m.putFloat(offset, v)
-
-  def putLong(offset: Long, v: Long) = m.putLong(offset, v)
-
-  def putDouble(offset: Long, v: Double) = m.putDouble(offset, v)
-
 }
 
 
