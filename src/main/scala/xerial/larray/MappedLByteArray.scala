@@ -53,6 +53,7 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
   protected[this] def newBuilder = new LByteArrayBuilder
 
   def free {
+    // TODO munmap
     close()
   }
 
