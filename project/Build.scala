@@ -61,8 +61,8 @@ object Build extends sbt.Build {
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
-          "org.scala-lang" % "scala-reflect" % SCALA_VERSION
+          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test"
+          //"org.scala-lang" % "scala-reflect" % SCALA_VERSION
         ),
         pomExtra := {
           <url>https://github.com/xerial/larray</url>

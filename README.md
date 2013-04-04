@@ -20,7 +20,8 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * Enables zero-copy transfer to/from files, network, etc.
  * Rich set of operations for LArray[A]
    * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
-
+ * Supports Memory-mapped file larger than 2GB 
+   * `LArray.mmap`
  
 ## Limitations
 
@@ -76,6 +77,24 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](https://githu
 
 ## Usage (Java)
 
+Add the following dependency to your pom.xml (Maven): 
+``xml
+<dependency>
+  <groupId>org.xerial</groupId>
+  <artifactId>larray</artifactId>
+  <version>1.0-M1</version>
+</dependency>
+``
+### Manual download
+
+To use LArray without sbt or Maven, append all of the following jar files to your classpath:
+
+ * [larray-0.1-M1.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1-M1/larray-0.1-M1.jar)
+ * [scala-library-2.10.1.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.1/scala-library-2.10.1.jar)
+ * [xerial-core-3.1.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.1.1/xerial-core-3.1.1.jar)
+
+### Example 
+
 In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
@@ -94,5 +113,4 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 ## Scaladoc
 
  * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M1/larray-0.1-M1-javadoc.jar/!/index.html#xerial.larray.package)
- 
  
