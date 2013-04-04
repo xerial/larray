@@ -1,8 +1,8 @@
 #include "LArrayNative.h"
 #include <string.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-//
+#if defined(_WIN32 )|| defined(_WIN64)
+#include <windows.h>
 #else
 #include <sys/mman.h>
 #endif
@@ -40,8 +40,33 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
 
 
 JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
-  (JNIEnv *env, jclass cls, jint fd, jint mode, jlong offset, jlong size) {
+  (JNIEnv *env, jclass cls, jint fd, jint mode, jlong offset, jlong size) 
+{
+#if defined(_WIN32) || defined(_WIN64)
+  void *mapAddress = 0;
+  jint lowLen = (jint) (size);
+  jint highLen = (jint) (size >> 32);
+  jint lowOffset = (jint) offset;
+  jint highOffset = (jint) (offset >> 32);
+  HANDLE fileHandle = (HANDLE) fd;
+  HANDLE mapping;
+  DWORD mapAccess = FILE_MAP_READ;
+  DWORD fileProtect = PAGE_READONLY;
+  if (mode == 0) {
+    fileProtect = PAGE_READONLY;
+    mapAccess = FILE_MAP_READ;
+  } else if (mode == 1) {
+    fileProtect = PAGE_READWRITE;
+    mapAccess = FILE_MAP_WRITE;
+  } else if (mode == 2) {
+    fileProtect = PAGE_WRITECOPY;
+    mapAccess = FILE_MAP_COPY;
+  }
 
+  mapping = CreateFileMapping(fileHandle, NULL, fileProtect, highLen, lowLen, NULL);
+  mapAddress = MapViewOfFile(mapping, mapAccess, highOffset, lowOffset, (DWORD) size);
+  return (jlong) mapAddress;
+#else 
    void *addr;
    int prot = 0;
    int flags = 0;
@@ -59,20 +84,47 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
    addr = mmap(0, size, prot, flags, fd, offset);
 
    return (jlong) addr;
+#endif
 }
 
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
   (JNIEnv *env, jclass cls, jlong addr, jlong size) {
+#if defined(_WIN32) || defined(_WIN64)
+  void *a = (void *) addr;
+  BOOL result;
+  result = UnmapViewOfFile(a);
+#else
+  munmap((void *) addr, (size_t) size);
+#endif
 
-    munmap((void *) addr, (size_t) size);
 }
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
   (JNIEnv *env, jclass cls, jlong addr, jlong size) {
 
+#if defined(_WIN32) || defined(_WIN64)
+  void *a = (void *) addr;
+  BOOL result;
+  int retry;
+
+  /*
+   * FlushViewOfFile can fail with ERROR_LOCK_VIOLATION if the memory
+   * system is writing dirty pages to disk. As there is no way to
+   * synchronize the flushing then we retry a limited number of times.
+   */
+  retry = 0;
+  do {
+    result = FlushViewOfFile(a, (DWORD)size);
+    if ((result != 0) || (GetLastError() != ERROR_LOCK_VIOLATION))
+      break;
+    retry++;
+  } while (retry < 3);
+
+#else
     msync((void *) addr, (size_t) size, MS_SYNC);
+#endif
 }
 
