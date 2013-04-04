@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (JLjava/lang/Object;II)I
  */
 JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyToArray
-  (JNIEnv *, jobject, jlong, jobject, jint, jint);
+  (JNIEnv *, jclass, jlong, jobject, jint, jint);
 
 /*
  * Class:     xerial_larray_impl_LArrayNative
@@ -21,7 +21,15 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyToArray
  * Signature: (Ljava/lang/Object;IJI)I
  */
 JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
-  (JNIEnv *, jobject, jobject, jint, jlong, jint);
+  (JNIEnv *, jclass, jobject, jint, jlong, jint);
+
+/*
+ * Class:     xerial_larray_impl_LArrayNative
+ * Method:    mmap
+ * Signature: (JJIIIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
+  (JNIEnv *, jclass, jlong, jlong, jint, jint, jint, jlong);
 
 #ifdef __cplusplus
 }
