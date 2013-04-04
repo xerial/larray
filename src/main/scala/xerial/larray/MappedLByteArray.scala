@@ -17,16 +17,16 @@ import java.lang.reflect.InvocationTargetException
 
 object MappedLArray {
 
-  private[larray] val MAP_READONLY = 0
-  private[larray] val MAP_READWRITE = 1
-  private[larray] val MAP_PRIVATE = 2
-
   import java.{lang=>jl}
   private[larray] val force0 = classOf[MappedByteBuffer].getDeclaredMethod("force0", classOf[FileDescriptor], jl.Long.TYPE, jl.Long.TYPE)
   force0.setAccessible(true)
 
   private[larray] val unmap0 = classOf[FileChannelImpl].getDeclaredMethod("unmap0", jl.Long.TYPE, jl.Long.TYPE)
   unmap0.setAccessible(true)
+
+  private[larray] val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
+  map0.setAccessible(true)
+
 
 }
 
@@ -39,13 +39,13 @@ object MappedLArray {
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String="rw")(implicit alloc:MemoryAllocator) extends RawByteArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMode=MMapMode.READ_WRITE)(implicit alloc:MemoryAllocator) extends RawByteArray[Byte] {
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
   import MappedLArray._
 
-  private val raf = new RandomAccessFile(f, mode)
+  private val raf = new RandomAccessFile(f, mode.mode)
   private val fc = raf.getChannel
 
   val pagePosition = {
@@ -72,9 +72,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
       val mapPosition = offset - pagePosition
       val mapSize = size + pagePosition
       // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
-      val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
-      map0.setAccessible(true)
-      val rawAddr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      val rawAddr = map0.invoke(fc, mode.code.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
 
       m = Memory(rawAddr, mapSize)

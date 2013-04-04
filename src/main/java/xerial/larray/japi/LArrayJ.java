@@ -13,7 +13,7 @@ public class LArrayJ {
 
     static xerial.larray.MemoryAllocator defaultAllocator = new ConcurrentMemoryAllocator();
 
-    public static MappedLByteArray mmap(File f, long offset, long size, String mode) {
+    public static MappedLByteArray mmap(File f, long offset, long size, MMapMode mode) {
         return new MappedLByteArray(f, offset, size, mode, defaultAllocator);
     }
 
