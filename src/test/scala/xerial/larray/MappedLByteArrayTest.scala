@@ -38,7 +38,7 @@ class MappedLByteArrayTest extends LArraySpec {
     }
 
     "create large memory mapped file more than 2GB" in {
-      pending
+
       val f = File.createTempFile("mmap", ".larray", new File("target"))
       f.deleteOnExit()
 
