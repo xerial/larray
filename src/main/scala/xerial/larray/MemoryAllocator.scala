@@ -28,6 +28,7 @@ class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long, 
   def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
 }
 
+
 /**
  * Accessor to the allocated memory
  * @param address

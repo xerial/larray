@@ -12,7 +12,7 @@ import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
 import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
 import sun.nio.ch.{DirectBuffer, FileChannelImpl}
-import java.nio.{ByteBuffer, Buffer}
+import java.nio.{MappedByteBuffer, ByteBuffer, Buffer}
 import java.lang.reflect.InvocationTargetException
 
 object MappedLArray {
@@ -21,8 +21,15 @@ object MappedLArray {
   private[larray] val MAP_READWRITE = 1
   private[larray] val MAP_PRIVATE = 2
 
+  import java.{lang=>jl}
+  private[larray] val force0 = classOf[MappedByteBuffer].getDeclaredMethod("force0", classOf[FileDescriptor], jl.Long.TYPE, jl.Long.TYPE)
+  force0.setAccessible(true)
 
 }
+
+
+
+
 
 
 /**
@@ -33,6 +40,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
+  import MappedLArray._
 
   private val raf = new RandomAccessFile(f, mode)
   private val fc = raf.getChannel
@@ -42,7 +50,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
       if(!fc.isOpen())
         throw new IOException("closed")
 
-      import MappedLArray._
+
 
       val fileSize = fc.size()
       trace(s"file size: $fileSize")
@@ -79,12 +87,27 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
     close()
   }
 
+  private val dummyBuffer = fc.map(MapMode.READ_ONLY, 0, 0)
+
+  /**
+   * Forces changes to the specified region in this buffer to be wrriten to the file
+   * @param pos offset
+   * @param size byte length
+   */
+  def sync(pos:Long, size:Long) {
+    // Uses an dummy buffer since force0 will not access class fields
+    force0.invoke(dummyBuffer, raf.getFD, (address+pos).asInstanceOf[AnyRef], size.asInstanceOf[AnyRef])
+  }
+
+  /**
+   * Forces any changes made to this buffer to be written to the file
+   */
   def flush {
-    //mmap.force()
+    sync(0L, size)
   }
 
   override def close() {
-    //mmap.force()
+    flush
     fc.close()
   }
 
