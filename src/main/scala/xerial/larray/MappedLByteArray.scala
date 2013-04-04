@@ -45,12 +45,18 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
   private val raf = new RandomAccessFile(f, mode)
   private val fc = raf.getChannel
 
+  val pagePosition = {
+    val allocationGranularity : Long = unsafe.pageSize
+    (offset % allocationGranularity).toInt
+  }
+
+  private val mapSize = size + pagePosition
+  private var rawAddr = 0L
+
   val address : Long = {
     try {
       if(!fc.isOpen())
         throw new IOException("closed")
-
-
 
       val fileSize = fc.size()
       trace(s"file size: $fileSize")
@@ -61,18 +67,13 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
         raf.write(0)
         trace(s"extend file size to ${fc.size}")
       }
-
-      val allocationGranularity : Long = unsafe.pageSize
-      val pagePosition = (offset % allocationGranularity).toInt
       val mapPosition = offset - pagePosition
-      val mapSize = size + pagePosition
-
       // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
       val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
       map0.setAccessible(true)
-      val addr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
-      trace(f"mmap addr:$addr%x, start address:${addr+pagePosition}%x")
-      addr + pagePosition
+      rawAddr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
+      rawAddr + pagePosition
     }
     catch {
       case e:InvocationTargetException => throw e.getCause
@@ -83,27 +84,23 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
   protected[this] def newBuilder = new LByteArrayBuilder
 
   def free {
-    // TODO munmap
-    close()
+    if(rawAddr != 0L) {
+      // Call munmap
+      val unmap0 = classOf[FileChannelImpl].getDeclaredMethod("unmap0", jl.Long.TYPE, jl.Long.TYPE)
+      unmap0.setAccessible(true)
+      unmap0.invoke(fc, rawAddr.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef])
+    }
   }
 
   private val dummyBuffer = fc.map(MapMode.READ_ONLY, 0, 0)
 
-  /**
-   * Forces changes to the specified region in this buffer to be wrriten to the file
-   * @param pos offset
-   * @param size byte length
-   */
-  def sync(pos:Long, size:Long) {
-    // Uses an dummy buffer since force0 will not access class fields
-    force0.invoke(dummyBuffer, raf.getFD, (address+pos).asInstanceOf[AnyRef], size.asInstanceOf[AnyRef])
-  }
 
   /**
    * Forces any changes made to this buffer to be written to the file
    */
   def flush {
-    sync(0L, size)
+    // We can use a dummy buffer instance since force0 will not access class fields
+    force0.invoke(dummyBuffer, raf.getFD, rawAddr.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef])
   }
 
   override def close() {

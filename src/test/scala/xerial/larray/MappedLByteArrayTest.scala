@@ -30,10 +30,16 @@ class MappedLByteArrayTest extends LArraySpec {
 
       m.flush
 
-      debug(m.mkString(", "))
+      trace(m.mkString(", "))
 
       val m2 = LArray.loadFrom[Byte](f)
       m.sameElements(m2) should be (true)
+
+      val mOffset = new MappedLByteArray(f, 3, 1000 - 3)
+      m.slice(3).sameElements(mOffset) should be (true)
+
+      mOffset.flush
+      m.free
       m2.free
     }
 
