@@ -16,34 +16,38 @@ class MappedLByteArrayTest extends LArraySpec {
 
   "MappedLByteArray" should {
 
-    "create memory mapped file" in {
+    "create memory mapped file" taggedAs("simple") in {
 
       val f = File.createTempFile("mmap", ".larray", new File("target"))
       f.deleteOnExit()
 
-      val m = new MappedLByteArray(f, 0, 1000)
-      m.size shouldBe 1000L
-      m.size shouldBe 1000L
+      val L = 100L
+      val m = new MappedLByteArray(f, 0, L)
+      m.size shouldBe L
+      m.size shouldBe L
       for(i <- 0 Until m.size) {
         m(i) = i.toByte
       }
 
-      m.flush
 
       trace(m.mkString(", "))
+      val mc = m.slice(0)
+      m.close()
 
       val m2 = LArray.loadFrom[Byte](f)
-      m.sameElements(m2) should be (true)
+      val mOffset = new MappedLByteArray(f, 3, L - 3)
+      trace(mOffset.mkString(", "))
+      mc.sameElements(m2) should be (true)
 
-      val mOffset = new MappedLByteArray(f, 3, 1000 - 3)
-      m.slice(3).sameElements(mOffset) should be (true)
+
+      mc.slice(3).sameElements(mOffset) should be (true)
 
       //mOffset.flush
       //m.free
       //m2.free
     }
 
-    "create large memory mapped file more than 2GB" in {
+    "create large memory mapped file more than 2GB" taggedAs("large") in {
 
       val f = File.createTempFile("mmap", ".larray", new File("target"))
       f.deleteOnExit()

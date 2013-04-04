@@ -7,15 +7,14 @@
 
 package xerial.larray
 
-import impl.LArrayNative
+import impl.{OSInfo, LArrayNative}
 import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
 import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
 import sun.nio.ch.{DirectBuffer, FileChannelImpl}
 import java.nio.{MappedByteBuffer, ByteBuffer, Buffer}
 import java.lang.reflect.InvocationTargetException
-
-
+import sun.misc.{SharedSecrets, JavaIOFileDescriptorAccess}
 
 
 /**
@@ -29,12 +28,20 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
 
   private val raf = new RandomAccessFile(f, mode.mode)
   private val fc = raf.getChannel
-  private val fd = {
+  private val fd : Long = {
     val f = raf.getFD()
-    val idf = f.getClass.getDeclaredField("fd")
-    idf.setAccessible(true)
-    idf.get(f).asInstanceOf[jl.Integer].toInt
+    if(OSInfo.getOSName != "Windows") {
+      val idf = f.getClass.getDeclaredField("fd")
+      idf.setAccessible(true)
+      idf.getInt(f)
+    }
+    else {
+      val idf = f.getClass.getDeclaredField("handle")
+      idf.setAccessible(true)
+      idf.getLong(f)
+    }
   }
+  private var winHandle : Long = -1L
 
   private val pagePosition = {
     val allocationGranularity : Long = unsafe.pageSize
@@ -58,8 +65,15 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
       val mapPosition = offset - pagePosition
       val mapSize = size + pagePosition
       // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
+
       val rawAddr = LArrayNative.mmap(fd, mode.code, mapPosition, mapSize)
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
+
+      if(OSInfo.getOSName == "Windows") {
+        val a = SharedSecrets.getJavaIOFileDescriptorAccess
+        winHandle = LArrayNative.duplicateHandle(a.getHandle(raf.getFD))
+        debug(f"win handle: $winHandle%x")
+      }
 
       m = Memory(rawAddr, mapSize)
       alloc.registerMMapMemory(m)
@@ -84,7 +98,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
    */
   def flush {
     // We can use a dummy buffer instance since force0 will not access class fields
-    LArrayNative.msync(fd, m.address, m.size)
+    LArrayNative.msync(winHandle, m.address, m.size)
    }
 
   /**

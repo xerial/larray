@@ -22,7 +22,8 @@ public class LArrayNative {
     public static native int copyToArray(long srcAddress, Object destArray, int destOffset, int length);
     public static native int copyFromArray(Object srcArray, int srcOffset, long destAddress, int length);
 
-    public static native long mmap(int fd, int mode, long offset, long size);
+    public static native long mmap(long fd, int mode, long offset, long size);
     public static native void munmap(long address, long size);
-    public static native void msync(int fd, long address, long size);
+    public static native void msync(long handle, long address, long size);
+    public static native long duplicateHandle(long handle);
 }

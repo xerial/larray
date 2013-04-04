@@ -1,5 +1,6 @@
 #include "LArrayNative.h"
 #include <string.h>
+#include <stdio.h>
 
 #if defined(_WIN32 )|| defined(_WIN64)
 #include <windows.h>
@@ -40,18 +41,20 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
 
 
 JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
-  (JNIEnv *env, jclass cls, jint fd, jint mode, jlong offset, jlong size) 
+  (JNIEnv *env, jclass cls, jlong fd, jint mode, jlong offset, jlong size)
 {
 #if defined(_WIN32) || defined(_WIN64)
   void *mapAddress = 0;
-  jint lowLen = (jint) (size);
-  jint highLen = (jint) (size >> 32);
+  jlong maxSize = offset + size;
+  jint lowLen = (jint) (maxSize);
+  jint highLen = (jint) (maxSize >> 32);
   jint lowOffset = (jint) offset;
   jint highOffset = (jint) (offset >> 32);
   HANDLE fileHandle = (HANDLE) fd;
   HANDLE mapping;
   DWORD mapAccess = FILE_MAP_READ;
   DWORD fileProtect = PAGE_READONLY;
+  BOOL result;
   if (mode == 0) {
     fileProtect = PAGE_READONLY;
     mapAccess = FILE_MAP_READ;
@@ -65,7 +68,10 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
 
   mapping = CreateFileMapping(fileHandle, NULL, fileProtect, highLen, lowLen, NULL);
   mapAddress = MapViewOfFile(mapping, mapAccess, highOffset, lowOffset, (DWORD) size);
+
+  result = CloseHandle(mapping);
   return (jlong) mapAddress;
+
 #else 
    void *addr;
    int prot = 0;
@@ -81,7 +87,7 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
      flags = MAP_PRIVATE;
    }
 
-   addr = mmap(0, size, prot, flags, fd, offset);
+   addr = mmap(0, size, prot, flags, (int) fd, offset);
 
    return (jlong) addr;
 #endif
@@ -103,7 +109,7 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
-(JNIEnv *env, jclass cls, jint fd, jlong addr, jlong size) {
+(JNIEnv *env, jclass cls, jlong fd, jlong addr, jlong size) {
 
 #if defined(_WIN32) || defined(_WIN64)
   void *a = (void *) addr;
@@ -130,9 +136,28 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
       result = 1;
     }
   }
+  if(result == 0)
+    printf("failed to sync\n");
 
 #else
     msync((void *) addr, (size_t) size, MS_SYNC);
 #endif
 }
 
+JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_duplicateHandle
+  (JNIEnv *env, jclass cls, jlong handle) {
+
+#if defined(_WIN32) || defined(_WIN64)
+  HANDLE hProcess = GetCurrentProcess();
+  HANDLE hFile = (HANDLE) handle;
+  HANDLE hResult;
+  BOOL res = DuplicateHandle(hProcess, hFile, hProcess, &hResult, 0, FALSE, DUPLICATE_SAME_ACCESS);
+  if(res == 0)
+     return -1;
+  else
+     return (jlong) hResult;
+#else
+  return -1;
+#endif
+
+  }
