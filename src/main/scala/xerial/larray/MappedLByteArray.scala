@@ -48,7 +48,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
   private val raf = new RandomAccessFile(f, mode.mode)
   private val fc = raf.getChannel
 
-  val pagePosition = {
+  private val pagePosition = {
     val allocationGranularity : Long = unsafe.pageSize
     (offset % allocationGranularity).toInt
   }
@@ -104,6 +104,9 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
     force0.invoke(dummyBuffer, raf.getFD, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
   }
 
+  /**
+   * Close the memory mapped file
+   */
   override def close() {
     flush
     free

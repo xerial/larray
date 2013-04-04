@@ -87,6 +87,16 @@ trait LSeq[A] extends LIterable[A] {
   def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long)
 
 
+  /**
+   * Create a LArray[Byte] of a memory mapped file
+   * @param f file
+   * @param offset offset in file
+   * @param size region byte size
+   * @param mode open mode.
+   */
+  def mmap(f:File, offset:Long, size:Long, mode:MMapMode) : MappedLByteArray = {
+    new MappedLByteArray(f, offset, size, mode)
+  }
 }
 
 /**
