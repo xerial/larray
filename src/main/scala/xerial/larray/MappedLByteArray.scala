@@ -25,6 +25,9 @@ object MappedLArray {
   private[larray] val force0 = classOf[MappedByteBuffer].getDeclaredMethod("force0", classOf[FileDescriptor], jl.Long.TYPE, jl.Long.TYPE)
   force0.setAccessible(true)
 
+  private[larray] val unmap0 = classOf[FileChannelImpl].getDeclaredMethod("unmap0", jl.Long.TYPE, jl.Long.TYPE)
+  unmap0.setAccessible(true)
+
 }
 
 
@@ -36,7 +39,7 @@ object MappedLArray {
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String="rw") extends RawByteArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String="rw")(implicit alloc:MemoryAllocator) extends RawByteArray[Byte] {
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
@@ -50,8 +53,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
     (offset % allocationGranularity).toInt
   }
 
-  private val mapSize = size + pagePosition
-  private var rawAddr = 0L
+  private var m : Memory = _
 
   val address : Long = {
     try {
@@ -68,11 +70,16 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
         trace(s"extend file size to ${fc.size}")
       }
       val mapPosition = offset - pagePosition
+      val mapSize = size + pagePosition
       // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
       val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
       map0.setAccessible(true)
-      rawAddr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      val rawAddr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
+
+      m = Memory(rawAddr, mapSize)
+      MemoryAllocator.default.registerMMapMemory(m)
+
       rawAddr + pagePosition
     }
     catch {
@@ -84,12 +91,8 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
   protected[this] def newBuilder = new LByteArrayBuilder
 
   def free {
-    if(rawAddr != 0L) {
-      // Call munmap
-      val unmap0 = classOf[FileChannelImpl].getDeclaredMethod("unmap0", jl.Long.TYPE, jl.Long.TYPE)
-      unmap0.setAccessible(true)
-      unmap0.invoke(fc, rawAddr.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef])
-    }
+    alloc.release(m)
+    m = null
   }
 
   private val dummyBuffer = fc.map(MapMode.READ_ONLY, 0, 0)
@@ -100,7 +103,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
    */
   def flush {
     // We can use a dummy buffer instance since force0 will not access class fields
-    force0.invoke(dummyBuffer, raf.getFD, rawAddr.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef])
+    force0.invoke(dummyBuffer, raf.getFD, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
   }
 
   override def close() {
