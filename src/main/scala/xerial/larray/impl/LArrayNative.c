@@ -1,5 +1,6 @@
 #include "LArrayNative.h"
 #include <string.h>
+#include <sys/mman.h>
 
 /*
  * Class:     xerial_larray_impl_LArrayNative
@@ -7,7 +8,7 @@
  * Signature: (JLjava/lang/Object;II)I
  */
 JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyToArray
-  (JNIEnv *env, jobject obj, jlong srcAddr, jobject destArr, jint destOffset, jint len) {
+  (JNIEnv *env, jclass cls, jlong srcAddr, jobject destArr, jint destOffset, jint len) {
 
   char* ptr = (char*) (*env)->GetPrimitiveArrayCritical(env, (jarray) destArr, 0);
   memcpy(ptr + destOffset, (void*) srcAddr, (size_t) len);
@@ -22,7 +23,7 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyToArray
  * Signature: (Ljava/lang/Object;IJI)I
  */
 JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
-  (JNIEnv *env, jobject obj, jobject srcArr, jint srcOffset, jlong destAddr, jint len) {
+  (JNIEnv *env, jclass cls, jobject srcArr, jint srcOffset, jlong destAddr, jint len) {
 
   char* ptr = (char*) (*env)->GetPrimitiveArrayCritical(env, (jarray) srcArr, 0);
   memcpy((void*) destAddr, (void*) (ptr + srcOffset), (size_t) len);
@@ -30,4 +31,6 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
 
   return len;
 }
+
+
 

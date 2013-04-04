@@ -90,6 +90,8 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
 
   import BitEncoder._
 
+  private[larray] def alloc = seq.alloc
+
   def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
   def this(numBits:Long, m:Memory) = this(new LLongArray(BitEncoder.minArraySize(numBits), m), numBits)
 
@@ -130,7 +132,7 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   def apply(index: Long): Boolean = {
     val addr = blockAddr(index)
     val offset = blockOffset(index)
-    val code = ((m.getLong(addr) >>> offset) & 1L).toInt
+    val code = ((seq.getLong(addr) >>> offset) & 1L).toInt
     table(code)
   }
 
@@ -138,9 +140,9 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
     val addr = blockAddr(index)
     val offset = blockOffset(index)
     if(v)
-      m.putLong(addr, m.getLong(addr) | (1L << offset))
+      seq.putLong(addr, seq.getLong(addr) | (1L << offset))
     else
-      m.putLong(addr, m.getLong(addr) & (~(1L << offset)))
+      seq.putLong(addr, seq.getLong(addr) & (~(1L << offset)))
     v
   }
 

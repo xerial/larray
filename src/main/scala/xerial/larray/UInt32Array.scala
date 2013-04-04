@@ -48,8 +48,8 @@ private[larray] class UInt32ArrayView(base:UInt32Array, offset:Long, val size:Lo
  *
  * @author Taro L. Saito
  */
-class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit mem: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] { self =>
-  def this(size:Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
+class UInt32Array(val size: Long, private[larray] val m:Memory)(implicit val alloc: MemoryAllocator) extends LArray[Long] with UnsafeArray[Long] { self =>
+  def this(size:Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))
 
   import UnsafeUtil.unsafe
 
