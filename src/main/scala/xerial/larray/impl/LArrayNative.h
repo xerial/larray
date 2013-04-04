@@ -23,6 +23,30 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyToArray
 JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
   (JNIEnv *, jclass, jobject, jint, jlong, jint);
 
+/*
+ * Class:     xerial_larray_impl_LArrayNative
+ * Method:    mmap
+ * Signature: (IIJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
+  (JNIEnv *, jclass, jint, jint, jlong, jlong);
+
+/*
+ * Class:     xerial_larray_impl_LArrayNative
+ * Method:    munmap
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
+  (JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     xerial_larray_impl_LArrayNative
+ * Method:    msync
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
+  (JNIEnv *, jclass, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

@@ -15,23 +15,6 @@ import sun.nio.ch.{DirectBuffer, FileChannelImpl}
 import java.nio.{MappedByteBuffer, ByteBuffer, Buffer}
 import java.lang.reflect.InvocationTargetException
 
-object MappedLArray {
-
-  import java.{lang=>jl}
-  private[larray] val force0 = classOf[MappedByteBuffer].getDeclaredMethod("force0", classOf[FileDescriptor], jl.Long.TYPE, jl.Long.TYPE)
-  force0.setAccessible(true)
-
-  private[larray] val unmap0 = classOf[FileChannelImpl].getDeclaredMethod("unmap0", jl.Long.TYPE, jl.Long.TYPE)
-  unmap0.setAccessible(true)
-
-  private[larray] val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
-  map0.setAccessible(true)
-
-
-}
-
-
-
 
 
 
@@ -43,10 +26,15 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
-  import MappedLArray._
 
   private val raf = new RandomAccessFile(f, mode.mode)
   private val fc = raf.getChannel
+  private val fd = {
+    val f = raf.getFD()
+    val idf = f.getClass.getDeclaredField("fd")
+    idf.setAccessible(true)
+    idf.get(f).asInstanceOf[jl.Integer].toInt
+  }
 
   private val pagePosition = {
     val allocationGranularity : Long = unsafe.pageSize
@@ -61,8 +49,6 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
         throw new IOException("closed")
 
       val fileSize = fc.size()
-      trace(s"file size: $fileSize")
-
       if(fileSize < offset + size) {
         // extend file size
         raf.seek(offset + size - 1)
@@ -72,7 +58,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
       val mapPosition = offset - pagePosition
       val mapSize = size + pagePosition
       // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
-      val rawAddr = map0.invoke(fc, mode.code.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      val rawAddr = LArrayNative.mmap(fd, mode.code, mapPosition, mapSize)
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
 
       m = Memory(rawAddr, mapSize)
@@ -93,16 +79,13 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
     m = null
   }
 
-  private val dummyBuffer = fc.map(MapMode.READ_ONLY, 0, 0)
-
-
   /**
    * Forces any changes made to this buffer to be written to the file
    */
   def flush {
     // We can use a dummy buffer instance since force0 will not access class fields
-    force0.invoke(dummyBuffer, raf.getFD, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
-  }
+    LArrayNative.msync(m.address, m.size)
+   }
 
   /**
    * Close the memory mapped file

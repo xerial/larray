@@ -7,6 +7,7 @@
 
 package xerial.larray
 
+import impl.LArrayNative
 import xerial.core.log.Logger
 import java.lang.ref.{PhantomReference, ReferenceQueue}
 import collection.mutable
@@ -200,7 +201,8 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
       ref match {
         case r:MMapMemoryReference =>
           trace(f"${if(isGC) "[GC] " else ""}released mmap   address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
-          MappedLArray.unmap0.invoke(null, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
+          LArrayNative.munmap(m.address, m.size)
+          //MappedLArray.unmap0.invoke(null, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
         case r:MemoryReference =>
           trace(f"${if(isGC) "[GC] " else ""}released memory address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
           unsafe.freeMemory(ref.address)

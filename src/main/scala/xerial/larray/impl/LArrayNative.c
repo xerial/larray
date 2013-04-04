@@ -1,6 +1,11 @@
 #include "LArrayNative.h"
 #include <string.h>
+
+#ifdef _WIN32 | _WIN64
+
+#else
 #include <sys/mman.h>
+#endif
 
 /*
  * Class:     xerial_larray_impl_LArrayNative
@@ -33,4 +38,41 @@ JNIEXPORT jint JNICALL Java_xerial_larray_impl_LArrayNative_copyFromArray
 }
 
 
+
+JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
+  (JNIEnv *env, jclass cls, jint fd, jint mode, jlong offset, jlong size) {
+
+   void *addr;
+   int prot = 0;
+   int flags = 0;
+   if(mode == 0) {
+      prot = PROT_READ;
+      flags = MAP_SHARED;
+   } else if(mode == 1) {
+      prot = PROT_READ | PROT_WRITE;
+      flags = MAP_SHARED;
+   } else if(mode == 2) {
+     prot = PROT_READ | PROT_WRITE;
+     flags = MAP_PRIVATE;
+   }
+
+   addr = mmap(0, size, prot, flags, fd, offset);
+
+   return (jlong) addr;
+}
+
+
+
+JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
+  (JNIEnv *env, jclass cls, jlong addr, jlong size) {
+
+    munmap((size_t) addr, (size_t) size);
+  }
+
+
+JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
+  (JNIEnv *env, jclass cls, jlong addr, jlong size) {
+
+    msync((size_t) addr, (size_t) size, MS_SYNC);
+  }
 
