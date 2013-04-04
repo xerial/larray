@@ -1,8 +1,8 @@
 #include "LArrayNative.h"
 #include <string.h>
 
-#ifdef _WIN32 | _WIN64
-
+#if defined(_WIN32) || defined(_WIN64)
+//
 #else
 #include <sys/mman.h>
 #endif
@@ -66,13 +66,13 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
   (JNIEnv *env, jclass cls, jlong addr, jlong size) {
 
-    munmap((size_t) addr, (size_t) size);
-  }
+    munmap((void *) addr, (size_t) size);
+}
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
   (JNIEnv *env, jclass cls, jlong addr, jlong size) {
 
-    msync((size_t) addr, (size_t) size, MS_SYNC);
-  }
+    msync((void *) addr, (size_t) size, MS_SYNC);
+}
 
