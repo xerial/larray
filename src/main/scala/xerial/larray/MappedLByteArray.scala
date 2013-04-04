@@ -78,7 +78,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
 
       m = Memory(rawAddr, mapSize)
-      MemoryAllocator.default.registerMMapMemory(m)
+      alloc.registerMMapMemory(m)
 
       rawAddr + pagePosition
     }
