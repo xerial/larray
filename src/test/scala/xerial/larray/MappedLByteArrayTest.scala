@@ -56,6 +56,7 @@ class MappedLByteArrayTest extends LArraySpec {
       m(2L * G + offset) = v
       m.close()
 
+
       f.length() shouldBe m.size
 
       val view = new MappedLByteArray(f, 2L * G, 1024)

@@ -105,6 +105,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String=
 
   override def close() {
     flush
+    free
     fc.close()
   }
 
