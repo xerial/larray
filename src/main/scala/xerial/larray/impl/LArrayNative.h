@@ -42,10 +42,10 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
 /*
  * Class:     xerial_larray_impl_LArrayNative
  * Method:    msync
- * Signature: (JJ)V
+ * Signature: (IJJ)V
  */
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
-  (JNIEnv *, jclass, jlong, jlong);
+  (JNIEnv *, jclass, jint, jlong, jlong);
 
 #ifdef __cplusplus
 }

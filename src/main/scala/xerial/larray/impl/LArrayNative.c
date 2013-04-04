@@ -103,7 +103,7 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
-  (JNIEnv *env, jclass cls, jlong addr, jlong size) {
+(JNIEnv *env, jclass cls, jint fd, jlong addr, jlong size) {
 
 #if defined(_WIN32) || defined(_WIN64)
   void *a = (void *) addr;
@@ -122,6 +122,14 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
       break;
     retry++;
   } while (retry < 3);
+
+  if(fd != 0 && result != 0)  {
+    result = FlushFileBuffers((HANDLE)fd);
+    if(result == 0 && GetLastError() == ERROR_ACCESS_DENIED) {
+      // read-only mapping
+      result = 1;
+    }
+  }
 
 #else
     msync((void *) addr, (size_t) size, MS_SYNC);

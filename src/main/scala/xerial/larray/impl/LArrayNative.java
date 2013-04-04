@@ -24,5 +24,5 @@ public class LArrayNative {
 
     public static native long mmap(int fd, int mode, long offset, long size);
     public static native void munmap(long address, long size);
-    public static native void msync(long address, long size);
+    public static native void msync(int fd, long address, long size);
 }

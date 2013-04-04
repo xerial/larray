@@ -84,7 +84,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
    */
   def flush {
     // We can use a dummy buffer instance since force0 will not access class fields
-    LArrayNative.msync(m.address, m.size)
+    LArrayNative.msync(fd, m.address, m.size)
    }
 
   /**
