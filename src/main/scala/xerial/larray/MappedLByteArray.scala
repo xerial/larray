@@ -18,8 +18,8 @@ import java.lang.reflect.InvocationTargetException
 object MappedLArray {
 
   private[larray] val MAP_READONLY = 0
-  private[larray] val MAP_RW = 1
-  private[larray] val MAP_PV = 2
+  private[larray] val MAP_READWRITE = 1
+  private[larray] val MAP_PRIVATE = 2
 
 
 }
@@ -29,7 +29,7 @@ object MappedLArray {
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw") extends RawByteArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:String="rw") extends RawByteArray[Byte] {
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
@@ -37,35 +37,33 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
   private val raf = new RandomAccessFile(f, mode)
   private val fc = raf.getChannel
 
-  def size = _size
-
   val address : Long = {
-
-    val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
-    map0.setAccessible(true)
-    import MappedLArray._
-
     try {
       if(!fc.isOpen())
         throw new IOException("closed")
 
-      val fileSize = fc.size()
-      debug(s"file size: $fileSize")
+      import MappedLArray._
 
-      if(fileSize < offset + _size) {
+      val fileSize = fc.size()
+      trace(s"file size: $fileSize")
+
+      if(fileSize < offset + size) {
         // extend file size
-        raf.seek(offset + _size - 1)
+        raf.seek(offset + size - 1)
         raf.write(0)
-        debug(s"extend file size to ${fc.size}")
+        trace(s"extend file size to ${fc.size}")
       }
 
       val allocationGranularity : Long = unsafe.pageSize
       val pagePosition = (offset % allocationGranularity).toInt
       val mapPosition = offset - pagePosition
       val mapSize = size + pagePosition
-      // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with its size more than 2GB
-      val addr = map0.invoke(fc, MAP_RW.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
-      debug(f"mmap addr:$addr%x, start address:${addr+pagePosition}%x")
+
+      // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
+      val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
+      map0.setAccessible(true)
+      val addr = map0.invoke(fc, MAP_READWRITE.asInstanceOf[AnyRef], mapPosition.asInstanceOf[AnyRef], mapSize.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      trace(f"mmap addr:$addr%x, start address:${addr+pagePosition}%x")
       addr + pagePosition
     }
     catch {
@@ -73,11 +71,6 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
     }
   }
 
-//  val address : Long = {
-//    val addrField = classOf[Buffer].getDeclaredField("address")
-//    addrField.setAccessible(true)
-//    addrField.getLong(mmap)
-//  }
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
