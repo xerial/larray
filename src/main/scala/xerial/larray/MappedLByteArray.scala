@@ -13,16 +13,13 @@ import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
 import sun.nio.ch.{DirectBuffer, FileChannelImpl}
 import java.nio.{ByteBuffer, Buffer}
+import java.lang.reflect.InvocationTargetException
 
 object MappedLArray {
 
-  private[larray] val PROT_READ = 0x1
-  private[larray] val PROT_WRITE = 0x2
-  private[larray] val PROT_EXEC = 0x4
-
-  private[larray] val MAP_READONLY = 0x00
-  private[larray] val MAP_SHARED = 0x01
-  private[larray] val MAP_PRIVATE = 0x02
+  private[larray] val MAP_READONLY = 0
+  private[larray] val MAP_RW = 1
+  private[larray] val MAP_PV = 2
 
 
 }
@@ -40,15 +37,38 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
   private val fc = new RandomAccessFile(f, mode).getChannel
   val size = if(_size < 0L) fc.size() - offset else _size
 
-  private val mmap = {
-    fc.map(MapMode.READ_WRITE, offset, size)
+  val address : Long = {
+
+    val map0 = classOf[FileChannelImpl].getDeclaredMethod("map0", jl.Integer.TYPE, jl.Long.TYPE, jl.Long.TYPE)
+    map0.setAccessible(true)
+    import MappedLArray._
+
+    try {
+
+      val alocationGranularity : Long = {
+        val pageSize = unsafe.pageSize
+        val f = classOf[FileChannelImpl].getDeclaredField("allocationGranularity")
+        f.setAccessible(true)
+        val ag = f.getLong(fc)
+        debug(s"allocation granularity: $ag, page size: $pageSize")
+        ag
+      }
+
+      // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with its size more than 2GB
+      val addr = map0.invoke(fc, MAP_RW.asInstanceOf[AnyRef], offset.asInstanceOf[AnyRef], size.asInstanceOf[AnyRef]).asInstanceOf[jl.Long].toLong
+      debug(f"mmap addr:$addr%x")
+      addr
+    }
+    catch {
+      case e:InvocationTargetException => throw e.getCause
+    }
   }
 
-  val address = {
-    val addrField = classOf[Buffer].getDeclaredField("address")
-    addrField.setAccessible(true)
-    addrField.get(mmap).asInstanceOf[jl.Long].toLong
-  }
+//  val address : Long = {
+//    val addrField = classOf[Buffer].getDeclaredField("address")
+//    addrField.setAccessible(true)
+//    addrField.getLong(mmap)
+//  }
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
@@ -58,11 +78,11 @@ class MappedLByteArray(f:File, offset:Long = 0, _size:Long = -1, mode:String="rw
   }
 
   def flush {
-    mmap.force()
+    //mmap.force()
   }
 
   override def close() {
-    mmap.force()
+    //mmap.force()
     fc.close()
   }
 
