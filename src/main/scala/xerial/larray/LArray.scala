@@ -39,7 +39,7 @@ trait LSeq[A] extends LIterable[A] {
    * @param i index
    * @return the element value
    */
-  def apply(i: Long): A
+  @inline def apply(i: Long): A
 
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
@@ -94,20 +94,13 @@ trait LSeq[A] extends LIterable[A] {
 
   import UnsafeUtil.unsafe
 
-  def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
-  def getChar(offset: Long): Char = unsafe.getChar(address + offset)
-  def getShort(offset: Long): Short = unsafe.getShort(address + offset)
-  def getInt(offset: Long): Int = unsafe.getInt(address + offset)
-  def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
-  def getLong(offset: Long): Long = unsafe.getLong(address + offset)
-  def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
-  def putByte(offset: Long, v: Byte) = { unsafe.putByte(address+offset, v); v }
-  def putChar(offset: Long, v: Char) = { unsafe.putChar(address+offset, v); v }
-  def putShort(offset: Long, v: Short) = { unsafe.putShort(address+offset, v); v }
-  def putInt(offset: Long, v: Int) = { unsafe.putInt(address+offset, v); v }
-  def putFloat(offset: Long, v: Float) = { unsafe.putFloat(address + offset, v); v }
-  def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
-  def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
+  @inline def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
+  @inline def getChar(offset: Long): Char = unsafe.getChar(address + offset)
+  @inline def getShort(offset: Long): Short = unsafe.getShort(address + offset)
+  @inline def getInt(offset: Long): Int = unsafe.getInt(address + offset)
+  @inline def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
+  @inline def getLong(offset: Long): Long = unsafe.getLong(address + offset)
+  @inline def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
 
 
 }
@@ -226,7 +219,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
    * @param v value to set
    * @return the value
    */
-  def update(i: Long, v: A): A
+  @inline def update(i: Long, v: A): A
 
   /**
    * Create a shallow copy (view) of LArray
@@ -237,6 +230,17 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
   def view(from: Long, to: Long): LArrayView[A]
 
   override def toString = mkString(", ")
+
+  import UnsafeUtil.unsafe
+
+  @inline def putByte(offset: Long, v: Byte) = { unsafe.putByte(address+offset, v); v }
+  @inline def putChar(offset: Long, v: Char) = { unsafe.putChar(address+offset, v); v }
+  @inline def putShort(offset: Long, v: Short) = { unsafe.putShort(address+offset, v); v }
+  @inline def putInt(offset: Long, v: Int) = { unsafe.putInt(address+offset, v); v }
+  @inline def putFloat(offset: Long, v: Float) = { unsafe.putFloat(address + offset, v); v }
+  @inline def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
+  @inline def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
+
 }
 
 
