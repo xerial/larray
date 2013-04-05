@@ -40,6 +40,8 @@ LArray uses OS-specific implementation for copying memory contents between LArra
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## Usage (Scala)
+
+### sbt settings
 Add the following sbt dependency to your project settings:
 
 ```scala
@@ -53,6 +55,7 @@ resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repos
 
 libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
 ```
+### Example
 
 You can use LArray in the same manner with the standard Scala Arrays: 
 
@@ -100,7 +103,7 @@ In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and
 
 ```java
 import xerial.larray.japi.LArrayJ;
-import xerial.larray.LIntArray;
+import xerial.larray.*;
 
 LIntArray l = LArrayJ.newLIntArray(10000L);
 l.update(0L, 20); // Set l[0L] = 20
