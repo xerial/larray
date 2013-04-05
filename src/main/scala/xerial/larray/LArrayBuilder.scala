@@ -41,6 +41,8 @@ trait LBuilder[Elem, +To] extends WritableByteChannel {
     */
   def ++=(xs: TraversableOnce[Elem]): this.type = { xs.seq foreach += ; this }
 
+  def ++=(xs: LIterator[Elem]): this.type = { xs foreach += ; this }
+
   /** Clears the contents of this builder.
     *  After execution of this method the builder will contain no elements.
     */

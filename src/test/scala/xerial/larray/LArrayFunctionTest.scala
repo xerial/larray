@@ -144,6 +144,17 @@ trait LArrayBehaviour { this : LArraySpec =>
       file.deleteOnExit()
       LArray.loadFrom[A](file) === arr
     }
+
+    "have sliding iterator" in {
+      val w = math.max(l.length, (l.length / 10)).toInt
+      if(w > 0) {
+        val ls = l.sliding(w, w).toArray
+        val as = arr.sliding(w, w).toArray
+        for((l1, a1) <- ls.zip(as)) {
+          l1 === a1
+        }
+      }
+    }
   }
 
 
