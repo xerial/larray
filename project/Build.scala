@@ -49,6 +49,10 @@ object Build extends sbt.Build {
           "-doc-version", v
           )
         },
+	testOptions in Test <+= (target in Test) map {
+	  t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")"
+	      format (t / "test-reports"))
+	},
         // custom settings here
         scalaVersion := SCALA_VERSION,
 	//	scalaOrganization := "org.scala-lang.macro-paradise",
