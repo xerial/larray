@@ -7,7 +7,13 @@
 
 package xerial.larray
 
+/**
+ * A common trait for alternative implementations of LArray. This implementation is provided only for testing purpose, so many features might be missing
+ * in LArrays impemented this trait.
+ */
 trait AltLIntArrayImpl extends LArray[Int] {
+
+  def address = LArray.EmptyArray.address // throws an exception
 
   def copyTo(dest:LByteArray, destOffset:Long) {
     throw new UnsupportedOperationException("copyTo")
@@ -21,7 +27,7 @@ trait AltLIntArrayImpl extends LArray[Int] {
 }
 
 /**
- * Alternative implementation of LArray that might be inefficient, but written for the performance comparison.
+ * Alternative implementation of LArray that might be inefficient, but written for comparing performances.
  * LIntArraySimple wraps Array[Int] to support Long-type indexes
  * @param size array size
  */

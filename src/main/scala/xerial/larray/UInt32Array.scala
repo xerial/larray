@@ -38,9 +38,11 @@ object UInt32Array {
 private[larray] class UInt32ArrayView(base:UInt32Array, offset:Long, val size:Long) extends LArrayView[Long] {
   protected[this] def newBuilder: LBuilder[Long, UInt32Array] = UInt32Array.newBuilder
   def apply(i: Long) = base.apply(offset + i)
-  private[larray] def elementByteSize = base.elementByteSize
+  private[larray] def elementByteSize = 4
   def copyTo(dst: LByteArray, dstOffset: Long) { base.copyTo(offset, dst, dstOffset, byteLength) }
   def copyTo[B](srcOffset: Long, dst: RawByteArray[B], dstOffset: Long, blen: Long) { base.copyTo(offset+srcOffset, dst, dstOffset, blen) }
+
+  def address = base.address + (offset * elementByteSize)
 }
 
 /**

@@ -13,7 +13,6 @@ import xerial.core.log.Logger
 import java.nio.ByteBuffer
 import java.nio.channels.{FileChannel, WritableByteChannel}
 import sun.nio.ch.DirectBuffer
-import java.lang
 import java.io.{FileInputStream, FileOutputStream, File}
 
 
@@ -23,19 +22,20 @@ import java.io.{FileInputStream, FileOutputStream, File}
  */
 trait LSeq[A] extends LIterable[A] {
   /**
-   * Size of this array
+   * Element size of this array
    * @return size of this array
    */
   def size: Long
 
   /**
-   * byte length of this array
+   * Byte length of this array.
    * @return
    */
   def byteLength: Long = elementByteSize * size
 
   /**
-   * Retrieve an element
+   * Retrieve an element at the given index. LArray does not perform boundary checks for optimizing the performance,
+   * so reading the indexes out of bounds might cause JVM crash.
    * @param i index
    * @return the element value
    */
@@ -88,15 +88,28 @@ trait LSeq[A] extends LIterable[A] {
 
 
   /**
-   * Create a LArray[Byte] of a memory mapped file
-   * @param f file
-   * @param offset offset in file
-   * @param size region byte size
-   * @param mode open mode.
+   * Raw-memory address of this array
    */
-  def mmap(f:File, offset:Long, size:Long, mode:MMapMode) : MappedLByteArray = {
-    new MappedLByteArray(f, offset, size, mode)
-  }
+  def address: Long
+
+  import UnsafeUtil.unsafe
+
+  def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
+  def getChar(offset: Long): Char = unsafe.getChar(address + offset)
+  def getShort(offset: Long): Short = unsafe.getShort(address + offset)
+  def getInt(offset: Long): Int = unsafe.getInt(address + offset)
+  def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
+  def getLong(offset: Long): Long = unsafe.getLong(address + offset)
+  def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
+  def putByte(offset: Long, v: Byte) = { unsafe.putByte(address+offset, v); v }
+  def putChar(offset: Long, v: Char) = { unsafe.putChar(address+offset, v); v }
+  def putShort(offset: Long, v: Short) = { unsafe.putShort(address+offset, v); v }
+  def putInt(offset: Long, v: Int) = { unsafe.putInt(address+offset, v); v }
+  def putFloat(offset: Long, v: Float) = { unsafe.putFloat(address + offset, v); v }
+  def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
+  def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
+
+
 }
 
 /**
@@ -198,8 +211,13 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
    */
   def clear()
 
+  /**
+   * Write the contents of ByteBuffer to this array. This method increments the internal cursor.
+   * @param src
+   * @return
+   */
   def write(src: ByteBuffer): Int =
-    throw new UnsupportedOperationException("writeToArray(ByteBuffer)")
+    throw new UnsupportedOperationException("write(ByteBuffer)")
 
 
   /**
@@ -318,6 +336,11 @@ object LArray {
     }
 
     def view(from: Long, to: Long) = LArrayView.EmptyView
+
+    /**
+     * Raw-memory address of this array
+     */
+    def address : Long = { throw new UnsupportedOperationException("address") }
   }
 
 
@@ -581,6 +604,17 @@ object LArray {
   }
 
 
+  /**
+   * Create a LArray[Byte] of a memory mapped file
+   * @param f file
+   * @param offset offset in file
+   * @param size region byte size
+   * @param mode open mode.
+   */
+  def mmap(f:File, offset:Long, size:Long, mode:MMapMode) : MappedLByteArray = {
+    new MappedLByteArray(f, offset, size, mode)
+  }
+
 }
 
 /**
@@ -588,7 +622,7 @@ object LArray {
  */
 trait RawByteArray[A] extends LArray[A] {
 
-  def address: Long
+
 
   /**
    * Create an input stream for reading LArray byte contents
@@ -598,21 +632,6 @@ trait RawByteArray[A] extends LArray[A] {
 
 
   import UnsafeUtil.unsafe
-
-  def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
-  def getChar(offset: Long): Char = unsafe.getChar(address + offset)
-  def getShort(offset: Long): Short = unsafe.getShort(address + offset)
-  def getInt(offset: Long): Int = unsafe.getInt(address + offset)
-  def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
-  def getLong(offset: Long): Long = unsafe.getLong(address + offset)
-  def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
-  def putByte(offset: Long, v: Byte) = { unsafe.putByte(address+offset, v); v }
-  def putChar(offset: Long, v: Char) = { unsafe.putChar(address+offset, v); v }
-  def putShort(offset: Long, v: Short) = { unsafe.putShort(address+offset, v); v }
-  def putInt(offset: Long, v: Int) = { unsafe.putInt(address+offset, v); v }
-  def putFloat(offset: Long, v: Float) = { unsafe.putFloat(address + offset, v); v }
-  def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
-  def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
 
   def clear() {
     unsafe.setMemory(address, byteLength, 0)
@@ -775,7 +794,7 @@ class LIntArray(val size: Long, private[larray] val m: Memory)(implicit val allo
  * LArray of Long type
  * @param size  the size of array
  * @param m allocated memory
- * @param mem memory allocator
+ * @param alloc memory allocator
  */
 class LLongArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Long]
@@ -1011,6 +1030,11 @@ class LObjectArray32[A: ClassTag](val size: Long) extends LArray[A] {
   }
 
   def view(from: Long, to: Long) = new LArrayView.LObjectArrayView[A](this, from, to - from)
+
+  /**
+   * Raw-memory address of this array
+   */
+  def address = LArray.EmptyArray.address
 }
 
 /**
@@ -1076,4 +1100,5 @@ class LObjectArrayLarge[A: ClassTag](val size: Long) extends LArray[A] {
 
   def view(from: Long, to: Long) = new LArrayView.LObjectArrayView[A](this, from, to - from)
 
+  def address = LArray.EmptyArray.address
 }
