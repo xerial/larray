@@ -15,8 +15,9 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
 {
   val validLength = for (l <- Gen.choose[Int](1, 10000)) yield l
   val validSeed = for (s <- Gen.choose[Int](1, 10000)) yield s
+  val maxNumberOfTests = 25
 
-  forAll((validLength, "length"), (validSeed, "seed"))
+  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
   {
     (length: Int, seed: Int) =>
       whenever(length > 0 && seed > 0)
@@ -31,7 +32,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
       }
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"))
+  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
   {
     (length: Int, seed: Int) =>
       whenever(length > 0 && seed > 0)
@@ -46,7 +47,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
       }
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"))
+  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
   {
     (length: Int, seed: Int) =>
       whenever(length > 0 && seed > 0)
@@ -61,7 +62,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
       }
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"))
+  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
   {
     (length: Int, seed: Int) =>
       whenever(length > 0 && seed > 0)
