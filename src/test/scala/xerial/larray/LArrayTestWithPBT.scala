@@ -17,7 +17,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
   val maxSizeOfList = 10000
   val minSizeOfList = 1
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
   {
     (input: Array[Int]) =>
       "int test with length " + input.take(10).toString should
@@ -27,7 +27,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
         }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
   {
     (input: Array[Long]) =>
       "long test with length " + input.take(10).toString should
@@ -37,7 +37,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
         }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
   {
     (input: Array[Float]) =>
       "float test with length " + input.take(10).toString should
@@ -48,7 +48,7 @@ class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehavi
 
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
   {
     (input: Array[Double]) =>
       "double test with length " + input.take(10).toString should
