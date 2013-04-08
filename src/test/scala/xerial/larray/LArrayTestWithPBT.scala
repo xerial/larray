@@ -13,68 +13,49 @@ import org.scalacheck.Gen
  */
 class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehaviour
 {
-  val validLength = for (l <- Gen.choose[Int](1, 10000)) yield l
-  val validSeed = for (s <- Gen.choose[Int](1, 10000)) yield s
   val maxNumberOfTests = 25
+  val maxSizeOfList = 10000
+  val minSizeOfList = 1
 
-  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
   {
-    (length: Int, seed: Int) =>
-      whenever(length > 0 && seed > 0)
-      {
-        "int test with length " + length + " with seed " + seed should
-          {
-            val rand = new Random(seed)
-            val input = Seq.fill(length)(rand.nextInt)
-            behave like validArray(input)
-            behave like validIntArray(input)
-          }
-      }
+    (input: Array[Int]) =>
+      "int test with length " + input.take(10).toString should
+        {
+          behave like validArray(input)
+          behave like validIntArray(input)
+        }
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
   {
-    (length: Int, seed: Int) =>
-      whenever(length > 0 && seed > 0)
-      {
-        "long test with length " + length + " with seed " + seed should
-          {
-            val rand = new Random(seed)
-            val input = Seq.fill(length)(rand.nextLong)
-            behave like validArray(input)
-            behave like validLongArray(input)
-          }
-      }
+    (input: Array[Long]) =>
+      "long test with length " + input.take(10).toString should
+        {
+          behave like validArray(input)
+          behave like validLongArray(input)
+        }
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
   {
-    (length: Int, seed: Int) =>
-      whenever(length > 0 && seed > 0)
-      {
-        "float test with length " + length + " with seed " + seed should
-          {
-            val rand = new Random(seed)
-            val input = Seq.fill(length)(rand.nextFloat)
-            behave like validArray(input)
-            behave like validFloatArray(input)
-          }
-      }
+    (input: Array[Float]) =>
+      "float test with length " + input.take(10).toString should
+        {
+          behave like validArray(input)
+          behave like validFloatArray(input)
+        }
+
   }
 
-  forAll((validLength, "length"), (validSeed, "seed"), minSuccessful(maxNumberOfTests))
+  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(1))
   {
-    (length: Int, seed: Int) =>
-      whenever(length > 0 && seed > 0)
-      {
-        "double test with length " + length + " with seed " + seed should
-          {
-            val rand = new Random(seed)
-            val input = Seq.fill(length)(rand.nextDouble)
-            behave like validArray(input)
-            behave like validDoubleArray(input)
-          }
-      }
+    (input: Array[Double]) =>
+      "double test with length " + input.take(10).toString should
+        {
+          behave like validArray(input)
+          behave like validDoubleArray(input)
+        }
   }
 
   "empty test" should
