@@ -1,6 +1,6 @@
 //--------------------------------------
 //
-// SnappyCompressTest.scala
+// JSnappyCompressTest.scala
 // Since: 2013/03/27 16:17
 //
 //--------------------------------------
@@ -57,6 +57,7 @@ class SnappyCompressTest extends LArraySpec {
       val len = Snappy.uncompressedLength(b.address, b.length)
       val decompressed = new LIntArray(len / 4)
       Snappy.rawUncompress(b.address, b.length, decompressed.address)
+      b.close
 
       debug(f"l.length:${l.length}%,d, decompressed.length:${decompressed.length}%,d")
 
@@ -64,17 +65,19 @@ class SnappyCompressTest extends LArraySpec {
       info("start bench")
       time("iterate", repeat=10) {
         block("new array") {
+          var sum = 0L
           var i = 0
           while(i < l.length) {
-            l(i)
+            sum += l(i)
             i += 1
           }
         }
 
         block("decompressed") {
+          var sum = 0L
           var i = 0
           while(i < decompressed.length) {
-            decompressed(i)
+            sum += decompressed(i)
             i += 1
           }
         }
