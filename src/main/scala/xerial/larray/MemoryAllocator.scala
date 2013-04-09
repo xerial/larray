@@ -7,12 +7,11 @@
 
 package xerial.larray
 
-import sun.misc.Unsafe
+import impl.LArrayNative
 import xerial.core.log.Logger
 import java.lang.ref.{PhantomReference, ReferenceQueue}
 import collection.mutable
-import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
-import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import xerial.core.util.DataUnit
 
@@ -28,31 +27,17 @@ class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long, 
   def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
 }
 
+
+class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], override val address:Long, override val size:Long) extends MemoryReference(m, queue, address, size) {
+  def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
+}
+
 /**
  * Accessor to the allocated memory
  * @param address
  */
-case class Memory(address: Long, size: Long, alloc: MemoryAllocator) {
+case class Memory(address: Long, size: Long)
 
-  import UnsafeUtil.unsafe
-
-  @inline def getByte(offset: Long): Byte = unsafe.getByte(address + offset)
-  @inline def getChar(offset: Long): Char = unsafe.getChar(address + offset)
-  @inline def getShort(offset: Long): Short = unsafe.getShort(address + offset)
-  @inline def getInt(offset: Long): Int = unsafe.getInt(address + offset)
-  @inline def getFloat(offset: Long): Float = unsafe.getFloat(address + offset)
-  @inline def getLong(offset: Long): Long = unsafe.getLong(address + offset)
-  @inline def getDouble(offset: Long): Double = unsafe.getDouble(address + offset)
-  @inline def putByte(offset: Long, v: Byte): Unit = unsafe.putByte(address + offset, v)
-  @inline def putChar(offset: Long, v: Char): Unit = unsafe.putChar(address + offset, v)
-  @inline def putShort(offset: Long, v: Short): Unit = unsafe.putShort(address + offset, v)
-  @inline def putInt(offset: Long, v: Int): Unit = unsafe.putInt(address + offset, v)
-  @inline def putFloat(offset: Long, v: Float): Unit = unsafe.putFloat(address + offset, v)
-  @inline def putLong(offset: Long, v: Long): Unit = unsafe.putLong(address + offset, v)
-  @inline def putDouble(offset: Long, v: Double): Unit = unsafe.putDouble(address + offset, v)
-
-  def free = alloc.release(address, size, isGC=false)
-}
 
 
 object MemoryAllocator {
@@ -124,55 +109,19 @@ trait MemoryAllocator extends Logger {
    */
   def allocate(size: Long): Memory
 
+
+  def registerMMapMemory(m:Memory) : MemoryReference
+
+
   /**
-   * Release the memory allocated by [[xerial.larray.MemoryAllocator#allocate]]
+   * Release the memory allocated by [[xerial.larray.MemoryAllocator#allocate]]. This method is called after GC
    * @param ref the reference to the memory allocated by  [[xerial.larray.MemoryAllocator#allocate]]
    */
-  def release(ref: MemoryReference, isGC:Boolean=false): Unit = release(ref.address, ref.size, isGC)
+  private[larray] def release(ref: MemoryReference): Unit = release(Memory(ref.address, ref.size), true)
+  def release(m:Memory, isGC:Boolean = false) : Unit
 
-  def release(addr: Long, size: Long, isGC:Boolean): Unit
 }
 
-object UnsafeUtil extends Logger {
-  val unsafe = {
-    val f = classOf[Unsafe].getDeclaredField("theUnsafe")
-    f.setAccessible(true)
-    f.get(null).asInstanceOf[Unsafe]
-  }
-
-  private val dbbCC = Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(classOf[Long], classOf[Int])
-
-  def newDirectByteBuffer(addr: Long, size: Int): ByteBuffer = {
-    dbbCC.setAccessible(true)
-    val b = dbbCC.newInstance(new java.lang.Long(addr), new java.lang.Integer(size))
-    b.asInstanceOf[ByteBuffer]
-  }
-
-
-  val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
-  val objectArrayOffset = unsafe.arrayBaseOffset(classOf[Array[AnyRef]]).toLong
-  val objectArrayScale = unsafe.arrayIndexScale(classOf[Array[AnyRef]]).toLong
-  val addressBandWidth = System.getProperty("sun.arch.data.model", "64").toInt
-  private val addressFactor = if (addressBandWidth == 64) 8L else 1L
-  val addressSize = unsafe.addressSize()
-
-  /**
-   * @param obj
-   * @return
-   *
-   */
-  @deprecated(message = "Deprecated because this method does not return correct object addresses in some platform", since = "0.1")
-  def getObjectAddr(obj: AnyRef): Long = {
-    trace(f"address factor:$addressFactor%d, addressSize:$addressSize, objectArrayOffset:$objectArrayOffset, objectArrayScale:$objectArrayScale")
-
-    val o = new Array[AnyRef](1)
-    o(0) = obj
-    objectArrayScale match {
-      case 4 => (unsafe.getInt(o, objectArrayOffset) & 0xFFFFFFFFL) * addressFactor
-      case 8 => (unsafe.getLong(o, objectArrayOffset) & 0xFFFFFFFFFFFFFFFFL) * addressFactor
-    }
-  }
-}
 
 
 /**
@@ -194,7 +143,7 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
         while (true) {
           try {
             val ref = queue.remove.asInstanceOf[MemoryReference]
-            release(ref, isGC=true)
+            release(ref)
           }
           catch {
             case e: Exception => warn(e)
@@ -221,33 +170,49 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
     allocateInternal(size)
   }
 
-  def release(addr: Long, size: Long, isGC:Boolean) {
+
+  def release(m:Memory, isGC:Boolean) {
     synchronized {
-      releaseInternal(addr, size, isGC)
+      releaseInternal(m, isGC)
     }
   }
 
   protected def allocateInternal(size: Long): Memory = {
     if (size == 0L)
-      return Memory(0, 0, this)
-    val m = Memory(unsafe.allocateMemory(size), size, this)
+      return Memory(0, 0)
+    val m = Memory(unsafe.allocateMemory(size), size)
     trace(f"allocated memory address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(size)}")
     val ref = new MemoryReference(m, queue)
-    allocatedMemoryReferences += m.address -> ref
+    allocatedMemoryReferences += ref.address -> ref
     totalAllocatedSize.getAndAdd(size)
     m
   }
 
-  protected def releaseInternal(addr: Long, size: Long, isGC:Boolean) {
-    if (allocatedMemoryReferences.contains(addr)) {
-      trace(f"${if(isGC) "[GC] " else ""}released memory  address:${addr}%x, size:${DataUnit.toHumanReadableFormat(size)}")
-      val ref = allocatedMemoryReferences(addr)
-      unsafe.freeMemory(ref.address)
+
+  def registerMMapMemory(m:Memory) = {
+    val ref = new MMapMemoryReference(m, queue)
+    allocatedMemoryReferences += ref.address -> ref
+    ref
+  }
+
+  protected def releaseInternal(m:Memory, isGC:Boolean) {
+    if (allocatedMemoryReferences.contains(m.address)) {
+      val ref = allocatedMemoryReferences(m.address)
+      ref match {
+        case r:MMapMemoryReference =>
+          trace(f"${if(isGC) "[GC] " else ""}released mmap   address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
+          LArrayNative.munmap(m.address, m.size)
+          //MappedLArray.unmap0.invoke(null, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
+        case r:MemoryReference =>
+          trace(f"${if(isGC) "[GC] " else ""}released memory address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
+          unsafe.freeMemory(ref.address)
+          totalAllocatedSize.getAndAdd(-m.size)
+      }
       ref.clear()
-      totalAllocatedSize.getAndAdd(-size)
-      allocatedMemoryReferences.remove(addr)
+      allocatedMemoryReferences.remove(m.address)
     }
   }
+
 }
 
 import collection.JavaConversions._
@@ -260,6 +225,6 @@ class ConcurrentMemoryAllocator(memMap: collection.mutable.Map[Long, MemoryRefer
 
   override def allocate(size: Long): Memory = allocateInternal(size)
 
-  override def release(addr: Long, size: Long, isGC:Boolean): Unit = releaseInternal(addr, size, isGC)
+  override def release(m:Memory, isGC:Boolean): Unit = releaseInternal(m, isGC)
 
 }

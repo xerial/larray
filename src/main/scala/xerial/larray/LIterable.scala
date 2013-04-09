@@ -11,6 +11,7 @@ import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
 import xerial.core.log.Logger
+import scala.inline
 
 
 /**
@@ -350,4 +351,43 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
     addString(new StringBuilder(), start, sep, end).toString()
   def mkString(sep: String): String = mkString("", sep, "")
   def mkString: String = mkString("")
+
+
+  class SlidingIterator(size:Long, step:Long) extends AbstractLIterator[Repr] {
+    require(size > 0 && step > 0, s"size:$size and step:$step must be greater than 0")
+    private var cursor = 0L
+
+    def hasNext = cursor < self.size
+
+    def next() = {
+      val begin = cursor
+      val end = math.min(begin + size, self.size)
+      val b = newBuilder
+      b.sizeHint(end-begin)
+      var i = begin
+      while(i < end) {
+        b += self.apply(i)
+        i += 1
+      }
+      cursor += step
+      b.result
+    }
+  }
+
+
+  /**
+   * Groups elements in fixed size blocks by passing a 'sliding window' over them
+   * @param size the number of elements per group
+   * @return An iterator producing group of elements.
+   */
+  def sliding(size:Int) : LIterator[Repr] = sliding(size, 1)
+
+  /**
+   * Groups elemnts in fixed size blocks by passing a 'sliding window' over them.
+   * @param size the number of elements per group
+   * @param step the distance between the first elements of successive groups
+   * @return An itertor producing group of elements.
+   */
+  def sliding(size:Long, step:Long) : LIterator[Repr] = new SlidingIterator(size, step)
+
 }

@@ -54,6 +54,7 @@ public class OSInfo {
         return translateOSNameToFolderName(System.getProperty("os.name"));
     }
 
+
     public static String getArchName() {
         // if running Linux on ARM, need to determine ABI of JVM
         String osArch = System.getProperty("os.arch");
@@ -89,6 +90,11 @@ public class OSInfo {
             return osName.replaceAll("\\W", "");
         }
     }
+
+    public static boolean isWindows() {
+        return getOSName().contains("Windows");
+    }
+
 
     static String translateArchNameToFolderName(String archName) {
         return archName.replaceAll("\\W", "");

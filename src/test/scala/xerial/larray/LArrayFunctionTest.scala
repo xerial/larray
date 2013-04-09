@@ -8,7 +8,7 @@
 package xerial.larray
 
 import reflect.ClassTag
-import org.scalatest.{WordSpec, FlatSpec}
+import org.scalatest.{GivenWhenThen, WordSpec, FlatSpec}
 import org.scalatest.matchers.ShouldMatchers
 import xerial.core.log.Logger
 import java.io.File
@@ -55,14 +55,14 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
 
 }
 
-trait LArrayBehaviour { this: LArraySpec =>
+trait LArrayBehaviour { this : LArraySpec =>
 
   import LArrayFunctionTest._
 
   def validArray[A : ClassTag](arr:Seq[A]) {
     val l: LArray[A] = arr.toLArray
 
-    When(s"input is (${stringRepr(arr)})")
+    When(s"input is (${stringRepr(arr).take(100)})")
 
     "have iterator" in {
       l.iterator === arr
@@ -144,13 +144,24 @@ trait LArrayBehaviour { this: LArraySpec =>
       file.deleteOnExit()
       LArray.loadFrom[A](file) === arr
     }
+
+    "have sliding iterator" in {
+      val w = math.max(l.length, (l.length / 10)).toInt
+      if(w > 0) {
+        val ls = l.sliding(w, w).toArray
+        val as = arr.sliding(w, w).toArray
+        for((l1, a1) <- ls.zip(as)) {
+          l1 === a1
+        }
+      }
+    }
   }
 
 
   def validDoubleArray(arr:Seq[Double]) {
     val l: LArray[Double] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -184,12 +195,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
-      (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
-      l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
-      (l :\ 0d)(_ + _) shouldBe (arr :\ 0d)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
+          (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
+          l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
+          (l :\ 0d)(_ + _) shouldBe (arr :\ 0d)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Double, b: Double): Double = a + b
@@ -225,7 +240,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validFloatArray(arr:Seq[Float]) {
     val l: LArray[Float] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -259,12 +274,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
-      (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
-      l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
-      (l :\ 0f)(_ + _) shouldBe (arr :\ 0f)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
+          (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
+          l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
+          (l :\ 0f)(_ + _) shouldBe (arr :\ 0f)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Float, b: Float): Float = a + b
@@ -299,7 +318,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validIntArray(arr:Seq[Int]) {
     val l: LArray[Int] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -334,12 +353,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
-      (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
-      l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
-      (l :\ 0)(_ + _) shouldBe (arr :\ 0)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
+          (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
+          l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
+          (l :\ 0)(_ + _) shouldBe (arr :\ 0)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Int, b: Int): Int = a + b
@@ -373,7 +396,7 @@ trait LArrayBehaviour { this: LArraySpec =>
   def validLongArray(arr:Seq[Long]) {
     val l: LArray[Long] = arr.toLArray
 
-    When(s"input is (${arr.mkString(", ")})")
+    When(s"input is (${arr.mkString(", ").take(100)})")
 
     "map elements" in {
       l.map(_ * 2) === arr.map(_ * 2)
@@ -408,12 +431,16 @@ trait LArrayBehaviour { this: LArraySpec =>
       l.partition(_ % 3 == 0) === arr.partition(_ % 3 == 0)
     }
 
-    "fold elements" in {
-      l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
-      (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
-      l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
-      (l :\ 0L)(_ + _) shouldBe (arr :\ 0L)(_ + _)
-    }
+    "fold elements" in
+      {
+        if (arr.length <= 1000)
+        {
+          l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
+          (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
+          l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
+          (l :\ 0L)(_ + _) shouldBe (arr :\ 0L)(_ + _)
+        }
+      }
 
     "reduce elements" in {
       def sum(a: Long, b: Long): Long = a + b

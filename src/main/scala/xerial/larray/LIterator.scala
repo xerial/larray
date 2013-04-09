@@ -7,11 +7,13 @@
 
 package xerial.larray
 
-import collection.{mutable, AbstractIterator, Iterator}
+import collection.{Seq, mutable, AbstractIterator, Iterator}
 import reflect.ClassTag
 import scala.Some
 import collection.Iterator._
 import scala.Some
+import scala.Seq
+import collection.mutable.ArrayBuffer
 
 
 /**
@@ -419,7 +421,6 @@ trait LIterator[+A] {
     self.foreach(b += _)
     b.result
   }
-
 
 
 }

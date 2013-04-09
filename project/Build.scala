@@ -1,5 +1,7 @@
 import sbt._
 import sbt.Keys._
+import com.typesafe.sbt.SbtMultiJvm
+import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys.{MultiJvm}
 
 object Build extends sbt.Build {
 
@@ -19,12 +21,12 @@ object Build extends sbt.Build {
     }
   }
 
-  private val SCALA_VERSION = "2.10.0"
+  private val SCALA_VERSION = "2.10.1"
 
   lazy val root = Project(
     id = "larray",
     base = file("."),
-    settings = Defaults.defaultSettings ++
+    settings = Defaults.defaultSettings ++ SbtMultiJvm.multiJvmSettings ++
       Seq(
         organization := "org.xerial",
         organizationName := "xerial.org",
@@ -38,6 +40,7 @@ object Build extends sbt.Build {
         pomIncludeRepository := {
           _ => false
         },
+        compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
         parallelExecution := true,
         parallelExecution in Test := false,
         javacOptions in Compile ++= Seq("-Xlint:unchecked"),
@@ -49,18 +52,29 @@ object Build extends sbt.Build {
           "-doc-version", v
           )
         },
+        testOptions in Test <+= (target in Test) map {
+          t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
+        },
+        executeTests in Test <<= ((executeTests in Test), (executeTests in MultiJvm)) map {
+          case ((_, testResults), (_, multiJvmResults)) =>
+            val results = testResults ++ multiJvmResults
+          (Tests.overall(results.values), results)
+        },
         // custom settings here
         scalaVersion := SCALA_VERSION,
+	//	scalaOrganization := "org.scala-lang.macro-paradise",
         crossPaths := false,
-        resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
+	//        resolvers += Resolver.sonatypeRepo("snapshots"),
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.1.1",
           "org.xerial.snappy" % "snappy-java" % "1.1.0-M3" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
-          "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
-          "org.scala-lang" % "scala-reflect" % SCALA_VERSION
+          "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
+          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
+          "com.typesafe.akka" %% "akka-testkit" % "2.2-M2" % "test",
+          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         ),
         pomExtra := {
           <url>https://github.com/xerial/larray</url>
@@ -90,7 +104,7 @@ object Build extends sbt.Build {
             </developers>
         }
       )
-  )
+  ) configs(MultiJvm)
 
 
 }

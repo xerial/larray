@@ -3,12 +3,12 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * Supporting huge array size upto 2^63 -1 entries.
+ * LArray supports huge array size upto 2^63 -1 entries.
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory immediately. 
    * Call LArray.free 
-   * The default arrays in Java/Scala stays in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` 10,000 times. You are lucky if you don't see any OutOfMemoryException without setting `-Xmx` option adequately.
+   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see any OutOfMemoryException.
  * LArray can be collected by Garbage Collection (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List)
@@ -19,8 +19,9 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * LArray can be used as DirectBuffer
    * Enables zero-copy transfer to/from files, network, etc.
  * Rich set of operations for LArray[A]
-   * map, filter, reduce, zip, etc.
-
+   * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
+ * Supports Memory-mapped file larger than 2GB 
+   * `LArray.mmap`
  
 ## Limitations
 
@@ -39,11 +40,12 @@ LArray uses OS-specific implementation for copying memory contents between LArra
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## Usage (Scala)
-Add the following sbt dependencies to your project settings:
+
+### sbt settings
+Add the following sbt dependency to your project settings:
 
 ```scala
-# In preparation 
-libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
+libraryDependencies += "org.xerial" % "larray" % "0.1-M2"
 ```
 
  * For using snapshot versions:
@@ -53,6 +55,7 @@ resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repos
 
 libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
 ```
+### Example
 
 You can use LArray in the same manner with the standard Scala Arrays: 
 
@@ -77,11 +80,30 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](https://githu
 
 ## Usage (Java)
 
+Add the following dependency to your pom.xml (Maven): 
+```xml
+<dependency>
+  <groupId>org.xerial</groupId>
+  <artifactId>larray</artifactId>
+  <version>1.0-M1</version>
+</dependency>
+```
+
+### Manual download
+
+To use LArray without sbt or Maven, append all of the following jar files to your classpath:
+
+ * [larray-0.1-M1.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1-M1/larray-0.1-M1.jar)
+ * [scala-library-2.10.1.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.1/scala-library-2.10.1.jar)
+ * [xerial-core-3.1.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.1.1/xerial-core-3.1.1.jar)
+
+### Example 
+
 In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
 
 ```java
 import xerial.larray.japi.LArrayJ;
-import xerial.larray.LIntArray;
+import xerial.larray.*;
 
 LIntArray l = LArrayJ.newLIntArray(10000L);
 l.update(0L, 20); // Set l[0L] = 20
@@ -94,6 +116,5 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/snapshots/archive/org/xerial/larray/0.1-SNAPSHOT/larray-0.1-SNAPSHOT-javadoc.jar/!/index.html#xerial.larray.package)
- 
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M2/larray-0.1-M2-javadoc.jar/!/index.html#xerial.larray.package)
  

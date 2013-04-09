@@ -20,6 +20,8 @@ object LArrayView {
     protected[this] def newBuilder = new LBitArrayBuilder
     def apply(i:Long) = base.apply(i + offset)
 
+    def address = LArray.EmptyArray.address
+
     /**
      * Byte size of an element. For example, if A is Int, its elementByteSize is 4
      */
@@ -102,6 +104,8 @@ object LArrayView {
     def size = 0L
     def apply(i: Long) = EmptyArray.apply(i)
 
+    def address = LArray.EmptyArray.address
+
     /**
      * Byte size of an element. For example, if A is Int, its elementByteSize is 4
      */
@@ -126,11 +130,17 @@ object LArrayView {
 
 }
 
+/**
+ * Shallow-copy reference of the part of LArray
+ * @tparam A
+ */
 trait LArrayView[A] extends LSeq[A] {
 
 }
 
 abstract class AbstractLArrayView[A : ClassTag](base:LSeq[A], offset:Long, val size:Long) extends LArrayView[A] {
+
+  def address = base.address + (offset * elementByteSize)
 
   /**
    * Retrieve an element

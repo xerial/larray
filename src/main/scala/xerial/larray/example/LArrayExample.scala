@@ -15,15 +15,15 @@ class LArrayExample {
 
   import xerial.larray._
 
-  // Create a new LArray of Int type
+  // Create a new LArray of Int type of length = 5
   val l = LArray.of[Int](5)
 
   // Create an LArray with initial values
   val ll = LArray(3, 5, 9, 10)
 
-  // Set elements
-  for(i <- 0 until l.size.toInt)
-    l(i) = i
+  // Set elements. To specify a range of LArray, use 'Until' (for Long range) instead of 'until' (for Int range).
+  for(i <- 0 Until l.size)
+    l(i) = i.toInt
 
   // Read elements
   val e0 = l(0)
