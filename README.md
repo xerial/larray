@@ -45,7 +45,7 @@ In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since 
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.1-M1"
+libraryDependencies += "org.xerial" % "larray" % "0.1-M2"
 ```
 
  * For using snapshot versions:
@@ -116,5 +116,5 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M1/larray-0.1-M1-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M2/larray-0.1-M2-javadoc.jar/!/index.html#xerial.larray.package)
  
