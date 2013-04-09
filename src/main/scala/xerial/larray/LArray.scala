@@ -90,7 +90,7 @@ trait LSeq[A] extends LIterable[A] {
   /**
    * Raw-memory address of this array
    */
-  def address: Long
+  @inline def address: Long
 
   import UnsafeUtil.unsafe
 

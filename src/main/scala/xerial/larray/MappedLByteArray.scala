@@ -30,7 +30,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
   private val fc = raf.getChannel
   private val fd : Long = {
     val f = raf.getFD()
-    if(OSInfo.getOSName != "Windows") {
+    if(!OSInfo.isWindows) {
       val idf = f.getClass.getDeclaredField("fd")
       idf.setAccessible(true)
       idf.getInt(f)
@@ -57,7 +57,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
 
       val fileSize = fc.size()
       if(fileSize < offset + size) {
-        // extend file size
+        // extend the file size
         raf.seek(offset + size - 1)
         raf.write(0)
         trace(s"extend file size to ${fc.size}")
@@ -69,7 +69,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
       val rawAddr = LArrayNative.mmap(fd, mode.code, mapPosition, mapSize)
       trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
 
-      if(OSInfo.getOSName == "Windows") {
+      if(OSInfo.isWindows) {
         val a = SharedSecrets.getJavaIOFileDescriptorAccess
         winHandle = LArrayNative.duplicateHandle(a.getHandle(raf.getFD))
         debug(f"win handle: $winHandle%x")
@@ -102,7 +102,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
    }
 
   /**
-   * Close the memory mapped file
+   * Close the memory mapped file.
    */
   override def close() {
     flush
