@@ -73,8 +73,8 @@ object Build extends sbt.Build {
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
           "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
-          "com.typesafe.akka" %% "akka-testkit" % "2.1.2" % "test",
-          "com.typesafe.akka" %% "akka-remote-tests-experimental" % "2.1.2" % "test"
+          "com.typesafe.akka" %% "akka-testkit" % "2.2-M2" % "test",
+          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         ),
         pomExtra := {
           <url>https://github.com/xerial/larray</url>
