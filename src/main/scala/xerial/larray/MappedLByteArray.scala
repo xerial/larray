@@ -30,7 +30,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
   private val fc = raf.getChannel
   private val fd : Long = {
     val f = raf.getFD()
-    if(OSInfo.isWindows) {
+    if(!OSInfo.isWindows) {
       val idf = f.getClass.getDeclaredField("fd")
       idf.setAccessible(true)
       idf.getInt(f)
