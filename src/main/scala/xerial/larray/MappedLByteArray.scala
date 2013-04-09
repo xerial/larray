@@ -102,10 +102,10 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
    }
 
   /**
-   * Close the memory mapped file.
+   * Close the memory mapped file. To ensure the written data is saved in the file, call flush before closing
    */
   override def close() {
-    flush
+    //flush
     free
     fc.close()
   }
