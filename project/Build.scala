@@ -49,7 +49,8 @@ object Build extends sbt.Build {
           Seq("-sourcepath", bd.getAbsolutePath,
             "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
           "-doc-title", "LArray API",
-          "-doc-version", v
+          "-doc-version", v,
+	  "-diagrams"
           )
         },
         testOptions in Test <+= (target in Test) map {
