@@ -21,17 +21,18 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * Rich set of operations for LArray[A]
    * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
  * Supports Memory-mapped file larger than 2GB 
-   * `LArray.mmap`
+   * Use `LArray.mmap`
+   * It can create memory regions that can be shared between processes.
  
 ## Limitations
 
-  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and become subject to GC. 
+  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and they are under the control of GC. 
     * To release objects from main memory, you need to create *off-heap* objects. For example, create a large `LArray[Byte]`, then align your object data on the array. Object parameters can be retrieved with `LArray[Byte].getInt(offset)`, `getFloat(offset)`, etc. 
   
 
 ## Supported Platforms
 
-LArray uses OS-specific implementation for copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
+LArray uses OS-specific implementation for mmap and copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
@@ -68,6 +69,7 @@ println(l.mkString(", ")) // 1, 2, 3
 l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
+// Create an LArray of Int type
 val l2 = LArray.of[Int](10000L)
 
 // Release the memory resource
