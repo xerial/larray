@@ -10,7 +10,7 @@ object SharedMemoryTest {
 
 }
 
-trait Barrier extends Logger {
+trait Barrier extends Logger { this : LArraySpec =>
 
   val numJVMs : Int
 
@@ -40,20 +40,25 @@ trait Barrier extends Logger {
     debug(s"exit barrier: $name")
   }
 
+  before {
+    if(jvmID == 1) {
+      val lockFile = Option(new File("target").listFiles(new FileFilter {
+        def accept(pathname: File) = pathname.getName.endsWith(s".barrier")
+      })) getOrElse(Array.empty[File])
+
+      while(lockFile.exists(_.exists())) {
+        lockFile.filter(_.exists()) map (_.delete())
+        Thread.sleep(50)
+      }
+    }
+    else
+      Thread.sleep(1000)
+  }
+
 }
 
 trait SharedMemorySpec extends LArraySpec with Barrier {
   val numJVMs = 2
-
-  "cleanup barriers" in {
-    val barrierFiles = new File("target").listFiles(new FileFilter {
-      def accept(pathname: File) = {
-        pathname.getName.endsWith(".barrier")
-      }
-    })
-    for(f <- barrierFiles)
-      f.delete()
-  }
 
 }
 
