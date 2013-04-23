@@ -40,6 +40,8 @@ object Build extends sbt.Build {
         pomIncludeRepository := {
           _ => false
         },
+        logBuffered in Test := false,
+        logBuffered in MultiJvm := false,
         compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
         parallelExecution := true,
         parallelExecution in Test := false,
@@ -49,7 +51,8 @@ object Build extends sbt.Build {
           Seq("-sourcepath", bd.getAbsolutePath,
             "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
           "-doc-title", "LArray API",
-          "-doc-version", v
+          "-doc-version", v,
+	  "-diagrams"
           )
         },
         testOptions in Test <+= (target in Test) map {
