@@ -281,6 +281,15 @@ class LArrayTest extends LArraySpec {
       }
     }
 
+    "create view" taggedAs("view") in {
+      val l = LArray(1, 13, 4, 5)
+      val v = l.view(1, 3)
+      v.mkString(", ") shouldBe "13, 4"
+      val b = v.toDirectByteBuffer(0)
+      b.getInt() shouldBe 13
+      b.getInt() shouldBe 4
+    }
+
   }
 
 

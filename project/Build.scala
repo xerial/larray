@@ -40,6 +40,8 @@ object Build extends sbt.Build {
         pomIncludeRepository := {
           _ => false
         },
+        logBuffered in Test := false,
+        logBuffered in MultiJvm := false,
         compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
         parallelExecution := true,
         parallelExecution in Test := false,
