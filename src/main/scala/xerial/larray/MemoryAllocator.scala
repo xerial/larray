@@ -40,26 +40,12 @@ import xerial.larray.UnsafeUtil._
  */
 class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long) extends PhantomReference[Memory](m, queue) {
   def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address)
-  def headerAddress : Long = address - MemoryAllocator.HEADER_SIZE
 
-  /**
-   * the size of the allocated memory
-   */
-  def size = MemoryAllocator.readSize(address)
-
-  def free = {
-    unsafe.freeMemory(headerAddress)
-  }
 
 }
 
-class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], override val address:Long, override val size:Long) extends MemoryReference(m, queue, address) {
+class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], override val address:Long, val size:Long) extends MemoryReference(m, queue, address) {
   def this(m:MMapMemory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
-
-  override def free {
-    LArrayNative.munmap(address, size)
-    //MappedLArray.unmap0.invoke(null, m.address.asInstanceOf[AnyRef], m.size.asInstanceOf[AnyRef])
-  }
 }
 
 /**
@@ -81,7 +67,7 @@ abstract class Memory(val address: Long) {
 case class RawMemory(override val address:Long) extends Memory(address) {
   def headerAddress = address - MemoryAllocator.HEADER_SIZE
 
-  def size = if(address == 0) 0L else MemoryAllocator.readSize(address)
+  def size = if(address == 0) 0L else UnsafeUtil.unsafe.getLong(headerAddress)
 }
 
 case class MMapMemory(override val address:Long, override val size:Long) extends Memory(address) {
@@ -93,7 +79,6 @@ case class MMapMemory(override val address:Long, override val size:Long) extends
 object MemoryAllocator {
 
   val HEADER_SIZE = 8L
-  def readSize(address:Long) : Long = UnsafeUtil.unsafe.getLong(address - HEADER_SIZE)
 
   /**
    * Provides a default memory allocator
@@ -122,7 +107,7 @@ trait MemoryAllocator extends Logger {
 
   private def checkAddr(ref: MemoryReference, doRelease: Boolean) {
     val addr = ref.address
-    trace(f"Found unreleased memory address:${addr}%x of size ${ref.size}%,d")
+    trace(f"Found unreleased memory address:${addr}%x") //  of size ${ref.size}%,d")
     if (!hasDisplayedMemoryWarning) {
       debug("Some instances of LArray are not freed nor collected by GC. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
       debug(f"The total amount of unreleased memory: ${DataUnit.toHumanReadableFormat(allocatedSize)}")
@@ -256,11 +241,12 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
       ref match {
         case r:MMapMemoryReference =>
           trace(f"${if(isGC) "[GC] " else ""}released mmap   address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
-          r.free
+          LArrayNative.munmap(r.address, r.size)
         case r:MemoryReference =>
-          trace(f"${if(isGC) "[GC] " else ""}released memory address:${m.headerAddress}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
-          r.free
-          totalAllocatedSize.getAndAdd(-r.size)
+          val size = m.size
+          trace(f"${if(isGC) "[GC] " else ""}released memory address:${m.headerAddress}%x, size:${DataUnit.toHumanReadableFormat(size)}")
+          unsafe.freeMemory(m.headerAddress)
+          totalAllocatedSize.getAndAdd(- size)
       }
       ref.clear()
       allocatedMemoryReferences.remove(m.address)
