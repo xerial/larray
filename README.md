@@ -51,7 +51,7 @@ In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since 
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.1"
+libraryDependencies += "org.xerial" % "larray" % "0.1.2"
 ```
 
  * For using snapshot versions:
@@ -92,7 +92,7 @@ Add the following dependency to your pom.xml (Maven): 
 <dependency>
   <groupId>org.xerial</groupId>
   <artifactId>larray</artifactId>
-  <version>0.1</version>
+  <version>0.1.2</version>
 </dependency>
 ```
 
@@ -100,9 +100,9 @@ Add the following dependency to your pom.xml (Maven): 
 
 To use LArray without sbt or Maven, append all of the following jar files to your classpath:
 
- * [larray-0.1.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1/larray-0.1.jar)
- * [scala-library-2.10.1.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.1/scala-library-2.10.1.jar)
- * [xerial-core-3.1.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.1.1/xerial-core-3.1.1.jar)
+ * [larray-0.1.2.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1.2/larray-0.1.2.jar)
+ * [scala-library-2.10.2.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.2/scala-library-2.10.2.jar)
+ * [xerial-core-3.2.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.2.1/xerial-core-3.2.1.jar)
 
 ### Example 
 
