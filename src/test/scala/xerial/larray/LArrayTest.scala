@@ -38,7 +38,7 @@ class LArrayTest extends LArraySpec {
   }
 
   "LArray" should {
-    "have constructor" in {
+    "have constructor" taggedAs("cc") in {
 
       val l = LArray(1, 2, 3)
       val l0 = LArray()
@@ -66,7 +66,7 @@ class LArrayTest extends LArraySpec {
       }
     }
 
-    "have map/flatMap" in {
+    "have map/flatMap" taggedAs("map") in {
       val l = LArray(1, 3, 5)
       def mul(v: Int) = v * 2
 
