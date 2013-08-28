@@ -63,7 +63,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
     (offset % allocationGranularity).toInt
   }
 
-  private var m : Memory = _
+  private var m : MMapMemory = _
 
   val address : Long = {
     try {
@@ -90,8 +90,8 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
         debug(f"win handle: $winHandle%x")
       }
 
-      m = Memory(rawAddr, mapSize)
-      alloc.registerMMapMemory(m)
+      m = MMapMemory(rawAddr, mapSize)
+      alloc.registerMMapMemory(m, mapSize)
 
       rawAddr + pagePosition
     }

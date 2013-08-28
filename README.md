@@ -41,6 +41,7 @@ LArray uses OS-specific implementation for mmap and copying memory contents betw
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## History
+ * August 28, 2013  version 0.1.2 - improved memory layout
  * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
  * Apr 23, 2013   Released version 0.1
 
