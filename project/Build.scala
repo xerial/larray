@@ -21,7 +21,7 @@ object Build extends sbt.Build {
     }
   }
 
-  private val SCALA_VERSION = "2.10.1"
+  private val SCALA_VERSION = "2.10.2"
 
   lazy val root = Project(
     id = "larray",
@@ -58,10 +58,14 @@ object Build extends sbt.Build {
         testOptions in Test <+= (target in Test) map {
           t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
         },
-        executeTests in Test <<= ((executeTests in Test), (executeTests in MultiJvm)) map {
-          case ((_, testResults), (_, multiJvmResults)) =>
-            val results = testResults ++ multiJvmResults
-          (Tests.overall(results.values), results)
+        executeTests in Test := {
+          val testResults : Tests.Output = (executeTests in Test).value
+          val multiJvmTestResults : Tests.Output = (executeTests in MultiJvm).value
+          val results = testResults.events ++ multiJvmTestResults.events
+          Tests.Output(
+            Tests.overall(Seq(testResults.overall, multiJvmTestResults.overall)),
+            results,
+            testResults.summaries ++ multiJvmTestResults.summaries)
         },
         // custom settings here
         scalaVersion := SCALA_VERSION,
@@ -70,8 +74,8 @@ object Build extends sbt.Build {
 	//        resolvers += Resolver.sonatypeRepo("snapshots"),
         libraryDependencies ++= Seq(
           // Add dependent jars here
-          "org.xerial" % "xerial-core" % "3.1.1",
-          "org.xerial.snappy" % "snappy-java" % "1.1.0-M3" % "test",
+          "org.xerial" % "xerial-core" % "3.2.1",
+          "org.xerial.snappy" % "snappy-java" % "1.1.0-M4" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",

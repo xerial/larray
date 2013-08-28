@@ -15,8 +15,6 @@
  *--------------------------------------------------------------------------*/
 package xerial.larray.impl;
 
-import java.lang.reflect.Method;
-
 /**
  * LArray native code interface
  * @author Taro L. Saito
@@ -25,9 +23,7 @@ public class LArrayNative {
 
     static {
         try {
-            // Use reflection to make easier jni-header compilation in Makefile
-            Method m = Class.forName("xerial.larray.impl.LArrayLoader").getDeclaredMethod("load");
-            m.invoke(null);
+            LArrayLoader.load();
         }
         catch (Exception e) {
             e.printStackTrace();

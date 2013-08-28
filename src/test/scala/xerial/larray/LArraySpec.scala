@@ -28,12 +28,13 @@ import org.scalatest._
 import java.io.{PrintStream, ByteArrayOutputStream}
 import scala.language.implicitConversions
 import xerial.core.io.Resource
+import xerial.core.log.Logger
 
 
 /**
  * @author leo
  */
-trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with xerial.core.log.Logger
+trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
  with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
 
   implicit def toTag(t:String) = Tag(t)
