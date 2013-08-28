@@ -38,7 +38,7 @@ class LArrayTest extends LArraySpec {
   }
 
   "LArray" should {
-    "have constructor" in {
+    "have constructor" taggedAs("cc") in {
 
       val l = LArray(1, 2, 3)
       val l0 = LArray()
