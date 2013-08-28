@@ -1,3 +1,18 @@
+/*--------------------------------------------------------------------------
+ *  Copyright 2013 Taro L. Saito
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *--------------------------------------------------------------------------*/
 //--------------------------------------
 //
 // LArray.scala
@@ -10,7 +25,7 @@ package xerial.larray
 import impl.LArrayNative
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
-import java.nio.ByteBuffer
+import java.nio.{ByteOrder, ByteBuffer}
 import java.nio.channels.{FileChannel, WritableByteChannel}
 import sun.nio.ch.DirectBuffer
 import java.io.{FileInputStream, FileOutputStream, File}
@@ -51,8 +66,18 @@ trait LSeq[A] extends LIterable[A] {
    * Create a sequence of DirectByteBuffer that projects LArray contents
    * @return sequence of `java.nio.ByteBuffer`
    */
-  def toDirectByteBuffer: Array[ByteBuffer] =
-    throw new UnsupportedOperationException("toDirectByteBuffer")
+  def toDirectByteBuffer: Array[ByteBuffer] = {
+    var pos = 0L
+    val b = Array.newBuilder[ByteBuffer]
+    val limit = byteLength
+    while (pos < limit) {
+      val len: Long = math.min(limit - pos, Int.MaxValue)
+      val d = UnsafeUtil.newDirectByteBuffer(address + pos, len.toInt)
+      b += d.order(ByteOrder.nativeOrder())
+      pos += len
+    }
+    b.result()
+  }
 
 
   /**
@@ -664,17 +689,6 @@ trait RawByteArray[A] extends LArray[A] {
     writeLen
   }
 
-  override def toDirectByteBuffer: Array[ByteBuffer] = {
-    var pos = 0L
-    val b = Array.newBuilder[ByteBuffer]
-    val limit = byteLength
-    while (pos < limit) {
-      val len: Long = math.min(limit - pos, Int.MaxValue)
-      b += UnsafeUtil.newDirectByteBuffer(address + pos, len.toInt)
-      pos += len
-    }
-    b.result()
-  }
 
   /**
    * Write the contents of this array to the destination buffer

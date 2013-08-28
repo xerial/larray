@@ -8,7 +8,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * For example, the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released from the main memory immediately. 
    * Call LArray.free 
-   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see any OutOfMemoryException.
+   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
  * LArray can be collected by Garbage Collection (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List)
@@ -21,17 +21,18 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * Rich set of operations for LArray[A]
    * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
  * Supports Memory-mapped file larger than 2GB 
-   * `LArray.mmap`
+   * Use `LArray.mmap`
+   * It can create memory regions that can be shared between processes.
  
 ## Limitations
 
-  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and become subject to GC. 
+  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and they are under the control of GC. 
     * To release objects from main memory, you need to create *off-heap* objects. For example, create a large `LArray[Byte]`, then align your object data on the array. Object parameters can be retrieved with `LArray[Byte].getInt(offset)`, `getFloat(offset)`, etc. 
   
 
 ## Supported Platforms
 
-LArray uses OS-specific implementation for copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
+LArray uses OS-specific implementation for mmap and copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
@@ -39,13 +40,17 @@ LArray uses OS-specific implementation for copying memory contents between LArra
 
 In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
+## History
+ * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
+ * Apr 23, 2013   Released version 0.1
+
 ## Usage (Scala)
 
 ### sbt settings
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.1-M2"
+libraryDependencies += "org.xerial" % "larray" % "0.1"
 ```
 
  * For using snapshot versions:
@@ -53,7 +58,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.1-M2"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial" % "larray" % "0.1-SNAPSHOT"
+libraryDependencies += "org.xerial" % "larray" % "0.2-SNAPSHOT"
 ```
 ### Example
 
@@ -68,6 +73,7 @@ println(l.mkString(", ")) // 1, 2, 3
 l(1) = 5
 println(l.mkString(", ")) // 1, 5, 3
     
+// Create an LArray of Int type
 val l2 = LArray.of[Int](10000L)
 
 // Release the memory resource
@@ -85,7 +91,7 @@ Add the following dependency to your pom.xml (Maven): 
 <dependency>
   <groupId>org.xerial</groupId>
   <artifactId>larray</artifactId>
-  <version>1.0-M1</version>
+  <version>0.1</version>
 </dependency>
 ```
 
@@ -93,7 +99,7 @@ Add the following dependency to your pom.xml (Maven): 
 
 To use LArray without sbt or Maven, append all of the following jar files to your classpath:
 
- * [larray-0.1-M1.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1-M1/larray-0.1-M1.jar)
+ * [larray-0.1.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1/larray-0.1.jar)
  * [scala-library-2.10.1.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.1/scala-library-2.10.1.jar)
  * [xerial-core-3.1.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.1.1/xerial-core-3.1.1.jar)
 
@@ -116,5 +122,5 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1-M2/larray-0.1-M2-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1/larray-0.1-javadoc.jar/!/index.html#xerial.larray.package)
  
