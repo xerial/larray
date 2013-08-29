@@ -14,10 +14,10 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
  * LArray uses off-heap memory
    * LArray uses a memory space outside JVM heap, so creating LArrays with more than -Xmx(maximum heap size) is possible. This is useful when you need large amount of memory, or it is unknown how much memory is required in your application.
  * Fast memory allocation
-   * LArray internally uses concurrent memory allocator suited to multi-threaded programs, which is faster than the default JVM memory allocator.
+   * LArray internally uses a concurrent memory allocator suited to multi-threaded programs, which is faster than the default JVM memory allocator.
  * LArray can be used as DirectBuffer
    * Enables zero-copy transfer to/from files, network, etc.
-   * Zero-copy compression with [snappy-java](https://github.com/xerial/snappy-java) (since version 1.1.0-M4. Use Snappy.rawCompress, etc.) 
+   * Zero-copy compression with [snappy-java](https://github.com/xerial/snappy-java) (supported since version 1.1.0-M4. Pass LArray.address to Snappy.rawCompress etc.) 
  * Rich set of operations for LArray[A]
    * map, filter, reduce, zip, etc. Almost all collection operations in Scala are already implemented for LArray[A].
  * Supports Memory-mapped file larger than 2GB 
