@@ -3,16 +3,16 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * Create arrays more than 2G(2^31) entries.
+ * LAray can create arrays with more than 2G(2^31) entries.
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because these arrays use 32-bit signed integer (int) as indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
- * LArray.free can be released immediately from the memory.
+ * With LArray.free, it can be released immediately from the memory.
    * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
  * LArray can be collected by Garbage Collector (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List) as in the standard Java/Scala program.
- * LArray uses an off-heap memory
-   * LArray uses a memory space outside JVM heap, so creating LArrays with more than -Xmx(maximum heap size) is possible. This is useful when you need large amount of memory, or it is unknown how much memory is required in your application.
+ * LArray resides in off-heap memory 
+   * LArray uses a memory space outside the JVM heap, so creating LArrays with more than -Xmx(maximum heap size) is possible. This is useful when you need large amount of memory, or it is unknown how much memory is required in your application.
  * Fast memory allocation
    * LArray internally uses a concurrent memory allocator suited to multi-threaded programs, which is faster than the default JVM memory allocator.
    * LArray by default skips the array initialization (zero-filling), which improves the memory allocation speed significantly.
@@ -55,7 +55,7 @@ Add the following sbt dependency to your project settings:
 libraryDependencies += "org.xerial" % "larray" % "0.1.2"
 ```
 
- * For using snapshot versions:
+ * Using snapshot versions:
 
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
@@ -64,7 +64,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.2-SNAPSHOT"
 ```
 ### Example
 
-You can use LArray in the same manner with the standard Scala Arrays: 
+LArray can be used in the same manner with the standard Scala Arrays: 
 
 ```scala
 import xerial.larray._
