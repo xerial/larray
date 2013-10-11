@@ -3,18 +3,19 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * LArray supports huge array size upto 2^63 -1 entries.
-   * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because 32-bit signed integer (int) is used for the array indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
+ * Create arrays more than 2G(2^31) entries.
+   * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because these arrays use 32-bit signed integer (int) as indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
- * LArray.free can be used to release the acquired memory immediately. 
+ * LArray.free can be released immediately from the memory.
    * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
  * LArray can be collected by Garbage Collector (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
-   * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List) as in standard Java/Scala program.
- * LArray uses off-heap memory
+   * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List) as in the standard Java/Scala program.
+ * LArray uses an off-heap memory
    * LArray uses a memory space outside JVM heap, so creating LArrays with more than -Xmx(maximum heap size) is possible. This is useful when you need large amount of memory, or it is unknown how much memory is required in your application.
  * Fast memory allocation
    * LArray internally uses a concurrent memory allocator suited to multi-threaded programs, which is faster than the default JVM memory allocator.
+   * LArray by default skips the array initialization (zero-filling), which improves the memory allocation speed significantly.
  * LArray can be used as DirectBuffer
    * Enables zero-copy transfer to/from files, network, etc.
    * Zero-copy compression with [snappy-java](https://github.com/xerial/snappy-java) (supported since version 1.1.0-M4. Pass LArray.address to Snappy.rawCompress etc.) 
@@ -106,7 +107,7 @@ To use LArray without sbt or Maven, append all of the following jar files to you
 
 ### Example 
 
-In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in arrays.
+In Java we cannot provide concise syntaxes as in Scala. Instead, use `apply` and `update` methods to read/write values in an array.
 
 ```java
 import xerial.larray.japi.LArrayJ;
@@ -123,5 +124,5 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1/larray-0.1-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1.2/larray-0.1.2-javadoc.jar/!/index.html#xerial.larray.package)
  
