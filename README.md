@@ -3,10 +3,11 @@ LArray
 A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
 
 ## Features 
- * LAray can create arrays with more than 2G(2^31) entries.
+ * LArray can create arrays with more than 2G(2^31) entries.
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because these arrays use 32-bit signed integer (int) as indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
- * With LArray.free, it can be released immediately from the memory.
+ * LArray can be released immediately from the memory.
+   * Call LArray.free.
    * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
  * LArray can be collected by Garbage Collector (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
