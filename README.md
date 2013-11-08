@@ -127,3 +127,10 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
 
  * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1.2/larray-0.1.2-javadoc.jar/!/index.html#xerial.larray.package)
  
+## For developers
+
+* Building LArray: `bin/sbt compile`
+* Run tests: `bin/sbt ~test`
+* Creating IntelliJ IDEA project: `bin/sbt gen-idea`
+
+
