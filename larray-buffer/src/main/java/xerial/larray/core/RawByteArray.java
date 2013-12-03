@@ -61,7 +61,7 @@ public class RawByteArray {
 
 
     /**
-     * Address of the
+     * Address of the data part of the allocated memory
      * @return
      */
     public long data() {
