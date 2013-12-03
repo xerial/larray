@@ -1,6 +1,6 @@
 //--------------------------------------
 //
-// RawArrayTest.scala
+// RawByteArrayTestTest.scala
 // Since: 2013/12/03 12:02 PM
 //
 //--------------------------------------
@@ -20,36 +20,65 @@ with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
 /**
  * @author Taro L. Saito
  */
-class RawArrayTest extends LArraySpec {
-  "RawArray" should {
+class RawByteArrayTest extends LArraySpec {
+
+  implicit class RichArray(m:RawByteArray) {
+    def toCSV = m.toArray.mkString(", ")
+  }
+
+
+  "RawByteArray" should {
 
     "allocate memory" in {
-      val m = new RawArray(1000)
+      val m = new RawByteArray(1000)
       m.putInt(0, 0)
       m.putInt(4, 1)
       m.putInt(8, 130)
 
+      m.getInt(0) shouldBe 0
+      m.getInt(4) shouldBe 1
+      m.getInt(8) shouldBe 130
+
+      m.size() shouldBe 1000
+
+      (0 until m.size()).foreach(i => m.putByte(i, (i % 128).toByte))
+      (0 until m.size()).forall(i => m.getByte(i) == (i % 128).toByte) should be (true)
+
+      m.clear()
+
+      (0 until 1000).forall(i => m.getByte(i) == 0) should be (true)
+
       m.release()
+    }
+
+    "convert to array" in {
+      val m = new RawByteArray(12);
+      for(i <- 0 until m.size)
+        m(i) = i.toByte
+      debug(m.toCSV)
+
+      m.clear()
+      debug(m.toCSV)
     }
 
 
     "allocate concurrently" in {
 
-      val N = 1000
+      val N = 100
       def range = (0 until N).par
-      val R = 1
+      val R = 2
       val S = 1024 * 1024
 
-      time("concurrent allocation", repeat=3) {
+      time("concurrent allocation", repeat=10) {
         block("without zero-filling", repeat=R) {
           for(i <- range) yield {
-            new RawArray(S)
+            new RawByteArray(S)
           }
         }
 
         block("with zero-filling", repeat=R) {
           for(i <- range) yield {
-            val m = new RawArray(S)
+            val m = new RawByteArray(S)
             m.clear()
             m
           }

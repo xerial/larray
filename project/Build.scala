@@ -27,7 +27,6 @@ object Build extends sbt.Build {
     organization := "org.xerial",
     organizationName := "xerial.org",
     organizationHomepage := Some(new URL("http://xerial.org")),
-
     publishMavenStyle := true,
     publishArtifact in Test := false,
     publishTo <<= version {
@@ -39,19 +38,10 @@ object Build extends sbt.Build {
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
-    scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
-      Seq("-sourcepath", bd.getAbsolutePath,
-        "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
-        "-doc-title", "LArray API",
-        "-doc-version", v,
-        "-diagrams"
-      )
-    },
+    javacOptions in Compile ++= Seq("-Xlint:unchecked"),
     testOptions in Test <+= (target in Test) map {
       t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
     },
-    scalaVersion := SCALA_VERSION,
     crossPaths := false,
     pomExtra := {
       <url>https://github.com/xerial/larray</url>
@@ -89,7 +79,7 @@ object Build extends sbt.Build {
        publish := {},
        publishLocal := {}
     )
-  ) aggregate(larrayScala, larrayJava)
+  ) aggregate(larrayScala, larrayBuffer)
 
 
   lazy val larrayScala = Project(
@@ -100,7 +90,16 @@ object Build extends sbt.Build {
         description := "LArray: A Large off-heap arrays for Scala/Java",
         logBuffered in MultiJvm := false,
         compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
-        javacOptions in Compile ++= Seq("-Xlint:unchecked"),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
+        scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
+          Seq("-sourcepath", bd.getAbsolutePath,
+            "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
+            "-doc-title", "LArray API",
+            "-doc-version", v,
+            "-diagrams"
+          )
+        },
+        scalaVersion := SCALA_VERSION,
         executeTests in Test := {
           val testResults : Tests.Output = (executeTests in Test).value
           val multiJvmTestResults : Tests.Output = (executeTests in MultiJvm).value
@@ -122,11 +121,11 @@ object Build extends sbt.Build {
           "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         )
       )
-  ) configs(MultiJvm)
+  ) dependsOn(larrayBuffer) configs(MultiJvm)
 
-  lazy val larrayJava = Project(
-    id = "larray-java",
-    base = file("larray-java"),
+  lazy val larrayBuffer = Project(
+    id = "larray-buffer",
+    base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
       description := "LArray core library",
       autoScalaLibrary := false,
