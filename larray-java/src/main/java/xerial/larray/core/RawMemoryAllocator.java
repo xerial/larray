@@ -9,33 +9,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import static xerial.larray.core.UnsafeUtil.unsafe;
 
 
-interface Memory {
-
-    /**
-     * Allocated memory address
-     * @return
-     */
-    long address();
-
-    /**
-     * data-part address
-     * @return data address
-     */
-    long data();
-
-    /**
-     * Allocated memory size
-     * @return
-     */
-    long size();
-
-    /**
-     * data-part size
-     * @return
-     */
-    long dataSize();
-}
-
 /**
  * Stores |(memory size:long)| data ... |
  */
@@ -79,7 +52,7 @@ class MemoryReference extends PhantomReference<Memory> {
 /**
  * @author Taro L. Saito
  */
-public class RawMemoryAllocator {
+public class RawMemoryAllocator implements MemoryAllocator {
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();

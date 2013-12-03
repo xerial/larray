@@ -1,35 +1,61 @@
 package xerial.larray.core;
 
-import static xerial.larray.core.UnsafeUtil.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-
+import static xerial.larray.core.UnsafeUtil.unsafe;
 
 
 /**
  * Raw off-heap array of int indexes.
  *
- *
  * @author Taro L. Saito
  */
-public class RawArray {
+public class RawByteArray {
 
     final Memory m;
 
-    public static RawMemoryAllocator alloc = new RawMemoryAllocator();
+    public static MemoryAllocator alloc = new RawMemoryAllocator();
 
-    public RawArray(int size) {
+    /**
+     * Allocate a memory of the specified byte size
+     * @param size byte size of the array
+     */
+    public RawByteArray(int size) {
         this.m = alloc.allocate(size);
     }
 
+    /**
+     * Read a byte at offset
+     * @param offset
+     * @return
+     */
+    public byte apply(int offset) {
+        return getByte(offset);
+    }
 
     /**
-     * Release the memory content. After this method invocation, the behaiour of
-     * getXXX and putXXX methods are undefined.
+     * Set a byte at offset
+     * @param offset
+     * @param value
+     */
+    public void update(int offset, byte value) {
+        putByte(offset, value);
+    }
+
+    /**
+     * Release the memory content. After this method invocation, the behaviour of
+     * getXXX and putXXX methods becomes undefined.
      */
     public void release() {
         alloc.release(m);
     }
 
+
+    /**
+     * Address of the
+     * @return
+     */
     public long data() {
         return m.data();
     }
@@ -89,7 +115,6 @@ public class RawArray {
     public void putInt(int offset, int value) {
         unsafe.putInt(m.data() + offset, value);
     }
-
     public void putFloat(int offset, float value) {
         unsafe.putFloat(m.data() + offset, value);
     }
@@ -103,19 +128,23 @@ public class RawArray {
     }
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
-        unsafe.copyMemory(null, m.data() + srcOffset, destArray, unsafe.ARRAY_BYTE_BASE_OFFSET + destOffset, size);
+        unsafe.copyMemory(null, m.data() + srcOffset, destArray, destOffset, size);
     }
 
-    public void copyTo(int srcOffset, RawArray dest, int destOffset, int size) {
+    public void copyTo(int srcOffset, RawByteArray dest, int destOffset, int size) {
         unsafe.copyMemory(m.data() + srcOffset, dest.data() + destOffset, size);
     }
 
     public byte[] toArray() {
         byte[] b = new byte[(int) m.dataSize()];
-        unsafe.copyMemory(m.data(), 0L, b, unsafe.ARRAY_BYTE_BASE_OFFSET, m.dataSize());
+        unsafe.copyMemory(m.data(), 0L, b, 0, m.dataSize());
         return b;
     }
 
+    public ByteBuffer toDirectByteBuffer() {
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), (int) m.dataSize());
+        return b.order(ByteOrder.nativeOrder());
+    }
 }
 
 
