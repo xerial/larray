@@ -129,8 +129,8 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](https://g
  
 ## For developers
 
-* Building LArray: `bin/sbt compile`
-* Run tests: `bin/sbt ~test`
+* Building LArray: `./sbt compile`
+* Run tests: `./sbt ~test`
 * Creating IntelliJ IDEA project: `bin/sbt gen-idea`
 
 
