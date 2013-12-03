@@ -42,7 +42,7 @@ declare -r sbt_snapshot_version=0.13.0-SNAPSHOT
 declare -r sbt_snapshot_baseurl="http://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/org.scala-sbt/sbt-launch/"
 
 declare default_jvm_opts="-Dfile.encoding=UTF8"
-declare -r default_sbt_opts="-XX:+CMSClassUnloadingEnabled "
+declare -r default_sbt_opts="-XX:+CMSClassUnloadingEnabled -XX:ReservedCodeCacheSize=128m"
 declare -r default_sbt_mem=1536
 declare -r noshare_opts="-Dsbt.global.base=project/.sbtboot -Dsbt.boot.directory=project/.boot -Dsbt.ivy.home=project/.ivy"
 declare -r sbt_opts_file=".sbtopts"
