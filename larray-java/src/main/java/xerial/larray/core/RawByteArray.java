@@ -1,7 +1,15 @@
 package xerial.larray.core;
 
+import sun.nio.ch.DirectBuffer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 import static xerial.larray.core.UnsafeUtil.unsafe;
 
@@ -128,7 +136,8 @@ public class RawByteArray {
     }
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
-        unsafe.copyMemory(null, m.data() + srcOffset, destArray, destOffset, size);
+        ByteBuffer b = toDirectByteBuffer(srcOffset, size);
+        b.get(destArray, destOffset, size);
     }
 
     public void copyTo(int srcOffset, RawByteArray dest, int destOffset, int size) {
@@ -137,13 +146,99 @@ public class RawByteArray {
 
     public byte[] toArray() {
         byte[] b = new byte[(int) m.dataSize()];
-        unsafe.copyMemory(m.data(), 0L, b, 0, m.dataSize());
+        toDirectByteBuffer().get(b);
         return b;
     }
+
+    public void writeTo(FileChannel channel) throws IOException {
+        channel.write(toDirectByteBuffer());
+    }
+
+    public void writeTo(File file) throws IOException {
+        FileChannel channel = new FileOutputStream(file).getChannel();
+        try {
+            writeTo(channel);
+        }
+        finally {
+            channel.close();
+        }
+    }
+
+    public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
+        int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
+        // TODO Fix this since copy memory cannot access byte[] addresses
+        unsafe.copyMemory(src, srcOffset, null, m.data() + destOffset, readLen);
+        return readLen;
+    }
+
+
+    public static RawByteArray loadFrom(File file) throws IOException {
+        FileChannel fin = new FileInputStream(file).getChannel();
+        long fileSize = fin.size();
+        if(fileSize > Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Cannot load from file more than 2GB: " + file);
+        RawByteArray b = new RawByteArray((int) fileSize);
+        long pos = 0L;
+        WritableChannelWrap ch = new WritableChannelWrap(b);
+        while(pos < fileSize) {
+            pos += fin.transferTo(0, fileSize, ch);
+        }
+        return b;
+    }
+
 
     public ByteBuffer toDirectByteBuffer() {
         ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), (int) m.dataSize());
         return b.order(ByteOrder.nativeOrder());
+    }
+
+    public ByteBuffer toDirectByteBuffer(int offset, int size) {
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data() + offset, size);
+        return b.order(ByteOrder.nativeOrder());
+    }
+
+}
+
+
+class WritableChannelWrap implements WritableByteChannel {
+
+    private final RawByteArray b;
+    long cursor = 0L;
+
+    WritableChannelWrap(RawByteArray b) {
+        this.b = b;
+    }
+
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        int len = (int) Math.max(src.limit() - src.position(), 0);
+        int writeLen = 0;
+        if(src.getClass().isAssignableFrom(DirectBuffer.class)) {
+            DirectBuffer d = (DirectBuffer) src;
+            unsafe.copyMemory(d.address() + src.position(), cursor, len);
+            writeLen = len;
+        }
+        else if(src.hasArray()) {
+            writeLen = b.readFrom(src.array(), src.position(), cursor, len);
+        }
+        else {
+            for(long i=0; i<len; ++i)
+                unsafe.putByte(b.data() + i, src.get((int) (src.position() + i)));
+            writeLen = len;
+        }
+        cursor += writeLen;
+        src.position(src.position() + writeLen);
+        return writeLen;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return true;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // do nothing
     }
 }
 

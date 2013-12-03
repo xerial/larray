@@ -21,6 +21,12 @@ with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
  * @author Taro L. Saito
  */
 class RawByteArrayTest extends LArraySpec {
+
+  implicit class RichArray(m:RawByteArray) {
+    def toCSV = m.toArray.mkString(", ")
+  }
+
+
   "RawByteArray" should {
 
     "allocate memory" in {
@@ -47,10 +53,12 @@ class RawByteArrayTest extends LArraySpec {
 
     "convert to array" in {
       val m = new RawByteArray(12);
+      for(i <- 0 until m.size)
+        m(i) = i.toByte
+      debug(m.toCSV)
+
       m.clear()
-      debug(m.toArray.mkString(", "))
-
-
+      debug(m.toCSV)
     }
 
 
