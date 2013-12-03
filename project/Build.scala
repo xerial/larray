@@ -79,7 +79,7 @@ object Build extends sbt.Build {
        publish := {},
        publishLocal := {}
     )
-  ) aggregate(larrayScala, larrayJava)
+  ) aggregate(larrayScala, larrayBuffer)
 
 
   lazy val larrayScala = Project(
@@ -121,11 +121,11 @@ object Build extends sbt.Build {
           "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         )
       )
-  ) configs(MultiJvm)
+  ) dependsOn(larrayBuffer) configs(MultiJvm)
 
-  lazy val larrayJava = Project(
-    id = "larray-java",
-    base = file("larray-java"),
+  lazy val larrayBuffer = Project(
+    id = "larray-buffer",
+    base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
       description := "LArray core library",
       autoScalaLibrary := false,

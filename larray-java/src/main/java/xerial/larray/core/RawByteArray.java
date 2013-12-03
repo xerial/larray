@@ -164,10 +164,11 @@ public class RawByteArray {
         }
     }
 
-    public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
+    public int readFrom(byte[] src, int srcOffset, int destOffset, int length) {
         int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
-        // TODO Fix this since copy memory cannot access byte[] addresses
-        unsafe.copyMemory(src, srcOffset, null, m.data() + destOffset, readLen);
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), size());
+        b.position(destOffset);
+        b.put(src, srcOffset, readLen);
         return readLen;
     }
 
@@ -203,7 +204,7 @@ public class RawByteArray {
 class WritableChannelWrap implements WritableByteChannel {
 
     private final RawByteArray b;
-    long cursor = 0L;
+    int cursor = 0;
 
     WritableChannelWrap(RawByteArray b) {
         this.b = b;
