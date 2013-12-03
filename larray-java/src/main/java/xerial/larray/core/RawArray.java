@@ -35,15 +35,7 @@ public class RawArray {
     }
 
     public void clear() {
-        final int limit = (int) (m.dataSize() / 8L);
-        final int remaining = (int) (m.dataSize() % 8L);
-
-        for(int i=0; i<limit; i++) {
-            putLong(i, 0L);
-        }
-        for(int i=limit; i <limit + remaining; i++) {
-            putByte(i, (byte) 0);
-        }
+        unsafe.setMemory(m.data(), m.dataSize(), (byte) 0);
     }
 
     public byte getByte(int offset) {

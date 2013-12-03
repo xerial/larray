@@ -11,6 +11,7 @@ import org.scalatest._
 import xerial.core.io.Resource
 import xerial.core.util.Timer
 import xerial.core.log.Logger
+import java.nio.ByteBuffer
 
 trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
 with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
@@ -34,12 +35,43 @@ class RawArrayTest extends LArraySpec {
 
     "allocate concurrently" in {
 
-      val N = 1000
+      val N = 100000
+      val R = 10
+      val S = 8192
 
-      time("concurrent allcation") {
-        for(i <- (0 until N).par) yield {
-          val m = new RawArray(8192)
+      time("concurrent allocation", repeat=5) {
+        block("without zero-filling", repeat=R) {
+          for(i <- (0 until N).par) yield {
+            new RawArray(S)
+          }
         }
+
+        block("with zero-filling", repeat=R) {
+          for(i <- (0 until N).par) yield {
+            val m = new RawArray(S)
+            m.clear()
+            m
+          }
+        }
+
+        block("java array", repeat=R) {
+          for(i <- (0 until N).par) yield {
+            new Array[Byte](S)
+          }
+        }
+
+        block("byte buffer", repeat=R) {
+          for(i <- (0 until N).par) yield {
+            ByteBuffer.allocate(S)
+          }
+        }
+
+        block("direct byte buffer", repeat=R) {
+          for(i <- (0 until N).par) yield {
+            ByteBuffer.allocateDirect(S)
+          }
+        }
+
       }
     }
 
