@@ -62,7 +62,7 @@ NATIVE_DLL:=$(NATIVE_DIR)/$(LIBNAME)
 native: osinfo $(NATIVE_DLL) 
 larray: native $(VERSION_FILE) $(TARGET)/larray-$(VERSION).jar
 
-SBT:=bin/sbt
+SBT:=./sbt
 
 $(NATIVE_DLL): $(LARRAY_OUT)/$(LIBNAME) 
 	@mkdir -p $(@D)
