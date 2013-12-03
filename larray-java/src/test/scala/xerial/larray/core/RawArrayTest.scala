@@ -35,19 +35,20 @@ class RawArrayTest extends LArraySpec {
 
     "allocate concurrently" in {
 
-      val N = 100000
-      val R = 10
-      val S = 8192
+      val N = 1000
+      def range = (0 until N).par
+      val R = 1
+      val S = 1024 * 1024
 
-      time("concurrent allocation", repeat=5) {
+      time("concurrent allocation", repeat=3) {
         block("without zero-filling", repeat=R) {
-          for(i <- (0 until N).par) yield {
+          for(i <- range) yield {
             new RawArray(S)
           }
         }
 
         block("with zero-filling", repeat=R) {
-          for(i <- (0 until N).par) yield {
+          for(i <- range) yield {
             val m = new RawArray(S)
             m.clear()
             m
@@ -55,19 +56,19 @@ class RawArrayTest extends LArraySpec {
         }
 
         block("java array", repeat=R) {
-          for(i <- (0 until N).par) yield {
+          for(i <- range) yield {
             new Array[Byte](S)
           }
         }
 
         block("byte buffer", repeat=R) {
-          for(i <- (0 until N).par) yield {
+          for(i <- range) yield {
             ByteBuffer.allocate(S)
           }
         }
 
         block("direct byte buffer", repeat=R) {
-          for(i <- (0 until N).par) yield {
+          for(i <- range) yield {
             ByteBuffer.allocateDirect(S)
           }
         }

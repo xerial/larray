@@ -34,8 +34,16 @@ public class RawArray {
         return m.data();
     }
 
+    public int size() {
+        return (int) m.dataSize();
+    }
+
     public void clear() {
-        unsafe.setMemory(m.data(), m.dataSize(), (byte) 0);
+        fill(0, size(), (byte) 0);
+    }
+
+    public void fill(int offset, int size, byte value) {
+        unsafe.setMemory(m.data() + offset, size, value);
     }
 
     public byte getByte(int offset) {
@@ -94,12 +102,18 @@ public class RawArray {
         unsafe.putDouble(m.data() + offset, value);
     }
 
-    public void copyTo(int offset, int size, Object destArray, int destOffset) {
-        unsafe.copyMemory(null, offset, destArray, destOffset, size);
+    public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
+        unsafe.copyMemory(null, m.data() + srcOffset, destArray, unsafe.ARRAY_BYTE_BASE_OFFSET + destOffset, size);
     }
 
     public void copyTo(int srcOffset, RawArray dest, int destOffset, int size) {
         unsafe.copyMemory(m.data() + srcOffset, dest.data() + destOffset, size);
+    }
+
+    public byte[] toArray() {
+        byte[] b = new byte[(int) m.dataSize()];
+        unsafe.copyMemory(m.data(), 0L, b, unsafe.ARRAY_BYTE_BASE_OFFSET, m.dataSize());
+        return b;
     }
 
 }
