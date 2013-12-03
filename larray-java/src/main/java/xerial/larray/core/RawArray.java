@@ -21,6 +21,15 @@ public class RawArray {
         this.m = alloc.allocate(size);
     }
 
+
+    /**
+     * Release the memory content. After this method invocation, the behaiour of
+     * getXXX and putXXX methods are undefined.
+     */
+    public void release() {
+        alloc.release(m);
+    }
+
     public long data() {
         return m.data();
     }
@@ -75,6 +84,10 @@ public class RawArray {
 
     public void putShort(int offset, short value) {
         unsafe.putShort(m.data() + offset, value);
+    }
+
+    public void putInt(int offset, int value) {
+        unsafe.putInt(m.data() + offset, value);
     }
 
     public void putFloat(int offset, float value) {

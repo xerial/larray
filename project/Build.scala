@@ -82,11 +82,20 @@ object Build extends sbt.Build {
     }
   )
 
-
   lazy val root = Project(
-    id = "larray",
+    id = "larray-root",
     base = file("."),
-    settings = Defaults.defaultSettings ++ SbtMultiJvm.multiJvmSettings ++
+    settings = buildSettings ++ Seq(
+       publish := {},
+       publishLocal := {}
+    )
+  ) aggregate(larrayScala, larrayJava)
+
+
+  lazy val larrayScala = Project(
+    id = "larray",
+    base = file("larray-scala"),
+    settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
       Seq(
         description := "LArray: A Large off-heap arrays for Scala/Java",
         logBuffered in MultiJvm := false,
@@ -118,7 +127,7 @@ object Build extends sbt.Build {
   lazy val larrayJava = Project(
     id = "larray-java",
     base = file("larray-java"),
-    settings = Defaults.defaultSettings ++ Seq(
+    settings = buildSettings ++ Seq(
       description := "LArray core library",
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(

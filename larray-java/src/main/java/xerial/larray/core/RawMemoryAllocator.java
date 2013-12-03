@@ -68,8 +68,10 @@ class RawMemory implements Memory {
 
 
 class MemoryReference extends PhantomReference<Memory> {
+    public final Long address;
     public MemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
+        this.address = m.address();
     }
 }
 
@@ -79,7 +81,8 @@ class MemoryReference extends PhantomReference<Memory> {
  */
 public class RawMemoryAllocator {
 
-    private Map<MemoryReference, Long> allocatedMemoryReferences = new ConcurrentHashMap<MemoryReference, Long>();
+    // Table from address -> MemoryReference
+    private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
@@ -88,13 +91,12 @@ public class RawMemoryAllocator {
             @Override
             public void run() {
                 synchronized(this) {
-                    for(long address : allocatedMemoryReferences.values()) {
+                    for(long address : allocatedMemoryReferences.keySet()) {
                         // TODO Display warnings for unreleased memory addresses
                     }
                 }
             }
         }));
-
 
         // Start RawMemory collector that releases the allocated memories when MemoryReference (phantom reference) is collected by GC.
         Thread collector = new Thread(new Runnable() {
@@ -103,6 +105,7 @@ public class RawMemoryAllocator {
                 while(true) {
                     try {
                         MemoryReference ref = MemoryReference.class.cast(queue.remove());
+                        //System.err.println(String.format("collected by GC. address:%x", ref.address.longValue()));
                         release(ref);
                     }
                     catch(Exception e) {
@@ -130,21 +133,26 @@ public class RawMemoryAllocator {
 
         // Register a memory reference that will be collected upon GC
         MemoryReference ref = new MemoryReference(m, queue);
-        allocatedMemoryReferences.put(ref, m.address());
+        allocatedMemoryReferences.put(ref.address, ref);
         totalAllocatedSize.getAndAdd(memorySize);
         return m;
     }
 
     public void release(MemoryReference ref) {
-        if(allocatedMemoryReferences.containsKey(ref)) {
-            long address = allocatedMemoryReferences.get(ref);
-            RawMemory m = new RawMemory(address);
-            long size = m.size();
-            totalAllocatedSize.getAndAdd(-size);
-            unsafe.freeMemory(address);
+        if(allocatedMemoryReferences.containsKey(ref.address)) {
+            release(new RawMemory(ref.address));
         }
     }
 
+    public void release(Memory m) {
+        long address = m.address();
+        if(allocatedMemoryReferences.containsKey(address)) {
+            long size = m.size();
+            totalAllocatedSize.getAndAdd(-size);
+            unsafe.freeMemory(address);
+            allocatedMemoryReferences.remove(address);
+        }
+    }
 
 
 }
