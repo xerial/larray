@@ -1,7 +1,5 @@
 package xerial.larray.core;
 
-import sun.nio.ch.DirectBuffer;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -24,9 +22,8 @@ class WritableChannelWrap implements WritableByteChannel {
     public int write(ByteBuffer src) throws IOException {
         int len = (int) Math.max(src.limit() - src.position(), 0);
         int writeLen = 0;
-        if(src.getClass().isAssignableFrom(DirectBuffer.class)) {
-            DirectBuffer d = (DirectBuffer) src;
-            unsafe.copyMemory(d.address() + src.position(), cursor, len);
+        if(src.isDirect()) {
+            src.put(b.toDirectByteBuffer(cursor, len));
             writeLen = len;
         }
         else if(src.hasArray()) {
