@@ -1,7 +1,5 @@
 package xerial.larray.core;
 
-import sun.nio.ch.DirectBuffer;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -9,28 +7,25 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
 
 import static xerial.larray.core.UnsafeUtil.unsafe;
 
 
 /**
- * Raw off-heap array of int indexes.
+ * Off-heap memory buffer of int indexes.
  *
  * @author Taro L. Saito
  */
-public class RawByteArray {
+public class Buffer {
 
     final Memory m;
-
-    public static MemoryAllocator alloc = new RawMemoryAllocator();
 
     /**
      * Allocate a memory of the specified byte size
      * @param size byte size of the array
      */
-    public RawByteArray(int size) {
-        this.m = alloc.allocate(size);
+    public Buffer(int size) {
+        this.m = LArrayBuffer.allocator.allocate(size);
     }
 
     /**
@@ -56,7 +51,7 @@ public class RawByteArray {
      * getXXX and putXXX methods becomes undefined.
      */
     public void release() {
-        alloc.release(m);
+        LArrayBuffer.allocator.release(m);
     }
 
 
@@ -140,7 +135,7 @@ public class RawByteArray {
         b.get(destArray, destOffset, size);
     }
 
-    public void copyTo(int srcOffset, RawByteArray dest, int destOffset, int size) {
+    public void copyTo(int srcOffset, Buffer dest, int destOffset, int size) {
         unsafe.copyMemory(m.data() + srcOffset, dest.data() + destOffset, size);
     }
 
@@ -173,12 +168,12 @@ public class RawByteArray {
     }
 
 
-    public static RawByteArray loadFrom(File file) throws IOException {
+    public static Buffer loadFrom(File file) throws IOException {
         FileChannel fin = new FileInputStream(file).getChannel();
         long fileSize = fin.size();
         if(fileSize > Integer.MAX_VALUE)
             throw new IllegalArgumentException("Cannot load from file more than 2GB: " + file);
-        RawByteArray b = new RawByteArray((int) fileSize);
+        Buffer b = new Buffer((int) fileSize);
         long pos = 0L;
         WritableChannelWrap ch = new WritableChannelWrap(b);
         while(pos < fileSize) {
@@ -198,49 +193,6 @@ public class RawByteArray {
         return b.order(ByteOrder.nativeOrder());
     }
 
-}
-
-
-class WritableChannelWrap implements WritableByteChannel {
-
-    private final RawByteArray b;
-    int cursor = 0;
-
-    WritableChannelWrap(RawByteArray b) {
-        this.b = b;
-    }
-
-    @Override
-    public int write(ByteBuffer src) throws IOException {
-        int len = (int) Math.max(src.limit() - src.position(), 0);
-        int writeLen = 0;
-        if(src.getClass().isAssignableFrom(DirectBuffer.class)) {
-            DirectBuffer d = (DirectBuffer) src;
-            unsafe.copyMemory(d.address() + src.position(), cursor, len);
-            writeLen = len;
-        }
-        else if(src.hasArray()) {
-            writeLen = b.readFrom(src.array(), src.position(), cursor, len);
-        }
-        else {
-            for(long i=0; i<len; ++i)
-                unsafe.putByte(b.data() + i, src.get((int) (src.position() + i)));
-            writeLen = len;
-        }
-        cursor += writeLen;
-        src.position(src.position() + writeLen);
-        return writeLen;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return true;
-    }
-
-    @Override
-    public void close() throws IOException {
-        // do nothing
-    }
 }
 
 

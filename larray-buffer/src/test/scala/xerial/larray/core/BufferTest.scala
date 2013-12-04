@@ -20,17 +20,17 @@ with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
 /**
  * @author Taro L. Saito
  */
-class RawByteArrayTest extends LArraySpec {
+class BufferTest extends LArraySpec {
 
-  implicit class RichArray(m:RawByteArray) {
+  implicit class RichArray(m:Buffer) {
     def toCSV = m.toArray.mkString(", ")
   }
 
 
-  "RawByteArray" should {
+  "Buffer" should {
 
     "allocate memory" in {
-      val m = new RawByteArray(1000)
+      val m = new Buffer(1000)
       m.putInt(0, 0)
       m.putInt(4, 1)
       m.putInt(8, 130)
@@ -52,7 +52,7 @@ class RawByteArrayTest extends LArraySpec {
     }
 
     "convert to array" in {
-      val m = new RawByteArray(12);
+      val m = new Buffer(12);
       for(i <- 0 until m.size)
         m(i) = i.toByte
       debug(m.toCSV)
@@ -72,13 +72,13 @@ class RawByteArrayTest extends LArraySpec {
       time("concurrent allocation", repeat=10) {
         block("without zero-filling", repeat=R) {
           for(i <- range) yield {
-            new RawByteArray(S)
+            new Buffer(S)
           }
         }
 
         block("with zero-filling", repeat=R) {
           for(i <- range) yield {
-            val m = new RawByteArray(S)
+            val m = new Buffer(S)
             m.clear()
             m
           }

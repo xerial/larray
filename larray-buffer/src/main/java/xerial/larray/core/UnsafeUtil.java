@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**
+ * Helper methods for using sun.misc.Unsafe.
  * @author Taro L. Saito
  */
 public class UnsafeUtil {
@@ -39,6 +40,14 @@ public class UnsafeUtil {
 
     private static Constructor<?> dbbCC = findDirectByteBufferConstructor();
 
+    /**
+     * Create a new DirectByteBuffer from a given address and size.
+     * The returned DirectByteBuffer does not release the memory by itself.
+     *
+     * @param addr
+     * @param size
+     * @return
+     */
     public static ByteBuffer newDirectByteBuffer(long addr, int size)
     {
         dbbCC.setAccessible(true);
