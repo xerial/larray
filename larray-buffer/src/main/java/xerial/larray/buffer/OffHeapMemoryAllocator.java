@@ -12,29 +12,29 @@ import static xerial.larray.buffer.UnsafeUtil.unsafe;
 /**
  * Stores |(memory size:long)| data ... |
  */
-class RawMemory implements Memory {
+class OffHeapMemory implements Memory {
 
-    private final long _address;
+    private final long _data;
 
     public static long HEADER_SIZE = 8L;
 
-    public RawMemory(long address) {
-        this._address = address;
+    public OffHeapMemory(long address) {
+        this._data = address + HEADER_SIZE;
     }
 
     public long address() {
-        return _address;
+        return _data - HEADER_SIZE;
     }
     public long size() {
-        return (_address == 0) ? 0L : unsafe.getLong(_address);
+        return (_data == 0) ? 0L : unsafe.getLong(address());
     }
 
     public long data() {
-        return _address + HEADER_SIZE;
+        return _data;
     }
 
     public long dataSize() {
-        return (_address == 0) ? 0L : unsafe.getLong(_address) - HEADER_SIZE;
+        return (_data == 0) ? 0L : unsafe.getLong(address()) - HEADER_SIZE;
     }
 
 }
@@ -50,9 +50,11 @@ class MemoryReference extends PhantomReference<Memory> {
 
 
 /**
+ * Allocating off-heap memory
+ *
  * @author Taro L. Saito
  */
-public class RawMemoryAllocator implements MemoryAllocator {
+public class OffHeapMemoryAllocator implements MemoryAllocator {
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
@@ -71,7 +73,7 @@ public class RawMemoryAllocator implements MemoryAllocator {
             }
         }));
 
-        // Start RawMemory collector that releases the allocated memories when MemoryReference (phantom reference) is collected by GC.
+        // Start OffHeapMemory collector that releases the allocated memories when MemoryReference (phantom reference) is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -97,11 +99,11 @@ public class RawMemoryAllocator implements MemoryAllocator {
 
     public Memory allocate(long size) {
         if(size == 0L)
-          return new RawMemory(0L);
+          return new OffHeapMemory(0L);
 
         // Allocate memory of the given size + HEADER space
-        long memorySize = size + RawMemory.HEADER_SIZE;
-        Memory m = new RawMemory(unsafe.allocateMemory(memorySize));
+        long memorySize = size + OffHeapMemory.HEADER_SIZE;
+        Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize));
         unsafe.putLong(m.address(), memorySize);
 
         // Register a memory reference that will be collected upon GC
@@ -113,7 +115,7 @@ public class RawMemoryAllocator implements MemoryAllocator {
 
     public void release(MemoryReference ref) {
         if(allocatedMemoryReferences.containsKey(ref.address)) {
-            release(new RawMemory(ref.address));
+            release(new OffHeapMemory(ref.address));
         }
     }
 

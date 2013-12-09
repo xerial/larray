@@ -5,5 +5,5 @@ package xerial.larray.buffer;
  */
 public class LArrayBuffer {
 
-    public static MemoryAllocator allocator = new RawMemoryAllocator();
+    public static MemoryAllocator allocator = new OffHeapMemoryAllocator();
 }
