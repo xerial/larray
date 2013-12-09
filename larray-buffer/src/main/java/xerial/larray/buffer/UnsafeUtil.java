@@ -1,4 +1,4 @@
-package xerial.larray.core;
+package xerial.larray.buffer;
 
 import sun.misc.Unsafe;
 

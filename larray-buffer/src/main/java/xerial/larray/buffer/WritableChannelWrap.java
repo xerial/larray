@@ -1,10 +1,10 @@
-package xerial.larray.core;
+package xerial.larray.buffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-import static xerial.larray.core.UnsafeUtil.unsafe;
+import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
 /**
  * @author Taro L. Saito

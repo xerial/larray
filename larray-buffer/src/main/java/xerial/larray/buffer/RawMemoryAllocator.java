@@ -1,4 +1,4 @@
-package xerial.larray.core;
+package xerial.larray.buffer;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static xerial.larray.core.UnsafeUtil.unsafe;
+import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
 
 /**

@@ -1,4 +1,4 @@
-package xerial.larray.core;
+package xerial.larray.buffer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,14 +8,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
-import static xerial.larray.core.UnsafeUtil.unsafe;
+import static xerial.larray.buffer.UnsafeUtil.unsafe;
+
 
 /**
- * Off-heap memory of long indexes.
+ * Off-heap memory buffer of int indexes.
  *
  * @author Taro L. Saito
  */
-public class LBuffer {
+public class Buffer {
 
     final Memory m;
 
@@ -23,7 +24,7 @@ public class LBuffer {
      * Allocate a memory of the specified byte size
      * @param size byte size of the array
      */
-    public LBuffer(long size) {
+    public Buffer(int size) {
         this.m = LArrayBuffer.allocator.allocate(size);
     }
 
@@ -32,7 +33,7 @@ public class LBuffer {
      * @param offset
      * @return
      */
-    public byte apply(long offset) {
+    public byte apply(int offset) {
         return getByte(offset);
     }
 
@@ -41,7 +42,7 @@ public class LBuffer {
      * @param offset
      * @param value
      */
-    public void update(long offset, byte value) {
+    public void update(int offset, byte value) {
         putByte(offset, value);
     }
 
@@ -62,82 +63,76 @@ public class LBuffer {
         return m.data();
     }
 
-    public long size() {
-        return m.dataSize();
+    public int size() {
+        return (int) m.dataSize();
     }
 
     public void clear() {
         fill(0, size(), (byte) 0);
     }
 
-    public void fill(long offset, long size, byte value) {
+    public void fill(int offset, int size, byte value) {
         unsafe.setMemory(m.data() + offset, size, value);
     }
 
-    public byte getByte(long offset) {
+    public byte getByte(int offset) {
         return unsafe.getByte(m.data() + offset);
     }
 
-    public char getChar(long offset) {
+    public char getChar(int offset) {
         return unsafe.getChar(m.data() + offset);
     }
 
-    public short getShort(long offset) {
+    public short getShort(int offset) {
         return unsafe.getShort(m.data() + offset);
     }
 
-    public int getInt(long offset) {
+    public int getInt(int offset) {
         return unsafe.getInt(m.data() + offset);
     }
 
-    public float getFloat(long offset) {
+    public float getFloat(int offset) {
         return unsafe.getFloat(m.data() + offset);
     }
 
-    public long getLong(long offset) {
+    public long getLong(int offset) {
         return unsafe.getLong(m.data() + offset);
     }
 
-    public double getDouble(long offset) {
+    public double getDouble(int offset) {
         return unsafe.getDouble(m.data() + offset);
     }
 
-    public void putByte(long offset, byte value) {
+    public void putByte(int offset, byte value) {
         unsafe.putByte(m.data() + offset, value);
     }
 
-    public void putChar(long offset, char value) {
+    public void putChar(int offset, char value) {
         unsafe.putChar(m.data() + offset, value);
     }
 
-    public void putShort(long offset, short value) {
+    public void putShort(int offset, short value) {
         unsafe.putShort(m.data() + offset, value);
     }
 
-    public void putInt(long offset, int value) {
+    public void putInt(int offset, int value) {
         unsafe.putInt(m.data() + offset, value);
     }
-    public void putFloat(long offset, float value) {
+    public void putFloat(int offset, float value) {
         unsafe.putFloat(m.data() + offset, value);
     }
 
-    public void putLong(long offset, long value) {
+    public void putLong(int offset, long value) {
         unsafe.putLong(m.data()+ offset, value);
     }
 
-    public void putDouble(long offset, double value) {
+    public void putDouble(int offset, double value) {
         unsafe.putDouble(m.data() + offset, value);
     }
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
-        int cursor = destOffset;
-        for(ByteBuffer bb : toDirectByteBuffers(srcOffset, size)) {
-            int bbSize = bb.remaining();
-            if((cursor + bbSize) > destArray.length)
-                throw new ArrayIndexOutOfBoundsException(String.format("cursor + bbSize = %,d", cursor+bbSize));
-            bb.get(destArray, cursor, bbSize);
-            cursor += bbSize;
-        }
+        ByteBuffer b = toDirectByteBuffer(srcOffset, size);
+        b.get(destArray, destOffset, size);
     }
 
     public void copyTo(int srcOffset, Buffer dest, int destOffset, int size) {
@@ -145,19 +140,13 @@ public class LBuffer {
     }
 
     public byte[] toArray() {
-        if(size() > Integer.MAX_VALUE)
-            throw new IllegalStateException("Cannot create byte array of more than 2GB");
-
-        int len = (int) size();
-        ByteBuffer bb = toDirectByteBuffer(0L, len);
-        byte[] b = new byte[len];
-        // Copy to array
-        bb.get(b, 0, len);
+        byte[] b = new byte[(int) m.dataSize()];
+        toDirectByteBuffer().get(b);
         return b;
     }
 
     public void writeTo(FileChannel channel) throws IOException {
-        channel.write(toDirectByteBuffers());
+        channel.write(toDirectByteBuffer());
     }
 
     public void writeTo(File file) throws IOException {
@@ -170,10 +159,10 @@ public class LBuffer {
         }
     }
 
-    public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
+    public int readFrom(byte[] src, int srcOffset, int destOffset, int length) {
         int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
-        ByteBuffer b = toDirectByteBuffer(destOffset, readLen);
-        b.position(0);
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), size());
+        b.position(destOffset);
         b.put(src, srcOffset, readLen);
         return readLen;
     }
@@ -194,28 +183,16 @@ public class LBuffer {
     }
 
 
-    public ByteBuffer[] toDirectByteBuffers() {
-        return toDirectByteBuffers(0, size());
+    public ByteBuffer toDirectByteBuffer() {
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), (int) m.dataSize());
+        return b.order(ByteOrder.nativeOrder());
     }
 
-    public ByteBuffer[] toDirectByteBuffers(long offset, long size) {
-        long pos = offset;
-        long blockSize = Integer.MAX_VALUE;
-        long limit = offset + size;
-        int numBuffers = (int) ((size + (blockSize - 1)) / blockSize);
-        ByteBuffer[] result = new ByteBuffer[numBuffers];
-        int index = 0;
-        while(pos < limit) {
-            long blockLength = Math.min(limit - pos, blockSize);
-            result[index++] = UnsafeUtil.newDirectByteBuffer(m.data() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
-            pos += blockLength;
-        }
-        return result;
-
-    }
-
-    public ByteBuffer toDirectByteBuffer(long offset, int size) {
-        return UnsafeUtil.newDirectByteBuffer(m.data() + offset, size);
+    public ByteBuffer toDirectByteBuffer(int offset, int size) {
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data() + offset, size);
+        return b.order(ByteOrder.nativeOrder());
     }
 
 }
+
+

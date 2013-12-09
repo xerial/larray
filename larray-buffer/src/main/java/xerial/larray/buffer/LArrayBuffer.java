@@ -1,4 +1,4 @@
-package xerial.larray.core;
+package xerial.larray.buffer;
 
 /**
  * @author Taro L. Saito

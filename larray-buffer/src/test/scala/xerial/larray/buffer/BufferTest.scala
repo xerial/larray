@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package xerial.larray.core
+package xerial.larray.buffer
 
 import org.scalatest._
 import xerial.core.io.Resource
