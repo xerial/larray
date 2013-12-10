@@ -2,6 +2,7 @@ package xerial.larray.buffer;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,9 +40,18 @@ class OffHeapMemory implements Memory {
 
 }
 
+/**
+ * Phantom reference to the allocated memory that will be queued to the ReferenceQueue upon GC time
+ */
 
 class MemoryReference extends PhantomReference<Memory> {
     public final Long address;
+
+    /**
+     * Create a phantom reference
+     * @param m the allocated memory
+     * @param queue the reference queue to which GCed reference of the Memory will be put
+     */
     public MemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
         this.address = m.address();
@@ -73,7 +83,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
             }
         }));
 
-        // Start OffHeapMemory collector that releases the allocated memories when MemoryReference (phantom reference) is collected by GC.
+        // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -95,6 +105,9 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
 
     private AtomicLong totalAllocatedSize = new AtomicLong(0L);
 
+    /**
+     * Get the total amount of allocated memory
+     */
     public long allocatedSize() { return totalAllocatedSize.get(); }
 
     public Memory allocate(long size) {
@@ -118,6 +131,20 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
             release(new OffHeapMemory(ref.address));
         }
     }
+
+    /**
+     * Release all memory addresses taken by this allocator.
+     * Be careful in using this method, since all of the memory addresses become invalid.
+     */
+    public void releaseAll() {
+        synchronized(this) {
+            Collection<MemoryReference> refSet = allocatedMemoryReferences.values();
+            for(MemoryReference ref : refSet) {
+                release(ref);
+            }
+        }
+    }
+
 
     public void release(Memory m) {
         long address = m.address();

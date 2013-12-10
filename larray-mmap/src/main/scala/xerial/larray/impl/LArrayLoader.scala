@@ -144,7 +144,7 @@ object LArrayLoader {
     private def extractLibraryFile(libFolderForCurrentOS:String, libraryFileName:String, targetFolder:String) : File =  {
       val nativeLibraryFilePath = libFolderForCurrentOS + "/" + libraryFileName
       val suffix = UUID.randomUUID().toString
-      val extractedLibFileName = s"larray-${getVersion}-${suffix}.lib"
+      val extractedLibFileName = s"larray-${suffix}.lib"
       val extractedLibFile = new File(targetFolder, extractedLibFileName)
 
 
@@ -221,31 +221,5 @@ object LArrayLoader {
     NativeLib(nativeLibraryPath, nativeLibraryName)
   }
 
-
-  /**
-   * Get the LArray version by reading VERSION file embedded in jar.
-   * This version data is used as a suffix of a dll file extracted from the
-   * jar.
-   *
-   * @return the version string
-   */
-  def getVersion : String = {
-    val versionFile = this.getClass.getResource("/xerial/larray/VERSION")
-    var version = "unknown"
-    try {
-      if (versionFile != null) {
-        val versionData = new Properties()
-        versionData.load(versionFile.openStream())
-        version = versionData.getProperty("version", version)
-        if (version.equals("unknown"))
-          version = versionData.getProperty("VERSION", version)
-        version = version.trim().replaceAll("[^0-9\\.]", "")
-      }
-    }
-    catch {
-      case e:IOException => System.err.println(e)
-    }
-    version
-  }
 
 }

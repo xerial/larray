@@ -15,7 +15,6 @@
  *--------------------------------------------------------------------------*/
 package xerial
 
-import larray.impl.LArrayNative
 import reflect.ClassTag
 
 /**

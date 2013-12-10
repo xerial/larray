@@ -1,6 +1,7 @@
 package xerial.larray.buffer;
 
 /**
+ * Allocated memory information
  * @author Taro L. Saito
  */
 interface Memory {

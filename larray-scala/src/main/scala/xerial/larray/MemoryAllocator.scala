@@ -22,7 +22,6 @@
 
 package xerial.larray
 
-import impl.LArrayNative
 import xerial.core.log.Logger
 import java.lang.ref.{PhantomReference, ReferenceQueue}
 import collection.mutable
@@ -44,7 +43,6 @@ class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long) 
   def name : String = "off-heap"
 
   def release {
-    val size = m.size
     unsafe.freeMemory(m.headerAddress)
   }
 
@@ -245,7 +243,7 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
       ref.release
       ref match {
         case r:MemoryReference =>
-          totalAllocatedSize.getAndAdd(- size)
+          totalAllocatedSize.getAndAdd(- m.size)
       }
       ref.clear()
       allocatedMemoryReferences.remove(m.address)
