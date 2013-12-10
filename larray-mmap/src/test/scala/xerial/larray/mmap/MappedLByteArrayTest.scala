@@ -24,6 +24,7 @@ package xerial.larray.mmap
 
 import java.io.File
 import xerial.larray.LArray
+import xerial.larray.buffer.LArraySpec
 
 /**
  * @author Taro L. Saito
@@ -33,6 +34,8 @@ class MappedLByteArrayTest extends LArraySpec {
   "MappedLByteArray" should {
 
     "create memory mapped file" taggedAs("simple") in {
+
+      import xerial.larray._
 
       val f = File.createTempFile("mmap", ".larray", new File("target"))
       f.deleteOnExit()

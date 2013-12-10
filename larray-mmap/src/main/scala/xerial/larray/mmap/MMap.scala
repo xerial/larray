@@ -7,27 +7,29 @@
 
 package xerial.larray.mmap
 
-import xerial.larray.{MemoryReference, Memory}
 import java.lang.ref.ReferenceQueue
 import xerial.larray.impl.LArrayNative
 import java.io.File
+import xerial.larray.buffer.{Memory, MemoryReference}
 
-case class MMapMemory(override val address:Long, override val size:Long) extends Memory(address) {
+case class MMapMemory(override val address:Long, override val size:Long) extends Memory {
   def headerAddress = address
 
   def toRef(queue:ReferenceQueue[Memory]) : MMapMemoryReference = new MMapMemoryReference(this, queue)
 
-}
+  def dataSize() = size
 
-class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], override val address:Long, val size:Long) extends MemoryReference(m, queue, address) {
-  def this(m:MMapMemory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
-
-  override def release {
+  def release() = {
     LArrayNative.munmap(address, size)
   }
+}
 
-  override def name : String = "mmap"
+class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], address:Long, val size:Long) extends MemoryReference(m, queue) {
+  def this(m:MMapMemory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
 
+  def name : String = "mmap"
+
+  def toMemory = MMapMemory(address, size)
 }
 
 

@@ -22,9 +22,11 @@
 
 package xerial.larray.impl
 
-import xerial.larray.LArraySpec
+import xerial.larray.buffer.LArraySpec
 import java.net.{URL, URLClassLoader}
 import java.io.File
+
+
 
 /**
  * @author Taro L. Saito

@@ -14,6 +14,8 @@ public interface MemoryAllocator {
      */
     Memory allocate(long size);
 
+    void register(Memory m);
+
     /**
      * Release the memory allocated by allocate(size).
      */

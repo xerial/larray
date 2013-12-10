@@ -15,6 +15,9 @@ import java.nio.ByteBuffer
 
 trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
 with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
+
+  implicit def toTag(t:String) = Tag(t)
+
 }
 
 /**

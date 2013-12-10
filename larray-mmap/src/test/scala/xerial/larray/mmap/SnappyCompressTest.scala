@@ -22,9 +22,11 @@
 
 package xerial.larray.mmap
 
-import scala.util.Random
+
 import java.io.File
-import xerial.larray.{LIntArray, RawByteArray, LArray, LArraySpec}
+import xerial.larray.{LIntArray, RawByteArray, LArray}
+import xerial.larray.buffer.LArraySpec
+import org.xerial.snappy.Snappy
 
 /**
  * @author Taro L. Saito
@@ -36,6 +38,8 @@ class SnappyCompressTest extends LArraySpec {
   }
 
   "Snappy" should {
+
+    import xerial.larray._
 
     "compress LArray" in {
       val l = (for (i <- 0 until 3000) yield math.toDegrees(math.sin(i/360)).toInt).toLArray

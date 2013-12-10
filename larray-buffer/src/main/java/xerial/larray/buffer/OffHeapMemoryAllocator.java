@@ -1,6 +1,5 @@
 package xerial.larray.buffer;
 
-import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.Collection;
 import java.util.Map;
@@ -38,25 +37,35 @@ class OffHeapMemory implements Memory {
         return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) - HEADER_SIZE;
     }
 
+    public MemoryReference toRef(ReferenceQueue<Memory> queue) {
+        return new OffHeapMemoryReference(this, queue);
+    }
+
+    public void release() {
+        if(_data != 0)
+            UnsafeUtil.unsafe.freeMemory(headerAddress());
+    }
 }
 
-/**
- * Phantom reference to the allocated memory that will be queued to the ReferenceQueue upon GC time
- */
-
-class MemoryReference extends PhantomReference<Memory> {
-    public final Long address;
+class OffHeapMemoryReference extends MemoryReference {
 
     /**
      * Create a phantom reference
      * @param m the allocated memory
      * @param queue the reference queue to which GCed reference of the Memory will be put
      */
-    public MemoryReference(Memory m, ReferenceQueue<Memory> queue) {
+    public OffHeapMemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
-        this.address = m.headerAddress();
     }
+
+    public Memory toMemory() {
+        return new OffHeapMemory(address);
+    }
+
+    public String name() { return "off-heap"; }
+
 }
+
 
 
 /**
@@ -117,18 +126,22 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
         Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize));
-        unsafe.putLong(m.headerAddress(), memorySize);
-
-        // Register a memory reference that will be collected upon GC
-        MemoryReference ref = new MemoryReference(m, queue);
-        allocatedMemoryReferences.put(ref.address, ref);
-        totalAllocatedSize.getAndAdd(memorySize);
+        register(m);
         return m;
     }
 
+    public void register(Memory m) {
+        unsafe.putLong(m.headerAddress(), m.size());
+        // Register a memory reference that will be collected upon GC
+        MemoryReference ref = m.toRef(queue);
+        allocatedMemoryReferences.put(ref.address, ref);
+        totalAllocatedSize.getAndAdd(m.size());
+    }
+
+
     public void release(MemoryReference ref) {
         if(allocatedMemoryReferences.containsKey(ref.address)) {
-            release(new OffHeapMemory(ref.address));
+            release(ref.toMemory());
         }
     }
 
@@ -151,7 +164,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         if(allocatedMemoryReferences.containsKey(address)) {
             long size = m.size();
             totalAllocatedSize.getAndAdd(-size);
-            unsafe.freeMemory(address);
+            m.release();
             allocatedMemoryReferences.remove(address);
         }
     }

@@ -28,7 +28,7 @@ import org.scalacheck.Gen
  */
 class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehaviour
 {
-  val maxNumberOfTests = 25
+  val maxNumberOfTests = 10
   val maxSizeOfList = 10000
   val minSizeOfList = 1
 

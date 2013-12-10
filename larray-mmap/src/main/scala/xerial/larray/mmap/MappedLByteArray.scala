@@ -23,18 +23,11 @@
 package xerial.larray.mmap
 
 import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
-import java.nio.channels.FileChannel
-import java.nio.channels.FileChannel.MapMode
-import sun.nio.ch.{DirectBuffer, FileChannelImpl}
-import java.nio.{MappedByteBuffer, ByteBuffer, Buffer}
 import java.lang.reflect.InvocationTargetException
-import sun.misc.{SharedSecrets, JavaIOFileDescriptorAccess}
-import xerial.larray.mmap.MMapMode
 import xerial.larray._
 import xerial.larray.impl.{LArrayNative, OSInfo}
-import xerial.larray.UnsafeUtil._
-import xerial.larray.mmap.MMapMemory
-import xerial.larray.mmap.MMapMemory
+import xerial.larray.buffer.MemoryAllocator
+import sun.misc.SharedSecrets
 
 
 /**

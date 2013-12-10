@@ -1,5 +1,7 @@
 package xerial.larray.buffer;
 
+import java.lang.ref.ReferenceQueue;
+
 /**
  * Allocated memory information
  * @author Taro L. Saito
@@ -29,4 +31,8 @@ public interface Memory {
      * @return
      */
     long dataSize();
+
+    void release();
+
+    MemoryReference toRef(ReferenceQueue<Memory> queue);
 }
