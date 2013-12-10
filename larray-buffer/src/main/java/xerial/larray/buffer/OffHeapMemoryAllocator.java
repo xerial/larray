@@ -23,19 +23,19 @@ class OffHeapMemory implements Memory {
         this._data = address + HEADER_SIZE;
     }
 
-    public long address() {
+    public long headerAddress() {
         return _data - HEADER_SIZE;
     }
     public long size() {
-        return (_data == 0) ? 0L : unsafe.getLong(address());
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress());
     }
 
-    public long data() {
+    public long address() {
         return _data;
     }
 
     public long dataSize() {
-        return (_data == 0) ? 0L : unsafe.getLong(address()) - HEADER_SIZE;
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) - HEADER_SIZE;
     }
 
 }
@@ -54,7 +54,7 @@ class MemoryReference extends PhantomReference<Memory> {
      */
     public MemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
-        this.address = m.address();
+        this.address = m.headerAddress();
     }
 }
 
@@ -117,7 +117,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
         Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize));
-        unsafe.putLong(m.address(), memorySize);
+        unsafe.putLong(m.headerAddress(), memorySize);
 
         // Register a memory reference that will be collected upon GC
         MemoryReference ref = new MemoryReference(m, queue);
@@ -147,7 +147,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
 
 
     public void release(Memory m) {
-        long address = m.address();
+        long address = m.headerAddress();
         if(allocatedMemoryReferences.containsKey(address)) {
             long size = m.size();
             totalAllocatedSize.getAndAdd(-size);

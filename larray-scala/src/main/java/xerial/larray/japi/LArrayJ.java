@@ -17,6 +17,7 @@ package xerial.larray.japi;
 
 import scala.reflect.ClassTag$;
 import xerial.larray.*;
+import xerial.larray.buffer.BufferConfig;
 
 import java.io.File;
 
@@ -26,39 +27,39 @@ import java.io.File;
  */
 public class LArrayJ {
 
-    static xerial.larray.MemoryAllocator defaultAllocator = new ConcurrentMemoryAllocator();
+    static xerial.larray.buffer.MemoryAllocator defaultAllocator() { return  BufferConfig.allocator; }
 
-    public static MappedLByteArray mmap(File f, long offset, long size, MMapMode mode) {
-        return new MappedLByteArray(f, offset, size, mode, defaultAllocator);
-    }
+//    public static MappedLByteArray mmap(File f, long offset, long size, MMapMode mode) {
+//        return new MappedLByteArray(f, offset, size, mode, defaultAllocator);
+//    }
 
 
     public static LByteArray newLByteArray(long size) {
-        return new LByteArray(size, defaultAllocator);
+        return new LByteArray(size, defaultAllocator());
     }
 
     public static LCharArray newLCharArray(long size) {
-        return new LCharArray(size, defaultAllocator);
+        return new LCharArray(size, defaultAllocator());
     }
 
     public static LShortArray newLShortArray(long size) {
-        return new LShortArray(size, defaultAllocator);
+        return new LShortArray(size, defaultAllocator());
     }
 
     public static LIntArray newLIntArray(long size) {
-        return new LIntArray(size, defaultAllocator);
+        return new LIntArray(size, defaultAllocator());
     }
 
     public static LFloatArray newLFloatArray(long size) {
-        return new LFloatArray(size, defaultAllocator);
+        return new LFloatArray(size, defaultAllocator());
     }
 
     public static LDoubleArray newLDoubleArray(long size) {
-        return new LDoubleArray(size, defaultAllocator);
+        return new LDoubleArray(size, defaultAllocator());
     }
 
     public static LLongArray newLLongArray(long size) {
-        return new LLongArray(size, defaultAllocator);
+        return new LLongArray(size, defaultAllocator());
     }
 
     public static LBitArray newLBitArray(long size) {

@@ -26,6 +26,7 @@ import xerial.core.log.Logger
 import java.nio.ByteBuffer
 import java.io.{FileOutputStream, File}
 import sun.nio.ch.DirectBuffer
+import xerial.larray.buffer.Memory
 
 
 /**

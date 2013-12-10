@@ -25,7 +25,7 @@ public class Buffer {
      * @param size byte size of the array
      */
     public Buffer(int size) {
-        this.m = LArrayBuffer.allocator.allocate(size);
+        this.m = BufferConfig.allocator.allocate(size);
     }
 
     /**
@@ -51,7 +51,7 @@ public class Buffer {
      * getXXX and putXXX methods becomes undefined.
      */
     public void release() {
-        LArrayBuffer.allocator.release(m);
+        BufferConfig.allocator.release(m);
     }
 
 
@@ -60,7 +60,7 @@ public class Buffer {
      * @return
      */
     public long data() {
-        return m.data();
+        return m.address();
     }
 
     public int size() {
@@ -72,62 +72,62 @@ public class Buffer {
     }
 
     public void fill(int offset, int size, byte value) {
-        unsafe.setMemory(m.data() + offset, size, value);
+        unsafe.setMemory(m.address() + offset, size, value);
     }
 
     public byte getByte(int offset) {
-        return unsafe.getByte(m.data() + offset);
+        return unsafe.getByte(m.address() + offset);
     }
 
     public char getChar(int offset) {
-        return unsafe.getChar(m.data() + offset);
+        return unsafe.getChar(m.address() + offset);
     }
 
     public short getShort(int offset) {
-        return unsafe.getShort(m.data() + offset);
+        return unsafe.getShort(m.address() + offset);
     }
 
     public int getInt(int offset) {
-        return unsafe.getInt(m.data() + offset);
+        return unsafe.getInt(m.address() + offset);
     }
 
     public float getFloat(int offset) {
-        return unsafe.getFloat(m.data() + offset);
+        return unsafe.getFloat(m.address() + offset);
     }
 
     public long getLong(int offset) {
-        return unsafe.getLong(m.data() + offset);
+        return unsafe.getLong(m.address() + offset);
     }
 
     public double getDouble(int offset) {
-        return unsafe.getDouble(m.data() + offset);
+        return unsafe.getDouble(m.address() + offset);
     }
 
     public void putByte(int offset, byte value) {
-        unsafe.putByte(m.data() + offset, value);
+        unsafe.putByte(m.address() + offset, value);
     }
 
     public void putChar(int offset, char value) {
-        unsafe.putChar(m.data() + offset, value);
+        unsafe.putChar(m.address() + offset, value);
     }
 
     public void putShort(int offset, short value) {
-        unsafe.putShort(m.data() + offset, value);
+        unsafe.putShort(m.address() + offset, value);
     }
 
     public void putInt(int offset, int value) {
-        unsafe.putInt(m.data() + offset, value);
+        unsafe.putInt(m.address() + offset, value);
     }
     public void putFloat(int offset, float value) {
-        unsafe.putFloat(m.data() + offset, value);
+        unsafe.putFloat(m.address() + offset, value);
     }
 
     public void putLong(int offset, long value) {
-        unsafe.putLong(m.data()+ offset, value);
+        unsafe.putLong(m.address()+ offset, value);
     }
 
     public void putDouble(int offset, double value) {
-        unsafe.putDouble(m.data() + offset, value);
+        unsafe.putDouble(m.address() + offset, value);
     }
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
@@ -136,7 +136,7 @@ public class Buffer {
     }
 
     public void copyTo(int srcOffset, Buffer dest, int destOffset, int size) {
-        unsafe.copyMemory(m.data() + srcOffset, dest.data() + destOffset, size);
+        unsafe.copyMemory(m.address() + srcOffset, dest.data() + destOffset, size);
     }
 
     public byte[] toArray() {
@@ -161,7 +161,7 @@ public class Buffer {
 
     public int readFrom(byte[] src, int srcOffset, int destOffset, int length) {
         int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
-        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), size());
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.address(), size());
         b.position(destOffset);
         b.put(src, srcOffset, readLen);
         return readLen;
@@ -184,12 +184,12 @@ public class Buffer {
 
 
     public ByteBuffer toDirectByteBuffer() {
-        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data(), (int) m.dataSize());
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.address(), (int) m.dataSize());
         return b.order(ByteOrder.nativeOrder());
     }
 
     public ByteBuffer toDirectByteBuffer(int offset, int size) {
-        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.data() + offset, size);
+        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(m.address() + offset, size);
         return b.order(ByteOrder.nativeOrder());
     }
 

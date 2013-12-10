@@ -16,6 +16,7 @@
 package xerial
 
 import reflect.ClassTag
+import xerial.larray.buffer.BufferConfig
 
 /**
  * == LArray ==
@@ -47,10 +48,17 @@ import reflect.ClassTag
  */
 package object larray {
 
+  implicit def defaultAllocator : xerial.larray.buffer.MemoryAllocator = BufferConfig.allocator
+
+
   implicit class ConvertArrayToLArray[A : ClassTag](arr:Array[A]) {
     def toLArray : LArray[A] = {
       val l = LArray.of[A](arr.length).asInstanceOf[RawByteArray[A]]
-      LArrayNative.copyFromArray(arr, 0, l.address, l.byteLength.toInt)
+      var i = 0
+      while(i < arr.length) {
+        l(i) = arr(i)
+        i += 1
+      }
       l
     }
   }

@@ -24,7 +24,7 @@ public class LBuffer {
      * @param size byte size of the array
      */
     public LBuffer(long size) {
-        this.m = LArrayBuffer.allocator.allocate(size);
+        this.m = BufferConfig.allocator.allocate(size);
     }
 
     /**
@@ -50,7 +50,7 @@ public class LBuffer {
      * getXXX and putXXX methods becomes undefined.
      */
     public void release() {
-        LArrayBuffer.allocator.release(m);
+        BufferConfig.allocator.release(m);
     }
 
 
@@ -59,7 +59,7 @@ public class LBuffer {
      * @return
      */
     public long data() {
-        return m.data();
+        return m.address();
     }
 
     public long size() {
@@ -71,62 +71,62 @@ public class LBuffer {
     }
 
     public void fill(long offset, long size, byte value) {
-        unsafe.setMemory(m.data() + offset, size, value);
+        unsafe.setMemory(m.address() + offset, size, value);
     }
 
     public byte getByte(long offset) {
-        return unsafe.getByte(m.data() + offset);
+        return unsafe.getByte(m.address() + offset);
     }
 
     public char getChar(long offset) {
-        return unsafe.getChar(m.data() + offset);
+        return unsafe.getChar(m.address() + offset);
     }
 
     public short getShort(long offset) {
-        return unsafe.getShort(m.data() + offset);
+        return unsafe.getShort(m.address() + offset);
     }
 
     public int getInt(long offset) {
-        return unsafe.getInt(m.data() + offset);
+        return unsafe.getInt(m.address() + offset);
     }
 
     public float getFloat(long offset) {
-        return unsafe.getFloat(m.data() + offset);
+        return unsafe.getFloat(m.address() + offset);
     }
 
     public long getLong(long offset) {
-        return unsafe.getLong(m.data() + offset);
+        return unsafe.getLong(m.address() + offset);
     }
 
     public double getDouble(long offset) {
-        return unsafe.getDouble(m.data() + offset);
+        return unsafe.getDouble(m.address() + offset);
     }
 
     public void putByte(long offset, byte value) {
-        unsafe.putByte(m.data() + offset, value);
+        unsafe.putByte(m.address() + offset, value);
     }
 
     public void putChar(long offset, char value) {
-        unsafe.putChar(m.data() + offset, value);
+        unsafe.putChar(m.address() + offset, value);
     }
 
     public void putShort(long offset, short value) {
-        unsafe.putShort(m.data() + offset, value);
+        unsafe.putShort(m.address() + offset, value);
     }
 
     public void putInt(long offset, int value) {
-        unsafe.putInt(m.data() + offset, value);
+        unsafe.putInt(m.address() + offset, value);
     }
     public void putFloat(long offset, float value) {
-        unsafe.putFloat(m.data() + offset, value);
+        unsafe.putFloat(m.address() + offset, value);
     }
 
     public void putLong(long offset, long value) {
-        unsafe.putLong(m.data()+ offset, value);
+        unsafe.putLong(m.address()+ offset, value);
     }
 
     public void putDouble(long offset, double value) {
-        unsafe.putDouble(m.data() + offset, value);
+        unsafe.putDouble(m.address() + offset, value);
     }
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
@@ -141,7 +141,7 @@ public class LBuffer {
     }
 
     public void copyTo(int srcOffset, Buffer dest, int destOffset, int size) {
-        unsafe.copyMemory(m.data() + srcOffset, dest.data() + destOffset, size);
+        unsafe.copyMemory(m.address() + srcOffset, dest.data() + destOffset, size);
     }
 
     public byte[] toArray() {
@@ -207,7 +207,7 @@ public class LBuffer {
         int index = 0;
         while(pos < limit) {
             long blockLength = Math.min(limit - pos, blockSize);
-            result[index++] = UnsafeUtil.newDirectByteBuffer(m.data() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
+            result[index++] = UnsafeUtil.newDirectByteBuffer(m.address() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
             pos += blockLength;
         }
         return result;
@@ -215,7 +215,7 @@ public class LBuffer {
     }
 
     public ByteBuffer toDirectByteBuffer(long offset, int size) {
-        return UnsafeUtil.newDirectByteBuffer(m.data() + offset, size);
+        return UnsafeUtil.newDirectByteBuffer(m.address() + offset, size);
     }
 
 }
