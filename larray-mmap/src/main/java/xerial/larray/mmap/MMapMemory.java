@@ -26,8 +26,9 @@ public class MMapMemory implements Memory {
     }
 
     public long headerAddress() { return address; }
+
     public MMapMemoryReference toRef(ReferenceQueue<Memory> queue) {
-        new MMapMemoryReference(this, queue);
+        return new MMapMemoryReference(this, queue);
     }
 
     public long dataSize() { return size; }
