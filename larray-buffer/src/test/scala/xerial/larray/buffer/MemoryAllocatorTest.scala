@@ -36,7 +36,7 @@ class MemoryAllocatorTest extends LArraySpec {
       val t = time("alloc", repeat = 5) {
         block("concurrent") {
           val l = for (i <- (0 until N).par) yield {
-            val a = new LBuffer(B)
+            val a = new Buffer(B)
             a(B-1) = 1.toByte
             a
           }

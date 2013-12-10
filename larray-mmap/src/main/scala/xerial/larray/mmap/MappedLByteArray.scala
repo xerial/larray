@@ -88,7 +88,7 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
         debug(f"win handle: $winHandle%x")
       }
 
-      m = MMapMemory(rawAddr, mapSize)
+      m = new MMapMemory(rawAddr, mapSize)
       alloc.register(m)
 
       rawAddr + pagePosition
