@@ -17,6 +17,7 @@ package xerial.larray
 
 import java.io.{FileFilter, File}
 import xerial.core.log.Logger
+import xerial.larray.mmap.MMapMode
 
 
 object SharedMemoryTest {

@@ -35,10 +35,20 @@ object Build extends sbt.Build {
     pomIncludeRepository := {
       _ => false
     },
+    scalaVersion := SCALA_VERSION,
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
     javacOptions in Compile ++= Seq("-Xlint:unchecked"),
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
+    scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
+      Seq("-sourcepath", bd.getAbsolutePath,
+        "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
+        "-doc-title", "LArray API",
+        "-doc-version", v,
+        "-diagrams"
+      )
+    },
     testOptions in Test <+= (target in Test) map {
       t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
     },
@@ -90,16 +100,6 @@ object Build extends sbt.Build {
         description := "LArray: A Large off-heap arrays for Scala/Java",
         logBuffered in MultiJvm := false,
         compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
-        scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
-        scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
-          Seq("-sourcepath", bd.getAbsolutePath,
-            "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
-            "-doc-title", "LArray API",
-            "-doc-version", v,
-            "-diagrams"
-          )
-        },
-        scalaVersion := SCALA_VERSION,
         executeTests in Test := {
           val testResults : Tests.Output = (executeTests in Test).value
           val multiJvmTestResults : Tests.Output = (executeTests in MultiJvm).value
@@ -127,7 +127,7 @@ object Build extends sbt.Build {
     id = "larray-buffer",
     base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
-      description := "LArray core library",
+      description := "LArray off-heap buffer library",
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
@@ -136,4 +136,12 @@ object Build extends sbt.Build {
     )
   )
 
+  lazy val larrayMMap = Project(
+    id = "larray-mmap",
+    base = file("larray-mmap"),
+    settings = buildSettings ++
+      Seq(
+        description := "LArray mmap implementation"
+      )
+  ) dependsOn(larrayScala)
 }

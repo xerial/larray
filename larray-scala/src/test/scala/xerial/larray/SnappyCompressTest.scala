@@ -25,6 +25,7 @@ package xerial.larray
 import org.xerial.snappy.Snappy
 import scala.util.Random
 import java.io.File
+import xerial.larray.mmap.MMapMode
 
 /**
  * @author Taro L. Saito

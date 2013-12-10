@@ -41,12 +41,15 @@ import xerial.larray.UnsafeUtil._
 class MemoryReference(m:Memory, queue:ReferenceQueue[Memory], val address:Long) extends PhantomReference[Memory](m, queue) {
   def this(m:Memory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address)
 
+  def name : String = "off-heap"
+
+  def release {
+    val size = m.size
+    unsafe.freeMemory(m.headerAddress)
+  }
 
 }
 
-class MMapMemoryReference(m:Memory, queue:ReferenceQueue[Memory], override val address:Long, val size:Long) extends MemoryReference(m, queue, address) {
-  def this(m:MMapMemory, queue:ReferenceQueue[Memory]) = this(m, queue, m.address, m.size)
-}
 
 /**
  * Accessor to the allocated memory
@@ -62,16 +65,17 @@ abstract class Memory(val address: Long) {
    * Allocated memory size
    */
   def size : Long
+
+  def toRef(queue:ReferenceQueue[Memory]) : MemoryReference
 }
 
 case class RawMemory(override val address:Long) extends Memory(address) {
   def headerAddress = address - MemoryAllocator.HEADER_SIZE
 
   def size = if(address == 0) 0L else UnsafeUtil.unsafe.getLong(headerAddress)
-}
 
-case class MMapMemory(override val address:Long, override val size:Long) extends Memory(address) {
-  def headerAddress = address
+  def toRef(queue:ReferenceQueue[Memory]) : MemoryReference = new MemoryReference(this, queue)
+
 }
 
 
@@ -148,7 +152,7 @@ trait MemoryAllocator extends Logger {
   def allocate(size: Long): Memory
 
 
-  def registerMMapMemory(m:MMapMemory, size:Long) : MemoryReference
+  private[larray] def register(m:Memory) : MemoryReference
 
 
   /**
@@ -228,9 +232,8 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
     m
   }
 
-
-  def registerMMapMemory(m:MMapMemory, size:Long) = {
-    val ref = new MMapMemoryReference(m, queue)
+  def register(m:Memory) = {
+    val ref = m.toRef(queue)
     allocatedMemoryReferences += ref.address -> ref
     ref
   }
@@ -238,14 +241,10 @@ class DefaultAllocator(allocatedMemoryReferences: mutable.Map[Long, MemoryRefere
   protected def releaseInternal(m:Memory, isGC:Boolean) {
     if (allocatedMemoryReferences.contains(m.address)) {
       val ref = allocatedMemoryReferences(m.address)
+      trace(f"${if(isGC) "[GC] " else ""}released ${ref.name} address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
+      ref.release
       ref match {
-        case r:MMapMemoryReference =>
-          trace(f"${if(isGC) "[GC] " else ""}released mmap   address:${m.address}%x, size:${DataUnit.toHumanReadableFormat(m.size)}")
-          LArrayNative.munmap(r.address, r.size)
         case r:MemoryReference =>
-          val size = m.size
-          trace(f"${if(isGC) "[GC] " else ""}released memory address:${m.headerAddress}%x, size:${DataUnit.toHumanReadableFormat(size)}")
-          unsafe.freeMemory(m.headerAddress)
           totalAllocatedSize.getAndAdd(- size)
       }
       ref.clear()

@@ -22,7 +22,6 @@
 
 package xerial.larray
 
-import impl.LArrayNative
 import scala.reflect.ClassTag
 import xerial.core.log.Logger
 import java.nio.{ByteOrder, ByteBuffer}
@@ -281,10 +280,6 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
  */
 object LArray {
 
-  /**
-   * Load the native JNI code
-   */
-  private[larray] val impl = xerial.larray.impl.LArrayLoader.load
 
 
   import _root_.java.{lang => jl}
@@ -632,17 +627,6 @@ object LArray {
     b.result
   }
 
-
-  /**
-   * Create a LArray[Byte] of a memory mapped file
-   * @param f file
-   * @param offset offset in file
-   * @param size region byte size
-   * @param mode open mode.
-   */
-  def mmap(f:File, offset:Long, size:Long, mode:MMapMode) : MappedLByteArray = {
-    new MappedLByteArray(f, offset, size, mode)
-  }
 
 }
 
