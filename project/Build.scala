@@ -92,6 +92,13 @@ object Build extends sbt.Build {
   ) aggregate(larrayScala, larrayBuffer)
 
 
+  object Dependency {
+
+    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0" % "test"
+  }
+
+  import Dependency._
+
   lazy val larrayScala = Project(
     id = "larray",
     base = file("larray-scala"),
@@ -112,7 +119,6 @@ object Build extends sbt.Build {
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.2.2",
-          "org.xerial.snappy" % "snappy-java" % "1.1.0" % "test",
           "junit" % "junit" % "4.10" % "test",
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
@@ -141,7 +147,8 @@ object Build extends sbt.Build {
     base = file("larray-mmap"),
     settings = buildSettings ++
       Seq(
-        description := "LArray mmap implementation"
+        description := "LArray mmap implementation",
+        libraryDependencies += snappy
       )
   ) dependsOn(larrayScala)
 }
