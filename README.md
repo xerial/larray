@@ -137,7 +137,7 @@ l2.free
 l2(0) // The result of accessing released LArray is undefined
 ```
 
-For more examples, see [xerial/larray/example/LArrayExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayExample.scala)
+For more examples, see [xerial/larray/example/LArrayExample.scala](larray/src/main/scala/xerial/larray/example/LArrayExample.scala)
 
 ## Usage (Java)
 
@@ -165,7 +165,7 @@ int e0 = l.apply(0L);  //  Get l[0L]
 // release 
 l.free();
 ```
-For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
+For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 
