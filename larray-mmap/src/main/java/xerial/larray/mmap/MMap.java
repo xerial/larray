@@ -16,7 +16,7 @@ public class MMap {
      * @param size region byte size
      * @param mode open mode.
      */
-    public MappedLByteArray open(File f, long offset, long size, MMapMode mode) {
+    public static MappedLByteArray open(File f, long offset, long size, MMapMode mode) {
         return new MappedLByteArray(f, offset, size, mode, BufferConfig.allocator);
     }
 
@@ -27,7 +27,7 @@ public class MMap {
      * @param mode
      * @return
      */
-    public MappedLByteArray open(File f, MMapMode mode) {
+    public static MappedLByteArray open(File f, MMapMode mode) {
         return new MappedLByteArray(f, 0, f.length(), mode, BufferConfig.allocator);
     }
 

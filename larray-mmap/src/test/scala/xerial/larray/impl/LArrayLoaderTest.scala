@@ -41,7 +41,7 @@ class LArrayLoaderTest extends LArraySpec {
       val cl = Thread.currentThread().getContextClassLoader
       val parentCl = cl.getParent.getParent // Fix for sbt-0.13
       debug(s"context cl: ${cl}, parent cl: $parentCl")
-      val classPath = Array(new File("larray-scala/target/classes").toURI.toURL)
+      val classPath = Array(new File("larray-mmap/target/classes").toURI.toURL)
       val cl1 = new URLClassLoader(classPath, parentCl)
       val cl2 = new URLClassLoader(classPath, parentCl)
 
