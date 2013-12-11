@@ -35,10 +35,20 @@ object Build extends sbt.Build {
     pomIncludeRepository := {
       _ => false
     },
+    scalaVersion := SCALA_VERSION,
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
     javacOptions in Compile ++= Seq("-Xlint:unchecked"),
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
+    scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
+      Seq("-sourcepath", bd.getAbsolutePath,
+        "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
+        "-doc-title", "LArray API",
+        "-doc-version", v,
+        "-diagrams"
+      )
+    },
     testOptions in Test <+= (target in Test) map {
       t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
     },
@@ -82,24 +92,27 @@ object Build extends sbt.Build {
   ) aggregate(larrayScala, larrayBuffer)
 
 
+  object Dependency {
+
+    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0"
+    val junit  = "junit" % "junit" % "4.10" % "test"
+    val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
+    val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
+  }
+
+  import Dependency._
+
+
+  private val scope = "test->test;compile->compile"
+
   lazy val larrayScala = Project(
     id = "larray",
-    base = file("larray-scala"),
+    base = file("larray"),
     settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
       Seq(
         description := "LArray: A Large off-heap arrays for Scala/Java",
         logBuffered in MultiJvm := false,
         compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
-        scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
-        scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
-          Seq("-sourcepath", bd.getAbsolutePath,
-            "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
-            "-doc-title", "LArray API",
-            "-doc-version", v,
-            "-diagrams"
-          )
-        },
-        scalaVersion := SCALA_VERSION,
         executeTests in Test := {
           val testResults : Tests.Output = (executeTests in Test).value
           val multiJvmTestResults : Tests.Output = (executeTests in MultiJvm).value
@@ -112,8 +125,8 @@ object Build extends sbt.Build {
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.2.2",
-          "org.xerial.snappy" % "snappy-java" % "1.1.0" % "test",
-          "junit" % "junit" % "4.10" % "test",
+          snappy % "test",
+          junit,
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
           "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
@@ -121,19 +134,33 @@ object Build extends sbt.Build {
           "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         )
       )
-  ) dependsOn(larrayBuffer) configs(MultiJvm)
+  ) dependsOn(larrayBuffer % scope, larrayMMap) configs(MultiJvm)
 
   lazy val larrayBuffer = Project(
     id = "larray-buffer",
     base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
-      description := "LArray core library",
+      description := "LArray off-heap buffer library",
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-        "org.xerial" % "xerial-core" % "3.2.2" % "test"
+        "org.xerial" % "xerial-core" % "3.2.2" % "test",
+        slf4j,
+        slf4jSimple % "test"
       )
     )
   )
 
+  lazy val larrayMMap = Project(
+    id = "larray-mmap",
+    base = file("larray-mmap"),
+    settings = buildSettings ++
+      Seq(
+        description := "LArray mmap implementation",
+        libraryDependencies ++= Seq(
+          snappy % "test",
+          junit
+        )
+      )
+  ) dependsOn(larrayBuffer % scope)
 }

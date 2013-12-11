@@ -11,10 +11,10 @@ import static xerial.larray.buffer.UnsafeUtil.unsafe;
  */
 class WritableChannelWrap implements WritableByteChannel {
 
-    private final Buffer b;
+    private final LBuffer b;
     int cursor = 0;
 
-    WritableChannelWrap(Buffer b) {
+    WritableChannelWrap(LBuffer b) {
         this.b = b;
     }
 
@@ -31,7 +31,7 @@ class WritableChannelWrap implements WritableByteChannel {
         }
         else {
             for(long i=0; i<len; ++i)
-                unsafe.putByte(b.data() + i, src.get((int) (src.position() + i)));
+                unsafe.putByte(b.address() + i, src.get((int) (src.position() + i)));
             writeLen = len;
         }
         cursor += writeLen;

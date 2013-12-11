@@ -1,6 +1,8 @@
 package xerial.larray.buffer;
 
-import java.lang.ref.PhantomReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,35 +20,77 @@ class OffHeapMemory implements Memory {
 
     public static long HEADER_SIZE = 8L;
 
-    public OffHeapMemory(long address) {
-        this._data = address + HEADER_SIZE;
+    /**
+     * Create an empty memory
+     */
+    public OffHeapMemory() {
+        this._data = 0L;
     }
 
-    public long address() {
+    public OffHeapMemory(long address) {
+        if(address != 0L)
+            this._data = address + HEADER_SIZE;
+        else
+            this._data = 0L;
+    }
+
+    public OffHeapMemory(long address, long size) {
+        if(address != 0L) {
+            this._data = address + HEADER_SIZE;
+            unsafe.putLong(address, size);
+        }
+        else {
+            this._data = 0L;
+        }
+    }
+
+    public long headerAddress() {
         return _data - HEADER_SIZE;
     }
     public long size() {
-        return (_data == 0) ? 0L : unsafe.getLong(address());
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) + HEADER_SIZE;
     }
 
-    public long data() {
+    public long address() {
         return _data;
     }
 
     public long dataSize() {
-        return (_data == 0) ? 0L : unsafe.getLong(address()) - HEADER_SIZE;
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress());
     }
 
+    public MemoryReference toRef(ReferenceQueue<Memory> queue) {
+        return new OffHeapMemoryReference(this, queue);
+    }
+
+    public void release() {
+        if(_data != 0)
+            UnsafeUtil.unsafe.freeMemory(headerAddress());
+    }
 }
 
+class OffHeapMemoryReference extends MemoryReference {
 
-class MemoryReference extends PhantomReference<Memory> {
-    public final Long address;
-    public MemoryReference(Memory m, ReferenceQueue<Memory> queue) {
+    /**
+     * Create a phantom reference
+     * @param m the allocated memory
+     * @param queue the reference queue to which GCed reference of the Memory will be inserted
+     */
+    public OffHeapMemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
-        this.address = m.address();
     }
+
+    public Memory toMemory() {
+        if(address != 0)
+            return new OffHeapMemory(address);
+        else
+            return new OffHeapMemory();
+    }
+
+    public String name() { return "off-heap"; }
+
 }
+
 
 
 /**
@@ -56,31 +100,22 @@ class MemoryReference extends PhantomReference<Memory> {
  */
 public class OffHeapMemoryAllocator implements MemoryAllocator {
 
+    private Logger logger = LoggerFactory.getLogger(OffHeapMemoryAllocator.class);
+
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
-        // Register a shutdown hook to deallocate memory
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized(this) {
-                    for(long address : allocatedMemoryReferences.keySet()) {
-                        // TODO Display warnings for unreleased memory addresses
-                    }
-                }
-            }
-        }));
-
-        // Start OffHeapMemory collector that releases the allocated memories when MemoryReference (phantom reference) is collected by GC.
+        // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true) {
                     try {
                         MemoryReference ref = MemoryReference.class.cast(queue.remove());
-                        //System.err.println(String.format("collected by GC. address:%x", ref.address.longValue()));
+                        if(logger.isTraceEnabled())
+                            logger.trace(String.format("collected by GC. address:%x", ref.address));
                         release(ref);
                     }
                     catch(Exception e) {
@@ -90,42 +125,71 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
             }
         });
         collector.setDaemon(true);
+        logger.trace("Start memory collector");
         collector.start();
     }
 
     private AtomicLong totalAllocatedSize = new AtomicLong(0L);
 
+    /**
+     * Get the total amount of allocated memory
+     */
     public long allocatedSize() { return totalAllocatedSize.get(); }
 
     public Memory allocate(long size) {
         if(size == 0L)
-          return new OffHeapMemory(0L);
+          return new OffHeapMemory();
 
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
-        Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize));
-        unsafe.putLong(m.address(), memorySize);
-
-        // Register a memory reference that will be collected upon GC
-        MemoryReference ref = new MemoryReference(m, queue);
-        allocatedMemoryReferences.put(ref.address, ref);
-        totalAllocatedSize.getAndAdd(memorySize);
+        long address = unsafe.allocateMemory(memorySize);
+        if(logger.isTraceEnabled())
+            logger.trace(String.format("Allocated memory address:%x, size:%,d", address, size));
+        Memory m = new OffHeapMemory(address, size);
+        register(m);
         return m;
     }
 
-    public void release(MemoryReference ref) {
-        if(allocatedMemoryReferences.containsKey(ref.address)) {
-            release(new OffHeapMemory(ref.address));
+    public void register(Memory m) {
+        // Register a memory reference that will be collected upon GC
+        MemoryReference ref = m.toRef(queue);
+        allocatedMemoryReferences.put(ref.address, ref);
+        totalAllocatedSize.getAndAdd(m.size());
+    }
+
+
+
+    /**
+     * Release all memory addresses taken by this allocator.
+     * Be careful in using this method, since all of the memory addresses become invalid.
+     */
+    public void releaseAll() {
+        synchronized(this) {
+            Object[] refSet = allocatedMemoryReferences.values().toArray();
+            if(refSet.length != 0)
+                logger.trace("Releasing allocated memory regions");
+            for(Object ref : refSet) {
+                release((MemoryReference) ref);
+            }
         }
     }
 
+
+    public void release(MemoryReference ref) {
+        release(ref.toMemory());
+    }
+
     public void release(Memory m) {
-        long address = m.address();
-        if(allocatedMemoryReferences.containsKey(address)) {
-            long size = m.size();
-            totalAllocatedSize.getAndAdd(-size);
-            unsafe.freeMemory(address);
-            allocatedMemoryReferences.remove(address);
+        synchronized(this) {
+            long address = m.headerAddress();
+            if(allocatedMemoryReferences.containsKey(address)) {
+                long size = m.size();
+                if(logger.isTraceEnabled())
+                    logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
+                totalAllocatedSize.getAndAdd(-size);
+                allocatedMemoryReferences.remove(address);
+                m.release();
+            }
         }
     }
 
