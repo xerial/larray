@@ -20,11 +20,11 @@
 //
 //--------------------------------------
 
-package xerial.larray.mmap
-
+package xerial.larray
 
 import java.io.File
 import xerial.larray.{LArraySpec, LIntArray, RawByteArray, LArray}
+import xerial.larray.mmap.MMapMode
 import org.xerial.snappy.Snappy
 
 /**
@@ -71,7 +71,7 @@ class SnappyCompressTest extends LArraySpec {
       compressed.saveTo(f)
 
       debug("decompressing the data")
-      val b = MMap.open(f, 0, f.length, MMapMode.READ_ONLY)
+      val b = LArray.mmap(f, MMapMode.READ_ONLY)
       val len = Snappy.uncompressedLength(b.address, b.length)
       val decompressed = new LIntArray(len / 4)
       Snappy.rawUncompress(b.address, b.length, decompressed.address)

@@ -94,7 +94,7 @@ object Build extends sbt.Build {
 
   object Dependency {
 
-    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0" % "test"
+    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0"
     val junit  = "junit" % "junit" % "4.10" % "test"
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
     val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
@@ -125,6 +125,7 @@ object Build extends sbt.Build {
         libraryDependencies ++= Seq(
           // Add dependent jars here
           "org.xerial" % "xerial-core" % "3.2.2",
+          snappy % "test",
           junit,
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
@@ -156,7 +157,10 @@ object Build extends sbt.Build {
     settings = buildSettings ++
       Seq(
         description := "LArray mmap implementation",
-        libraryDependencies ++= Seq(snappy, junit)
+        libraryDependencies ++= Seq(
+          snappy % "test",
+          junit
+        )
       )
   ) dependsOn(larrayBuffer % scope)
 }

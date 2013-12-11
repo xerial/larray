@@ -20,7 +20,7 @@
 //
 //--------------------------------------
 
-package xerial.larray.mmap
+package xerial.larray
 
 import java.io.File
 import xerial.larray.{MappedLByteArray, LArraySpec, LArray}
