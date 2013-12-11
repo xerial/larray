@@ -171,7 +171,8 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/sr
 ## Scaladoc
 
  * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray/0.2.1/larray-0.2.1-javadoc.jar/!/index.html#xerial.larray.package)
- 
+ * [larray-buffer API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.2.1/larray-buffer-0.2.1-javadoc.jar/!/index.html#)
+
 ## For developers
 
 * Building LArray: `./sbt compile`
