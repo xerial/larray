@@ -44,8 +44,22 @@ All allocators except LArray are orders of magnitude slower than LArray, and con
 
 ### Snappy Compression
 
-LArray has memory address that can be used with JNI-based methods (e.g, `rawCompress(...)` in snappy-java). 
+LArray (and LBuffer) has memory address that can be used for seamlessly interacting with fast native methods through JNI. Here is an example of using `rawCompress(...)` in [snappy-java](http://github.com/xerial/snappy-java), which can take raw-memory address to compress/uncompress the data, and is generally faster than [Dain's pure-java version of Snappy](http://github.com/dain/snappy).
 
+```
+[SnappyCompressTest]
+-compress       	total:0.017 sec. , count:   10, avg:1.669 msec., core avg:0.769 msec., min:0.479 msec., max:0.010 sec.
+  -LBuffer -> LBuffer (raw)	total:1.760 msec., count:   50, avg:0.035 msec., core avg:0.030 msec., min:0.024 msec., max:0.278 msec.
+  -Array -> Array (raw) 	total:1.450 msec., count:   50, avg:0.029 msec., core avg:0.027 msec., min:0.023 msec., max:0.110 msec.
+  -Array -> Array (dain)	total:0.011 sec. , count:   50, avg:0.225 msec., core avg:0.141 msec., min:0.030 msec., max:4.441 msec.
+[SnappyCompressTest]
+-decompress     	total:7.722 msec., count:   10, avg:0.772 msec., core avg:0.473 msec., min:0.418 msec., max:3.521 msec.
+  -LBuffer -> LBuffer (raw)	total:1.745 msec., count:   50, avg:0.035 msec., core avg:0.029 msec., min:0.020 msec., max:0.331 msec.
+  -Array -> Array (raw) 	total:1.189 msec., count:   50, avg:0.024 msec., core avg:0.021 msec., min:0.018 msec., max:0.149 msec.
+  -Array -> Array (dain)	total:2.571 msec., count:   50, avg:0.051 msec., core avg:0.027 msec., min:0.025 msec., max:1.240 msec.
+```
+
+ * [Test code](larray/src/test/scala/xerial/larray/SnappyCompressTest.scala)
 
 ## Limitations
 
