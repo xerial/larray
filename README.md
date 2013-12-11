@@ -1,6 +1,6 @@
 LArray
 === 
-A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala. Notablly LArray is *disposable* by calling `LArray.free` or you can let GC automatically release the memory. LArray also has `mmap` (memory-mapped file) support for a file whose size is more than 2GB. 
+A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala. Notablly LArray is *disposable* by calling `LArray.free` or you can let GC automatically release the memory. LArray also can be used to create an `mmap` (memory-mapped file) whose size is more than 2GB. 
 
 ## Features 
  * LArray can create arrays with more than 2G(2^31) entries.
