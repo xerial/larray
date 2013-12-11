@@ -18,15 +18,23 @@ class OffHeapMemory implements Memory {
 
     public static long HEADER_SIZE = 8L;
 
-    public OffHeapMemory(long address) {
+    /**
+     * Create an empty memory
+     */
+    public OffHeapMemory() {
+        this._data = 0L;
+    }
+
+    public OffHeapMemory(long address, long size) {
         this._data = address + HEADER_SIZE;
+        unsafe.putLong(address, size);
     }
 
     public long headerAddress() {
         return _data - HEADER_SIZE;
     }
     public long size() {
-        return (_data == 0) ? 0L : unsafe.getLong(headerAddress());
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) + HEADER_SIZE;
     }
 
     public long address() {
@@ -34,7 +42,7 @@ class OffHeapMemory implements Memory {
     }
 
     public long dataSize() {
-        return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) - HEADER_SIZE;
+        return (_data == 0) ? 0L : unsafe.getLong(headerAddress());
     }
 
     public MemoryReference toRef(ReferenceQueue<Memory> queue) {
@@ -52,14 +60,14 @@ class OffHeapMemoryReference extends MemoryReference {
     /**
      * Create a phantom reference
      * @param m the allocated memory
-     * @param queue the reference queue to which GCed reference of the Memory will be put
+     * @param queue the reference queue to which GCed reference of the Memory will be inserted
      */
     public OffHeapMemoryReference(Memory m, ReferenceQueue<Memory> queue) {
         super(m, queue);
     }
 
     public Memory toMemory() {
-        return new OffHeapMemory(address);
+        return new OffHeapMemory(address, unsafe.getLong(address));
     }
 
     public String name() { return "off-heap"; }
@@ -121,17 +129,16 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
 
     public Memory allocate(long size) {
         if(size == 0L)
-          return new OffHeapMemory(0L);
+          return new OffHeapMemory();
 
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
-        Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize));
+        Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize), size);
         register(m);
         return m;
     }
 
     public void register(Memory m) {
-        unsafe.putLong(m.headerAddress(), m.size());
         // Register a memory reference that will be collected upon GC
         MemoryReference ref = m.toRef(queue);
         allocatedMemoryReferences.put(ref.address, ref);
@@ -139,11 +146,6 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
     }
 
 
-    public void release(MemoryReference ref) {
-        if(allocatedMemoryReferences.containsKey(ref.address)) {
-            release(ref.toMemory());
-        }
-    }
 
     /**
      * Release all memory addresses taken by this allocator.
@@ -158,6 +160,10 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         }
     }
 
+
+    public void release(MemoryReference ref) {
+        release(ref.toMemory());
+    }
 
     public void release(Memory m) {
         long address = m.headerAddress();
