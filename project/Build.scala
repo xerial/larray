@@ -150,7 +150,8 @@ object Build extends sbt.Build {
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-        "org.xerial.java" % "xerial-core" % "2.1"
+        "org.xerial.java" % "xerial-core" % "2.1",
+        "org.xerial" % "xerial-core" % "3.2.2" % "test"
 //        slf4j,
 //        slf4jSimple % "test"
       )

@@ -1,7 +1,7 @@
 package xerial.larray.buffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.xerial.util.log.Logger;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
@@ -100,7 +100,7 @@ class OffHeapMemoryReference extends MemoryReference {
  */
 public class OffHeapMemoryAllocator implements MemoryAllocator {
 
-    private Logger logger = LoggerFactory.getLogger(OffHeapMemoryAllocator.class);
+    private Logger logger = Logger.getLogger(OffHeapMemoryAllocator.class);
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
