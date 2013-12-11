@@ -180,14 +180,16 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
     }
 
     public void release(Memory m) {
-        long address = m.headerAddress();
-        if(allocatedMemoryReferences.containsKey(address)) {
-            long size = m.size();
-            if(logger.isTraceEnabled())
-                logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
-            totalAllocatedSize.getAndAdd(-size);
-            m.release();
-            allocatedMemoryReferences.remove(address);
+        synchronized(this) {
+            long address = m.headerAddress();
+            if(allocatedMemoryReferences.containsKey(address)) {
+                long size = m.size();
+                if(logger.isTraceEnabled())
+                    logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
+                totalAllocatedSize.getAndAdd(-size);
+                allocatedMemoryReferences.remove(address);
+                m.release();
+            }
         }
     }
 
