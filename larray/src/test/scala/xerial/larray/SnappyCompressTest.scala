@@ -49,45 +49,55 @@ class SnappyCompressTest extends LArraySpec {
 
       val arr = buf.toArray
       val bufSize = buf.size.toInt
-      val R = 10
+
 
       val maxCompressedLength = Snappy.maxCompressedLength(bufSize)
-      val compressedLBuffer = new LBuffer(maxCompressedLength)
-      val compressedArray = new Array[Byte](maxCompressedLength)
-      val compressedArrayDain = new Array[Byte](maxCompressedLength)
 
       val GN = 10
+      val R = 10
 
       info("Start compression benchmark")
       time("compress", repeat = GN) {
         block("LBuffer -> LBuffer (raw)", repeat=R) {
-          Snappy.rawCompress(buf.address(), bufSize, compressedLBuffer.address())
+          val out = new LBuffer(maxCompressedLength)
+          Snappy.rawCompress(buf.address, bufSize, out.address)
         }
 
         block("Array -> Array (raw) ", repeat=R) {
-          Snappy.rawCompress(arr, 0, bufSize, compressedArray, 0)
+          val out = new Array[Byte](maxCompressedLength)
+          Snappy.rawCompress(arr, 0, bufSize, out, 0)
         }
 
         block("Array -> Array (dain)", repeat=R) {
-          org.iq80.snappy.Snappy.compress(arr, 0, bufSize, compressedArrayDain, 0)
+          val out = new Array[Byte](maxCompressedLength)
+          org.iq80.snappy.Snappy.compress(arr, 0, bufSize, out, 0)
         }
       }
 
-      val decompressedLBuffer = new LBuffer(bufSize)
-      val decompressedArray = new Array[Byte](bufSize)
+      val compressedLBuffer = new LBuffer(maxCompressedLength)
+      val compressedArray = new Array[Byte](maxCompressedLength)
+      val compressedArrayDain = new Array[Byte](maxCompressedLength)
+
+      Snappy.rawCompress(buf.address, bufSize, compressedLBuffer.address)
+      Snappy.rawCompress(arr, 0, bufSize, compressedArray, 0)
+      org.iq80.snappy.Snappy.compress(arr, 0, bufSize, compressedArrayDain, 0)
+
       val compressedSize = Snappy.compress(buf.toArray).length
 
       time("decompress", repeat = GN) {
         block("LBuffer -> LBuffer (raw)", repeat=R) {
-          Snappy.rawUncompress(compressedLBuffer.address(), compressedSize, decompressedLBuffer.address())
+          val out = new LBuffer(bufSize)
+          Snappy.rawUncompress(compressedLBuffer.address, compressedSize, out.address)
         }
 
         block("Array -> Array (raw) ", repeat=R) {
-          Snappy.rawUncompress(compressedArray, 0, compressedSize, decompressedArray, 0)
+          val out = new Array[Byte](bufSize)
+          Snappy.rawUncompress(compressedArray, 0, compressedSize, out, 0)
         }
 
         block("Array -> Array (dain)", repeat=R) {
-          org.iq80.snappy.Snappy.uncompress(compressedArrayDain, 0, compressedSize, decompressedArray, 0)
+          val out = new Array[Byte](bufSize)
+          org.iq80.snappy.Snappy.uncompress(compressedArrayDain, 0, compressedSize, out, 0)
         }
 
       }
