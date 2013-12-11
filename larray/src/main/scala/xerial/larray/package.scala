@@ -16,7 +16,7 @@
 package xerial
 
 import reflect.ClassTag
-import xerial.larray.buffer.BufferConfig
+import xerial.larray.buffer.LBufferConfig
 
 /**
  * == LArray ==
@@ -48,7 +48,7 @@ import xerial.larray.buffer.BufferConfig
  */
 package object larray {
 
-  implicit def defaultAllocator : xerial.larray.buffer.MemoryAllocator = BufferConfig.allocator
+  implicit def defaultAllocator : xerial.larray.buffer.MemoryAllocator = LBufferConfig.allocator
 
 
   implicit class ConvertArrayToLArray[A : ClassTag](arr:Array[A]) {

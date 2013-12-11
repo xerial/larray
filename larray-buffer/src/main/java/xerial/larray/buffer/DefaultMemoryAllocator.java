@@ -1,112 +1,33 @@
 package xerial.larray.buffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.xerial.util.log.Logger;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
 
 /**
- * Stores |(memory size:long)| data ... |
- */
-class OffHeapMemory implements Memory {
-
-    private final long _data;
-
-    public static long HEADER_SIZE = 8L;
-
-    /**
-     * Create an empty memory
-     */
-    public OffHeapMemory() {
-        this._data = 0L;
-    }
-
-    public OffHeapMemory(long address) {
-        if(address != 0L)
-            this._data = address + HEADER_SIZE;
-        else
-            this._data = 0L;
-    }
-
-    public OffHeapMemory(long address, long size) {
-        if(address != 0L) {
-            this._data = address + HEADER_SIZE;
-            unsafe.putLong(address, size);
-        }
-        else {
-            this._data = 0L;
-        }
-    }
-
-    public long headerAddress() {
-        return _data - HEADER_SIZE;
-    }
-    public long size() {
-        return (_data == 0) ? 0L : unsafe.getLong(headerAddress()) + HEADER_SIZE;
-    }
-
-    public long address() {
-        return _data;
-    }
-
-    public long dataSize() {
-        return (_data == 0) ? 0L : unsafe.getLong(headerAddress());
-    }
-
-    public MemoryReference toRef(ReferenceQueue<Memory> queue) {
-        return new OffHeapMemoryReference(this, queue);
-    }
-
-    public void release() {
-        if(_data != 0)
-            UnsafeUtil.unsafe.freeMemory(headerAddress());
-    }
-}
-
-class OffHeapMemoryReference extends MemoryReference {
-
-    /**
-     * Create a phantom reference
-     * @param m the allocated memory
-     * @param queue the reference queue to which GCed reference of the Memory will be inserted
-     */
-    public OffHeapMemoryReference(Memory m, ReferenceQueue<Memory> queue) {
-        super(m, queue);
-    }
-
-    public Memory toMemory() {
-        if(address != 0)
-            return new OffHeapMemory(address);
-        else
-            return new OffHeapMemory();
-    }
-
-    public String name() { return "off-heap"; }
-
-}
-
-
-
-/**
- * Allocating off-heap memory
+ * A default implementation of MemoryAllocator that allocates off-heap memory and releases allocated memories in a background thread.
  *
  * @author Taro L. Saito
  */
-public class OffHeapMemoryAllocator implements MemoryAllocator {
+public class DefaultMemoryAllocator implements MemoryAllocator {
 
-    private Logger logger = LoggerFactory.getLogger(OffHeapMemoryAllocator.class);
+    private Logger logger = Logger.getLogger(DefaultMemoryAllocator.class);
+
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
+        // Enable ANSI Color
+        logger.enableColor(true);
+
         // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
@@ -136,15 +57,19 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
      */
     public long allocatedSize() { return totalAllocatedSize.get(); }
 
+    /**
+     * Allocate a memory of the specified byte length. The allocated memory must be released via `release`
+     * as in malloc() in C/C++.
+     * @param size byte length of the memory
+     * @return allocated memory information
+     */
     public Memory allocate(long size) {
         if(size == 0L)
-          return new OffHeapMemory();
+            return new OffHeapMemory();
 
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
-        long address = unsafe.allocateMemory(memorySize);
-        if(logger.isTraceEnabled())
-            logger.trace(String.format("Allocated memory address:%x, size:%,d", address, size));
+        long address = UnsafeUtil.unsafe.allocateMemory(memorySize);
         Memory m = new OffHeapMemory(address, size);
         register(m);
         return m;
@@ -183,10 +108,9 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         synchronized(this) {
             long address = m.headerAddress();
             if(allocatedMemoryReferences.containsKey(address)) {
-                long size = m.size();
                 if(logger.isTraceEnabled())
-                    logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
-                totalAllocatedSize.getAndAdd(-size);
+                    logger.trace(String.format("Released memory address:%x, size:%,d", address, m.dataSize()));
+                totalAllocatedSize.getAndAdd(-m.size());
                 allocatedMemoryReferences.remove(address);
                 m.release();
             }

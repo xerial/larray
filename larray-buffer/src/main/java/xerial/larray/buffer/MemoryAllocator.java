@@ -14,15 +14,19 @@ public interface MemoryAllocator {
      */
     Memory allocate(long size);
 
+    /**
+     * Register a memory
+     * @param m
+     */
     void register(Memory m);
 
     /**
-     * Release the memory allocated by allocate(size).
+     * Release a memory
      */
     void release(Memory m);
 
     /**
-     * Release the memory allocated by allocate(size).
+     * Release a memory, referenced by ref
      */
     void release(MemoryReference ref);
 

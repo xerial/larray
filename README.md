@@ -1,6 +1,6 @@
 LArray
 === 
-A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
+A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala. Notably LArray is *disposable* by calling `LArray.free` or you can let GC automatically release the memory. LArray also can be used to create an `mmap` (memory-mapped file) whose size is more than 2GB. 
 
 ## Features 
  * LArray can create arrays with more than 2G(2^31) entries.
@@ -94,6 +94,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
+ * November 11, 2013  version 0.2.1 - Use orgnization name `org.xerial.larray`. Add LBuffer.view.  
  * November 11, 2013  version 0.2 - Extracted pure-java modules (larray-buffer.jar and larray-mmap.jar) from larray.jar (for Scala). 
  * August 28, 2013  version 0.1.2 - improved memory layout
  * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
@@ -105,7 +106,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.2"
+libraryDependencies += "org.xerial.larray" % "larray" % "0.2.1"
 ```
 
  * Using snapshot versions:
@@ -113,7 +114,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.2"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial" % "larray" % "0.2-SNAPSHOT"
+libraryDependencies += "org.xerial.larray" % "larray" % "0.2.2-SNAPSHOT"
 ```
 ### Example
 
@@ -137,16 +138,16 @@ l2.free
 l2(0) // The result of accessing released LArray is undefined
 ```
 
-For more examples, see [xerial/larray/example/LArrayExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayExample.scala)
+For more examples, see [xerial/larray/example/LArrayExample.scala](larray/src/main/scala/xerial/larray/example/LArrayExample.scala)
 
 ## Usage (Java)
 
 Add the following dependency to your pom.xml (Maven):
 ```xml
 <dependency>
-  <groupId>org.xerial</groupId>
+  <groupId>org.xerial.larray</groupId>
   <artifactId>larray</artifactId>
-  <version>0.2</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
@@ -165,11 +166,11 @@ int e0 = l.apply(0L);  //  Get l[0L]
 // release 
 l.free();
 ```
-For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
+For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.2/larray-0.2-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray/0.2.1/larray-0.2.1-javadoc.jar/!/index.html#xerial.larray.package)
  
 ## For developers
 
