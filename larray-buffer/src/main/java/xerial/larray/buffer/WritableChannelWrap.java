@@ -31,7 +31,7 @@ class WritableChannelWrap implements WritableByteChannel {
         }
         else {
             for(long i=0; i<len; ++i)
-                unsafe.putByte(b.data() + i, src.get((int) (src.position() + i)));
+                unsafe.putByte(b.address() + i, src.get((int) (src.position() + i)));
             writeLen = len;
         }
         cursor += writeLen;

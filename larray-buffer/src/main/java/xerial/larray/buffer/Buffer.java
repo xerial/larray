@@ -12,7 +12,7 @@ import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
 
 /**
- * Off-heap memory buffer of int indexes.
+ * Off-heap memory buffer of int and long type indexes.
  *
  * @author Taro L. Saito
  */
@@ -84,7 +84,7 @@ public class Buffer {
      *
      * @return
      */
-    public long data() {
+    public long address() {
         return m.address();
     }
 
@@ -96,7 +96,7 @@ public class Buffer {
         fill(0, size(), (byte) 0);
     }
 
-    public void fill(int offset, long length, byte value) {
+    public void fill(long offset, long length, byte value) {
         unsafe.setMemory(m.address() + offset, length, value);
     }
 
@@ -212,17 +212,6 @@ public class Buffer {
         unsafe.putDouble(m.address() + offset, value);
     }
 
-    public int readFrom(byte[] src, int destOffset) {
-        return readFrom(src, 0, destOffset, src.length);
-    }
-
-    public int readFrom(byte[] src, int srcOffset, int destOffset, int length) {
-        int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
-        ByteBuffer b = UnsafeUtil.newDirectByteBuffer(data() + destOffset, readLen);
-        b.put(src, srcOffset, readLen);
-        return readLen;
-    }
-
 
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
         int cursor = destOffset;
@@ -236,7 +225,7 @@ public class Buffer {
     }
 
     public void copyTo(long srcOffset, Buffer dest, long destOffset, long size) {
-        unsafe.copyMemory(m.address() + srcOffset, dest.data() + destOffset, size);
+        unsafe.copyMemory(m.address() + srcOffset, dest.address() + destOffset, size);
     }
 
     public Buffer slice(long from, long to) {
@@ -272,6 +261,10 @@ public class Buffer {
         } finally {
             channel.close();
         }
+    }
+
+    public int readFrom(byte[] src, long destOffset) {
+        return readFrom(src, 0, destOffset, src.length);
     }
 
     public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
