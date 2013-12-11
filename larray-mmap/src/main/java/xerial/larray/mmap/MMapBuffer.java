@@ -29,6 +29,25 @@ public class MMapBuffer extends LBufferAPI {
     private final long address;
     private long winHandle = -1;
 
+
+    /**
+     * Open an memory mapped file.
+     * @param f
+     * @param mode
+     * @throws IOException
+     */
+    public MMapBuffer(File f, MMapMode mode) throws IOException {
+        this(f, 0L, f.length(), mode);
+    }
+
+    /**
+     * Open an memory mapped file.
+     * @param f
+     * @param offset
+     * @param size
+     * @param mode
+     * @throws IOException
+     */
     public MMapBuffer(File f, long offset, long size, MMapMode mode) throws IOException {
         super();
         this.raf = new RandomAccessFile(f, mode.mode);
@@ -85,10 +104,6 @@ public class MMapBuffer extends LBufferAPI {
         this.address = rawAddr + pagePosition;
     }
 
-    public void release() {
-        BufferConfig.allocator.release(m);
-        m = null;
-    }
 
     /**
      * Forces any changes made to this buffer to be written to the file

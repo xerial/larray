@@ -72,6 +72,7 @@ public class LBufferAPI {
      */
     public void release() {
         BufferConfig.allocator.release(m);
+        m = null;
     }
 
 
