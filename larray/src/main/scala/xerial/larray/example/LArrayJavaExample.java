@@ -94,7 +94,7 @@ public class LArrayJavaExample {
         int ten = lbuf.getInt(0);
         lbuf.address(); // memory address
         lbuf.release(); // deallocate the memory
-        
+
 
         System.out.println("done.");
     }

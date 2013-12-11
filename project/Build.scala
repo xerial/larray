@@ -24,7 +24,7 @@ object Build extends sbt.Build {
   private val SCALA_VERSION = "2.10.3"
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
-    organization := "org.xerial",
+    organization := "org.xerial.larray",
     organizationName := "xerial.org",
     organizationHomepage := Some(new URL("http://xerial.org")),
     publishMavenStyle := true,
@@ -41,6 +41,7 @@ object Build extends sbt.Build {
     parallelExecution in Test := false,
     javacOptions in Compile ++= Seq("-Xlint:unchecked"),
     javacOptions in (Compile, doc) <<= (baseDirectory, version) map { (bd, v) => Seq(
+     "-locale", "en_US",
      "-sourcepath", bd.getAbsolutePath,
      "-doctitle", s"LArray ${v} API"
     )},
@@ -132,7 +133,6 @@ object Build extends sbt.Build {
           snappy % "test",
           junit,
           "org.iq80.snappy" % "snappy" % "0.3" % "test",
-
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
           "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
@@ -150,9 +150,9 @@ object Build extends sbt.Build {
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-        "org.xerial" % "xerial-core" % "3.2.2" % "test",
-        slf4j,
-        slf4jSimple % "test"
+        "org.xerial.java" % "xerial-core" % "2.1"
+//        slf4j,
+//        slf4jSimple % "test"
       )
     )
   )
@@ -163,6 +163,7 @@ object Build extends sbt.Build {
     settings = buildSettings ++
       Seq(
         description := "LArray mmap implementation",
+        autoScalaLibrary := false,
         libraryDependencies ++= Seq(
           snappy % "test",
           junit
