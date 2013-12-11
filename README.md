@@ -182,7 +182,7 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/sr
 
  * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray/0.2.1/larray-0.2.1-javadoc.jar/!/index.html#xerial.larray.package)
  * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.2.1/larray-buffer-0.2.1-javadoc.jar/!/index.html#)
- * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.2.1/larray-mmap-0.2.1-javadoc.jar/!/index.html#)
+ * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.2.1/larray-mmap-0.2.1-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
  
 ## For developers
 
