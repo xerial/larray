@@ -96,7 +96,7 @@ Simply you can include **larray** to the dependency in Maven or SBT so that all 
 A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be used since 
 **larray-buffer** depends on `sun.misc.Unsafe` class to allocate off-heap memory.
 
-**larray-mmap** (MMapBuffer and LArray.mmap) uses JNI and is available for the following major CPU architecutres:
+**larray-mmap** (MMapBuffer and LArray.mmap) uses JNI and is available for the following major CPU architectures:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
@@ -181,8 +181,9 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/sr
 ## Scaladoc
 
  * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray/0.2.1/larray-0.2.1-javadoc.jar/!/index.html#xerial.larray.package)
- * [larray-buffer API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.2.1/larray-buffer-0.2.1-javadoc.jar/!/index.html#)
-
+ * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.2.1/larray-buffer-0.2.1-javadoc.jar/!/index.html#)
+ * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.2.1/larray-mmap-0.2.1-javadoc.jar/!/index.html#)
+ 
 ## For developers
 
 * Building LArray: `./sbt compile`
