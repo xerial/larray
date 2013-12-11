@@ -143,7 +143,8 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
         long address = unsafe.allocateMemory(memorySize);
-        logger.trace(String.format("Allocated memory address:%x, size:%,d", address, size));
+        if(logger.isTraceEnabled())
+            logger.trace(String.format("Allocated memory address:%x, size:%,d", address, size));
         Memory m = new OffHeapMemory(address, size);
         register(m);
         return m;
@@ -182,7 +183,8 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         long address = m.headerAddress();
         if(allocatedMemoryReferences.containsKey(address)) {
             long size = m.size();
-            logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
+            if(logger.isTraceEnabled())
+                logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
             totalAllocatedSize.getAndAdd(-size);
             m.release();
             allocatedMemoryReferences.remove(address);

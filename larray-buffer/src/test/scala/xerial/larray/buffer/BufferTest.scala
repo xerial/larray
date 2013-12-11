@@ -58,7 +58,7 @@ class BufferTest extends LArraySpec {
     }
 
 
-    "allocate concurrently" in {
+    "allocate concurrently" taggedAs("bench") in {
 
       val N = 100
       def range = (0 until N).par
