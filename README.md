@@ -49,7 +49,7 @@ All allocators except LArray are orders of magnitude slower than LArray, and con
 
 ## Modules
 
-LArray are consists of three-modules.
+LArray consists of three-modules.
 
  * **larray-buffer** (Java) Off-heap memory buffer `LBuffer` and its allocator with GC support.
  * **larray-mmap**   (Java + JNI (C code)) Memory-mapped file implementaiton `MMapBuffer`
