@@ -7,8 +7,8 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * 2^31 -1 (2G) is the limitation of the default Java/Scala array size, because these arrays use 32-bit signed integer (int) as indexes. LArray uses long type indexes of 64-bit signed integers to resolve this limitation.
    * For example, the entire human genome data (3GB) can be stored in LArray. 
  * LArray can be released immediately from the memory.
-   * Call LArray.free.
-   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid OutOfMemoryException when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
+   * Call `LArray.free`.
+   * The default arrays in Java/Scala stay in JVM heaps until they are collected by GC, so it is generally difficult to avoid `OutOfMemoryException` when working with large amount of data. For example, call `new Array[Int](1000)` x 10,000 times. You are lucky if you don't see OutOfMemoryException.
  * LArray can be collected by Garbage Collector (GC)
    * Even if you forget to call LArray.free, the acquired memory will be released when GC sweeps LArray instances.
    * To prevent accidental memory release, keep a reference to LArray somewhere (e.g., in List) as in the standard Java/Scala program.
@@ -57,11 +57,14 @@ LArray consists of three-modules.
 
 You can use each module independently. For example, if you only need an off-heap memory allocator that collects memory upon GC, use `LBuffer` in **larray-buffer**. 
 
+Simply you can include ***larray** to the dependency in Maven or SBT so that all modules will be added to your classpaths.
+
 ## Supported Platforms
 
-**larray-buffer** depends on `sun.misc.Unsafe` class, which is provided in Oracle JVM (standard JVM, HotSpotVM) or OpenJDK. 
+A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be used since 
+**larray-buffer** depends on `sun.misc.Unsafe` class to allocate off-heap memory.
 
-**larray-mmap** (MMapBuffer and LArray.mmap) is available for the following major CPU architecutres:
+**larray-mmap** (MMapBuffer and LArray.mmap) uses JNI and is available for the following major CPU architecutres:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
