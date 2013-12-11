@@ -1,7 +1,7 @@
 package xerial.larray.mmap;
 
 import sun.misc.SharedSecrets;
-import xerial.larray.buffer.BufferConfig;
+import xerial.larray.buffer.LBufferConfig;
 import xerial.larray.buffer.LBufferAPI;
 import xerial.larray.buffer.UnsafeUtil;
 import xerial.larray.impl.LArrayNative;
@@ -101,7 +101,7 @@ public class MMapBuffer extends LBufferAPI {
         }
 
         this.m = new MMapMemory(rawAddr, mapSize);
-        BufferConfig.allocator.register(m);
+        LBufferConfig.allocator.register(m);
 
         this.address = rawAddr + pagePosition;
     }

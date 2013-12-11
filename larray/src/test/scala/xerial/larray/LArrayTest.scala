@@ -33,7 +33,7 @@ class LArrayTest extends LArraySpec {
   val G: Long = 1024L * 1024L * 1024L
 
   override def afterEach {
-    //    MemoryAllocator.default.releaseAll
+    //    MemoryCollector.default.releaseAll
     //    System.gc()
   }
 
