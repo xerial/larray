@@ -107,14 +107,6 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
-//        // Register a shutdown hook to deallocate memory
-//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                // releaseAll();
-//            }
-//        }));
-
         // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
