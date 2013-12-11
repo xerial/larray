@@ -48,6 +48,16 @@ Here is a simple benchmark result that compares concurrent memory-allocation per
 
 All allocators except LArray are orders of magnitude slower than LArray, and consumes CPUs because they need to fill the allocated memory with zeros due to their specification.
 
+In a single thread execution, you can see more clearly how fast LArray can allocate memories.    
+```
+-single-thread allocation	total:3.655 sec. , count:   10, avg:0.366 sec. , core avg:0.356 sec. , min:0.247 sec. , max:0.558 sec.
+  -without zero-filling	total:0.030 sec. , count:   20, avg:1.496 msec., core avg:1.125 msec., min:0.950 msec., max:8.713 msec.
+  -with zero-filling	total:0.961 sec. , count:   20, avg:0.048 sec. , core avg:0.047 sec. , min:0.044 sec. , max:0.070 sec.
+  -java array     	total:0.967 sec. , count:   20, avg:0.048 sec. , core avg:0.037 sec. , min:0.012 sec. , max:0.295 sec.
+  -byte buffer    	total:0.879 sec. , count:   20, avg:0.044 sec. , core avg:0.033 sec. , min:0.014 sec. , max:0.276 sec.
+  -direct byte buffer	total:0.812 sec. , count:   20, avg:0.041 sec. , core avg:0.041 sec. , min:0.032 sec. , max:0.049 sec.
+```
+
 ### Snappy Compression
 
 LArray (and LBuffer) has memory address that can be used for seamlessly interacting with fast native methods through JNI. Here is an example of using `rawCompress(...)` in [snappy-java](http://github.com/xerial/snappy-java), which can take raw-memory address to compress/uncompress the data using C++ code, and is generally faster than [Dain's pure-java version of Snappy](http://github.com/dain/snappy).
