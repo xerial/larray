@@ -133,7 +133,7 @@ object Build extends sbt.Build {
           "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
         )
       )
-  ) dependsOn(larrayBuffer % scope) configs(MultiJvm)
+  ) dependsOn(larrayBuffer % scope, larrayMMap) configs(MultiJvm)
 
   lazy val larrayBuffer = Project(
     id = "larray-buffer",
@@ -158,5 +158,5 @@ object Build extends sbt.Build {
         description := "LArray mmap implementation",
         libraryDependencies ++= Seq(snappy, junit)
       )
-  ) dependsOn(larrayScala, larrayBuffer % scope)
+  ) dependsOn(larrayBuffer % scope)
 }

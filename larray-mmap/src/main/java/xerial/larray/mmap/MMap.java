@@ -1,5 +1,6 @@
 package xerial.larray.mmap;
 
+import xerial.larray.MappedLByteArray;
 import xerial.larray.buffer.BufferConfig;
 
 import java.io.File;

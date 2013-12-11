@@ -29,6 +29,7 @@ import java.nio.channels.{FileChannel, WritableByteChannel}
 import sun.nio.ch.DirectBuffer
 import java.io.{FileInputStream, FileOutputStream, File}
 import xerial.larray.buffer.{Memory, MemoryAllocator}
+import xerial.larray.mmap.MMapMode
 
 
 /**
@@ -280,8 +281,6 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
  * @author Taro L. Saito
  */
 object LArray {
-
-
 
   import _root_.java.{lang => jl}
 
@@ -630,6 +629,26 @@ object LArray {
     b.result
   }
 
+
+  /**
+   * Create a LArray[Byte] of a memory mapped file
+   * @param f file
+   * @param offset offset in file
+   * @param size region byte size
+   * @param mode open mode.
+   */
+  def mmap(f:File, offset:Long, size:Long, mode:MMapMode) : MappedLByteArray = {
+    new MappedLByteArray(f, offset, size, mode)
+  }
+
+  /**
+   * Create a LArray[Byte] of a memory mapped file
+   * @param f file
+   * @param mode open mode.
+   */
+  def mmap(f:File, mode:MMapMode) : MappedLByteArray = {
+    new MappedLByteArray(f, 0, f.length(), mode)
+  }
 
 }
 

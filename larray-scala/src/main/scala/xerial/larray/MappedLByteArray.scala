@@ -20,14 +20,16 @@
 //
 //--------------------------------------
 
-package xerial.larray.mmap
+package xerial.larray
 
 import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
 import java.lang.reflect.InvocationTargetException
 import xerial.larray._
-import xerial.larray.impl.{LArrayNative, OSInfo}
-import xerial.larray.buffer.MemoryAllocator
+import xerial.larray.buffer.{Memory, MemoryAllocator}
+import xerial.larray.mmap.{MMapMemory, MMapMode, MMapBuffer}
 import sun.misc.SharedSecrets
+import sun.awt.OSInfo
+
 
 
 /**
@@ -39,88 +41,29 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
   import UnsafeUtil.unsafe
   import java.{lang=>jl}
 
-  private val raf = new RandomAccessFile(f, mode.mode)
-  private val fc = raf.getChannel
-  private val fd : Long = {
-    val f = raf.getFD()
-    if(!OSInfo.isWindows) {
-      val idf = f.getClass.getDeclaredField("fd")
-      idf.setAccessible(true)
-      idf.getInt(f)
-    }
-    else {
-      val idf = f.getClass.getDeclaredField("handle")
-      idf.setAccessible(true)
-      idf.getLong(f)
-    }
-  }
-  private var winHandle : Long = -1L
-
-  private val pagePosition = {
-    val allocationGranularity : Long = unsafe.pageSize
-    (offset % allocationGranularity).toInt
-  }
-
-  private var m : MMapMemory = _
-
-  val address : Long = {
-    try {
-      if(!fc.isOpen())
-        throw new IOException("closed")
-
-      val fileSize = fc.size()
-      if(fileSize < offset + size) {
-        // extend the file size
-        raf.seek(offset + size - 1)
-        raf.write(0)
-        trace(s"extend file size to ${fc.size}")
-      }
-      val mapPosition = offset - pagePosition
-      val mapSize = size + pagePosition
-      // A workaround for the error when calling fc.map(MapMode.READ_WRITE, offset, size) with size more than 2GB
-
-      val rawAddr = LArrayNative.mmap(fd, mode.code, mapPosition, mapSize)
-      trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
-
-      if(OSInfo.isWindows) {
-        val a = SharedSecrets.getJavaIOFileDescriptorAccess
-        winHandle = LArrayNative.duplicateHandle(a.getHandle(raf.getFD))
-        debug(f"win handle: $winHandle%x")
-      }
-
-      m = new MMapMemory(rawAddr, mapSize)
-      alloc.register(m)
-
-      rawAddr + pagePosition
-    }
-    catch {
-      case e:InvocationTargetException => throw e.getCause
-    }
-  }
-
+  private val mmap = new MMapBuffer(f, offset, size, mode);
+  private val m : Memory = mmap.m
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
+  val address = mmap.address()
+
   def free {
-    alloc.release(m)
-    m = null
+    m.release();
   }
 
   /**
    * Forces any changes made to this buffer to be written to the file
    */
   def flush {
-    // We can use a dummy buffer instance since force0 will not access class fields
-    LArrayNative.msync(winHandle, m.address, m.size)
+    mmap.flush()
    }
 
   /**
    * Close the memory mapped file. To ensure the written data is saved in the file, call flush before closing
    */
   override def close() {
-    //flush
-    free
-    fc.close()
+    mmap.close()
   }
 
   /**

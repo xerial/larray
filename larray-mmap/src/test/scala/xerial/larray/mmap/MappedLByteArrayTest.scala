@@ -23,7 +23,7 @@
 package xerial.larray.mmap
 
 import java.io.File
-import xerial.larray.{LArraySpec, LArray}
+import xerial.larray.{MappedLByteArray, LArraySpec, LArray}
 
 /**
  * @author Taro L. Saito

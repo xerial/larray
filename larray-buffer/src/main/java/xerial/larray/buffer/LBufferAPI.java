@@ -17,7 +17,7 @@ import static xerial.larray.buffer.UnsafeUtil.unsafe;
  */
 public class LBufferAPI {
 
-    protected Memory m;
+    public Memory m;
 
     public LBufferAPI() {
     }
