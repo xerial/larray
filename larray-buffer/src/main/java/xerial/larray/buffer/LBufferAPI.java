@@ -10,23 +10,19 @@ import java.nio.channels.FileChannel;
 
 import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
-
 /**
- * Off-heap memory buffer of int and long type indexes.
+ * Defines common utility methods for accessing LBuffer
  *
  * @author Taro L. Saito
  */
-public class Buffer {
+public class LBufferAPI {
 
-    final Memory m;
+    protected Memory m;
 
-    /**
-     * Allocate a memory of the specified byte size
-     *
-     * @param size byte size of the array
-     */
-    public Buffer(long size) {
-        this.m = BufferConfig.allocator.allocate(size);
+    public LBufferAPI() {
+    }
+    public LBufferAPI(Memory m) {
+        this.m = m;
     }
 
     /**
@@ -224,16 +220,16 @@ public class Buffer {
         }
     }
 
-    public void copyTo(long srcOffset, Buffer dest, long destOffset, long size) {
+    public void copyTo(long srcOffset, LBuffer dest, long destOffset, long size) {
         unsafe.copyMemory(m.address() + srcOffset, dest.address() + destOffset, size);
     }
 
-    public Buffer slice(long from, long to) {
+    public LBuffer slice(long from, long to) {
         if(from > to)
             throw new IllegalArgumentException(String.format("invalid range %,d to %,d", from, to));
 
         long size = to - from;
-        Buffer b = new Buffer(size);
+        LBuffer b = new LBuffer(size);
         copyTo(from, b, 0, size);
         return b;
     }
@@ -276,12 +272,12 @@ public class Buffer {
     }
 
 
-    public static Buffer loadFrom(File file) throws IOException {
+    public static LBuffer loadFrom(File file) throws IOException {
         FileChannel fin = new FileInputStream(file).getChannel();
         long fileSize = fin.size();
         if (fileSize > Integer.MAX_VALUE)
             throw new IllegalArgumentException("Cannot load from file more than 2GB: " + file);
-        Buffer b = new Buffer((int) fileSize);
+        LBuffer b = new LBuffer((int) fileSize);
         long pos = 0L;
         WritableChannelWrap ch = new WritableChannelWrap(b);
         while (pos < fileSize) {
@@ -316,5 +312,3 @@ public class Buffer {
     }
 
 }
-
-

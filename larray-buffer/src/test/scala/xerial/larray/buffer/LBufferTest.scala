@@ -14,18 +14,18 @@ import xerial.larray.LArraySpec
 /**
  * @author Taro L. Saito
  */
-class BufferTest extends LArraySpec {
+class LBufferTest extends LArraySpec {
 
-  implicit class RichArray(m:Buffer) {
+  implicit class RichArray(m:LBuffer) {
     def toCSV = m.toArray.mkString(", ")
   }
 
 
-  "Buffer" should {
+  "LBuffer" should {
 
     "allocate memory" in {
       val size = 1000
-      val m = new Buffer(size)
+      val m = new LBuffer(size)
       m.putInt(0, 0)
       m.putInt(4, 1)
       m.putInt(8, 130)
@@ -48,7 +48,7 @@ class BufferTest extends LArraySpec {
 
     "convert to array" in {
       val size = 12
-      val m = new Buffer(size);
+      val m = new LBuffer(size);
       for(i <- 0 until size)
         m(i) = i.toByte
       debug(m.toCSV)
@@ -70,13 +70,13 @@ class BufferTest extends LArraySpec {
       time("concurrent allocation", repeat=10) {
         block("without zero-filling", repeat=R) {
           for(i <- range) yield {
-            new Buffer(S)
+            new LBuffer(S)
           }
         }
 
         block("with zero-filling", repeat=R) {
           for(i <- range) yield {
-            val m = new Buffer(S)
+            val m = new LBuffer(S)
             m.clear()
             m
           }

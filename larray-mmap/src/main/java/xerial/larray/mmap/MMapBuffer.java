@@ -2,6 +2,7 @@ package xerial.larray.mmap;
 
 import sun.misc.SharedSecrets;
 import xerial.larray.buffer.BufferConfig;
+import xerial.larray.buffer.LBufferAPI;
 import xerial.larray.buffer.UnsafeUtil;
 import xerial.larray.impl.LArrayNative;
 import xerial.larray.impl.OSInfo;
@@ -18,18 +19,18 @@ import java.nio.channels.FileChannel;
  *
  * @author Taro L. Saito
  */
-public class MMapBuffer {
+public class MMapBuffer extends LBufferAPI {
 
     private final RandomAccessFile raf;
     private final FileChannel fc;
     private final long fd;
     private final int pagePosition;
 
-    private MMapMemory m;
     private final long address;
     private long winHandle = -1;
 
     public MMapBuffer(File f, long offset, long size, MMapMode mode) throws IOException {
+        super();
         this.raf = new RandomAccessFile(f, mode.mode);
         this.fc = raf.getChannel();
         // Retreive file descriptor
@@ -93,7 +94,7 @@ public class MMapBuffer {
      * Forces any changes made to this buffer to be written to the file
      */
     public void flush() {
-        LArrayNative.msync(winHandle, m.address, m.size);
+        LArrayNative.msync(winHandle, m.headerAddress(), m.size());
     }
 
     /**
@@ -104,6 +105,6 @@ public class MMapBuffer {
         fc.close();
     }
 
-    
+
 
 }

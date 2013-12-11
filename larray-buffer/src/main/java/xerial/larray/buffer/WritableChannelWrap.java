@@ -11,10 +11,10 @@ import static xerial.larray.buffer.UnsafeUtil.unsafe;
  */
 class WritableChannelWrap implements WritableByteChannel {
 
-    private final Buffer b;
+    private final LBuffer b;
     int cursor = 0;
 
-    WritableChannelWrap(Buffer b) {
+    WritableChannelWrap(LBuffer b) {
         this.b = b;
     }
 
