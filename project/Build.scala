@@ -40,6 +40,10 @@ object Build extends sbt.Build {
     parallelExecution := true,
     parallelExecution in Test := false,
     javacOptions in Compile ++= Seq("-Xlint:unchecked"),
+    javacOptions in (Compile, doc) <<= (baseDirectory, version) map { (bd, v) => Seq(
+     "-sourcepath", bd.getAbsolutePath,
+     "-doctitle", s"LArray ${v} API"
+    )},
     scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
     scalacOptions in (Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
       Seq("-sourcepath", bd.getAbsolutePath,
