@@ -28,7 +28,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
 
 ## Performance
 
-Here is a simple benchmark result that compares concurrent memory-allocation performances of LArray (with or without zero-filling), java arrays, `ByteBuffer.allocate` and `ByteBuffer.allocateDirect`, using Mac OS X with 2.9GHz Intelli Core i7. This test allocates 100 x 1MB of memory space concurrently using multiple threads, and repeats this process 20 times. All allocators except LArray are orders of magnitude slower than LArray, and consumes CPUs because they need to fill the allocated memory with zeros due to their specification.
+Here is a simple benchmark result that compares concurrent memory-allocation performances of LArray (with or without zero-filling), java arrays, `ByteBuffer.allocate` and `ByteBuffer.allocateDirect`, using Mac OS X with 2.9GHz Intelli Core i7. This test allocates 100 x 1MB of memory space concurrently using multiple threads, and repeats this process 20 times. 
 
 ```
 -concurrent allocation	total:2.426 sec. , count:   10, avg:0.243 sec. , core avg:0.236 sec. , min:0.159 sec. , max:0.379 sec.
@@ -38,6 +38,8 @@ Here is a simple benchmark result that compares concurrent memory-allocation per
   -byte buffer    	    total:1.028 sec. , count:   20, avg:0.051 sec. , core avg:0.044 sec. , min:0.014 sec. , max:0.216 sec.
   -direct byte buffer   total:0.360 sec. , count:   20, avg:0.018 sec. , core avg:0.018 sec. , min:0.015 sec. , max:0.026 sec.
 ```
+
+All allocators except LArray are orders of magnitude slower than LArray, and consumes CPUs because they need to fill the allocated memory with zeros due to their specification.
  
 ## Limitations
 
@@ -45,17 +47,29 @@ Here is a simple benchmark result that compares concurrent memory-allocation per
     * To release objects from main memory, you need to create *off-heap* objects. For example, create a large `LArray[Byte]`, then align your object data on the array. Object parameters can be retrieved with `LArray[Byte].getInt(offset)`, `getFloat(offset)`, etc. 
   
 
+## Modules
+
+LArray are consists of three-modules.
+
+ * **larray-buffer** (Java) Off-heap memory buffer `LBuffer` and its allocator with GC support.
+ * **larray-mmap**   (Java + JNI (C code)) Memory-mapped file implementaiton `MMapBuffer`
+ * **larray** (Scala and Java API) Provdes rich set of array operations through `LArray` class.
+
+You can use each module independently. For example, if you only need an off-heap memory allocator that collects memory upon GC, use `LBuffer` in **larray-buffer**. 
+
 ## Supported Platforms
 
-LArray uses OS-specific implementation for mmap and copying memory contents between LArray and Java arrays. Currently, the following CPU architecutres are supported:
+**larray-buffer** depends on `sun.misc.Unsafe` class, which is provided in Oracle JVM (standard JVM, HotSpotVM) or OpenJDK. 
+
+**larray-mmap** (MMapBuffer and LArray.mmap) is available for the following major CPU architecutres:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
  * Mac OSX (Intel 64bit)
 
-In addition, Oracle JVM (standard JVM, HotSpotVM) or OpenJDK must be used since LArray depends on `sun.misc.Unsafe` class.
 
 ## History
+ * November 11, 2013  version 0.2 
  * August 28, 2013  version 0.1.2 - improved memory layout
  * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
  * Apr 23, 2013   Released version 0.1
