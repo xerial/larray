@@ -93,7 +93,7 @@ object Build extends sbt.Build {
        publish := {},
        publishLocal := {}
     )
-  ) aggregate(larrayScala, larrayBuffer)
+  ) aggregate(larrayScala, larrayBuffer, larrayMMap)
 
 
   object Dependency {
