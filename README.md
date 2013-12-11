@@ -26,6 +26,12 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
    * Use `LArray.mmap`
    * It can create memory regions that can be shared between processes.
 
+## Limitations
+
+  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and they are under the control of GC. 
+    * To release objects from main memory, you need to create *off-heap* objects. For example, create a large `LArray[Byte]`, then align your object data on the array. Object parameters can be retrieved with `LArray[Byte].getInt(offset)`, `getFloat(offset)`, etc.  
+
+
 ## Performance
 
 ### Memory allocation
@@ -44,7 +50,7 @@ All allocators except LArray are orders of magnitude slower than LArray, and con
 
 ### Snappy Compression
 
-LArray (and LBuffer) has memory address that can be used for seamlessly interacting with fast native methods through JNI. Here is an example of using `rawCompress(...)` in [snappy-java](http://github.com/xerial/snappy-java), which can take raw-memory address to compress/uncompress the data, and is generally faster than [Dain's pure-java version of Snappy](http://github.com/dain/snappy).
+LArray (and LBuffer) has memory address that can be used for seamlessly interacting with fast native methods through JNI. Here is an example of using `rawCompress(...)` in [snappy-java](http://github.com/xerial/snappy-java), which can take raw-memory address to compress/uncompress the data using C++ code, and is generally faster than [Dain's pure-java version of Snappy](http://github.com/dain/snappy).
 
 ```
 [SnappyCompressTest]
@@ -61,10 +67,6 @@ LArray (and LBuffer) has memory address that can be used for seamlessly interact
 
  * [Test code](larray/src/test/scala/xerial/larray/SnappyCompressTest.scala)
 
-## Limitations
-
-  * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and they are under the control of GC. 
-    * To release objects from main memory, you need to create *off-heap* objects. For example, create a large `LArray[Byte]`, then align your object data on the array. Object parameters can be retrieved with `LArray[Byte].getInt(offset)`, `getFloat(offset)`, etc. 
   
 
 ## Modules
