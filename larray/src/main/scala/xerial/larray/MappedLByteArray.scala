@@ -25,7 +25,7 @@ package xerial.larray
 import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
 import java.lang.reflect.InvocationTargetException
 import xerial.larray._
-import xerial.larray.buffer.{Memory, MemoryCollector}
+import xerial.larray.buffer.{Memory, MemoryAllocator}
 import xerial.larray.mmap.{MMapMemory, MMapMode, MMapBuffer}
 import sun.misc.SharedSecrets
 import sun.awt.OSInfo
@@ -36,7 +36,7 @@ import sun.awt.OSInfo
  * Memory-mapped LByteArray
  * @author Taro L. Saito
  */
-class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMode=MMapMode.READ_WRITE)(implicit alloc:MemoryCollector) extends RawByteArray[Byte] {
+class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMode=MMapMode.READ_WRITE)(implicit alloc:MemoryAllocator) extends RawByteArray[Byte] {
 
   import UnsafeUtil.unsafe
   import java.{lang=>jl}

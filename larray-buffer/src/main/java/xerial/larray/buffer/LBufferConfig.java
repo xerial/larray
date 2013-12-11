@@ -6,5 +6,5 @@ package xerial.larray.buffer;
  */
 public class LBufferConfig {
 
-    public static MemoryCollector allocator = new DefaultMemoryCollector();
+    public static MemoryAllocator allocator = new DefaultMemoryAllocator();
 }

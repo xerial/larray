@@ -10,16 +10,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 
-
-
 /**
- * A default implementation of MemoryCollector that releases allocated memories in a background thread.
+ * A default implementation of MemoryAllocator that allocates off-heap memory and releases allocated memories in a background thread.
  *
  * @author Taro L. Saito
  */
-public class DefaultMemoryCollector implements MemoryCollector {
+public class DefaultMemoryAllocator implements MemoryAllocator {
 
-    private Logger logger = Logger.getLogger(DefaultMemoryCollector.class);
+    private Logger logger = Logger.getLogger(DefaultMemoryAllocator.class);
 
 
     // Table from address -> MemoryReference
@@ -59,6 +57,23 @@ public class DefaultMemoryCollector implements MemoryCollector {
      */
     public long allocatedSize() { return totalAllocatedSize.get(); }
 
+    /**
+     * Allocate a memory of the specified byte length. The allocated memory must be released via `release`
+     * as in malloc() in C/C++.
+     * @param size byte length of the memory
+     * @return allocated memory information
+     */
+    public Memory allocate(long size) {
+        if(size == 0L)
+            return new OffHeapMemory();
+
+        // Allocate memory of the given size + HEADER space
+        long memorySize = size + OffHeapMemory.HEADER_SIZE;
+        long address = UnsafeUtil.unsafe.allocateMemory(memorySize);
+        Memory m = new OffHeapMemory(address, size);
+        register(m);
+        return m;
+    }
 
     public void register(Memory m) {
         // Register a memory reference that will be collected upon GC

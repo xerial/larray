@@ -18,7 +18,7 @@ package xerial.larray.japi;
 import scala.reflect.ClassTag$;
 import xerial.larray.*;
 import xerial.larray.buffer.LBufferConfig;
-import xerial.larray.buffer.MemoryCollector;
+import xerial.larray.buffer.MemoryAllocator;
 import xerial.larray.mmap.MMapMode;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import java.io.File;
  */
 public class LArrayJ {
 
-    static MemoryCollector defaultAllocator() { return  LBufferConfig.allocator; }
+    static MemoryAllocator defaultAllocator() { return  LBufferConfig.allocator; }
 
     public static MappedLByteArray mmap(File f, MMapMode mode) {
         return new MappedLByteArray(f, 0L, f.length(), mode, defaultAllocator());

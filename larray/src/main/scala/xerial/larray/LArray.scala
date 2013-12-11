@@ -28,7 +28,7 @@ import java.nio.{ByteOrder, ByteBuffer}
 import java.nio.channels.{FileChannel, WritableByteChannel}
 import sun.nio.ch.DirectBuffer
 import java.io.{FileInputStream, FileOutputStream, File}
-import xerial.larray.buffer.{Memory, MemoryCollector}
+import xerial.larray.buffer.{Memory, MemoryAllocator}
 import xerial.larray.mmap.MMapMode
 
 
@@ -743,7 +743,7 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
   private[larray] def m: Memory
   def address = m.address
 
-  private[larray] def alloc :MemoryCollector
+  private[larray] def alloc :MemoryAllocator
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
@@ -754,12 +754,12 @@ private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
 }
 
 
-class LCharArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LCharArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Char]
   with UnsafeArray[Char] {
   protected[this] def newBuilder = new LCharArrayBuilder
 
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 1))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 1))(alloc)
 
   import UnsafeUtil.unsafe
 
@@ -788,12 +788,12 @@ class LCharArray(val size: Long, private[larray] val m: Memory)(implicit val all
  * @param m allocated memory
  * @param alloc memory allocator
  */
-class LIntArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LIntArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Int]
   with UnsafeArray[Int] {
   protected[this] def newBuilder = new LIntArrayBuilder
 
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 2))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))(alloc)
 
   import UnsafeUtil.unsafe
 
@@ -822,10 +822,10 @@ class LIntArray(val size: Long, private[larray] val m: Memory)(implicit val allo
  * @param m allocated memory
  * @param alloc memory allocator
  */
-class LLongArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LLongArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Long]
   with UnsafeArray[Long] {
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 3))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 3))(alloc)
 
   protected[this] def newBuilder = new LLongArrayBuilder
 
@@ -854,12 +854,12 @@ class LLongArray(val size: Long, private[larray] val m: Memory)(implicit val all
  * @param m allocated memory
  * @param alloc memory allocator
  */
-class LByteArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LByteArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Byte]
   with UnsafeArray[Byte] {
   self =>
 
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size))(alloc)
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
@@ -943,10 +943,10 @@ class LByteArray(val size: Long, private[larray] val m: Memory)(implicit val all
 
 }
 
-class LDoubleArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LDoubleArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Double]
   with UnsafeArray[Double] {
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 3))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 3))(alloc)
 
 
   private[larray] def elementByteSize = 8
@@ -968,10 +968,10 @@ class LDoubleArray(val size: Long, private[larray] val m: Memory)(implicit val a
   def view(from: Long, to: Long) = new LArrayView.LDoubleArrayView(this, from, to - from)
 }
 
-class LFloatArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LFloatArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Float]
   with UnsafeArray[Float] {
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 2))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 2))(alloc)
 
   private[larray] def elementByteSize = 4
 
@@ -992,10 +992,10 @@ class LFloatArray(val size: Long, private[larray] val m: Memory)(implicit val al
   def view(from: Long, to: Long) = new LArrayView.LFloatArrayView(this, from, to - from)
 }
 
-class LShortArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryCollector)
+class LShortArray(val size: Long, private[larray] val m: Memory)(implicit val alloc: MemoryAllocator)
   extends LArray[Short]
   with UnsafeArray[Short] {
-  def this(size: Long)(implicit alloc: MemoryCollector) = this(size, alloc.allocate(size << 1))(alloc)
+  def this(size: Long)(implicit alloc: MemoryAllocator) = this(size, alloc.allocate(size << 1))(alloc)
 
   private[larray] def elementByteSize = 2
 

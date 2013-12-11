@@ -37,23 +37,6 @@ public class OffHeapMemory implements Memory {
         }
     }
 
-    /**
-     * Allocate a memory of the specified byte length. The allocated memory must be released via `release`
-     * as in malloc() in C/C++.
-     * @param size byte length of the memory
-     * @return allocated memory information
-     */
-    public static Memory allocate(long size) {
-        if(size == 0L)
-            return new OffHeapMemory();
-
-        // Allocate memory of the given size + HEADER space
-        long memorySize = size + OffHeapMemory.HEADER_SIZE;
-        long address = unsafe.allocateMemory(memorySize);
-        Memory m = new OffHeapMemory(address, size);
-        LBufferConfig.allocator.register(m);
-        return m;
-    }
 
 
     public long headerAddress() {

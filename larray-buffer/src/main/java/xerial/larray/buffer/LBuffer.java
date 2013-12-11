@@ -14,7 +14,7 @@ public class LBuffer extends LBufferAPI {
      * @param size byte size of the array
      */
     public LBuffer(long size) {
-        super(OffHeapMemory.allocate(size));
+        super(LBufferConfig.allocator.allocate(size));
     }
 
 

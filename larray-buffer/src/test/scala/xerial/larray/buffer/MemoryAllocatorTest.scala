@@ -15,7 +15,7 @@
  *--------------------------------------------------------------------------*/
 //--------------------------------------
 //
-// MemoryCollectorTest.scala
+// MemoryAllocatorTest.scala
 // Since: 2013/03/22 12:02
 //
 //--------------------------------------
@@ -28,7 +28,7 @@ import xerial.larray.LArraySpec
 /**
  * @author Taro L. Saito
  */
-class MemoryCollectorTest extends LArraySpec {
+class MemoryAllocatorTest extends LArraySpec {
   "ConcurrentMemoryAllocator" should {
     "perform better than the default heap allocator" in {
 
