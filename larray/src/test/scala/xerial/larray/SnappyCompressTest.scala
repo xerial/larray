@@ -57,7 +57,7 @@ class SnappyCompressTest extends LArraySpec {
     "compress LIntArray" taggedAs("it") in {
       val N = 100000000L
       val l = new LIntArray(N)
-      debug(f"preparing data set. N=$N%,d")
+      info(f"preparing data set. N=$N%,d")
       for(i <- 0 Until N) l(i) =  math.toDegrees(math.sin(i/360)).toInt
 
       debug("compressing the data")
