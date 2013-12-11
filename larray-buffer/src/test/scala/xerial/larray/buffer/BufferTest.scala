@@ -7,18 +7,9 @@
 
 package xerial.larray.buffer
 
-import org.scalatest._
-import xerial.core.io.Resource
-import xerial.core.util.Timer
-import xerial.core.log.Logger
 import java.nio.ByteBuffer
+import xerial.larray.LArraySpec
 
-trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
-with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
-
-  implicit def toTag(t:String) = Tag(t)
-
-}
 
 /**
  * @author Taro L. Saito
@@ -33,7 +24,8 @@ class BufferTest extends LArraySpec {
   "Buffer" should {
 
     "allocate memory" in {
-      val m = new Buffer(1000)
+      val size = 1000
+      val m = new Buffer(size)
       m.putInt(0, 0)
       m.putInt(4, 1)
       m.putInt(8, 130)
@@ -42,21 +34,22 @@ class BufferTest extends LArraySpec {
       m.getInt(4) shouldBe 1
       m.getInt(8) shouldBe 130
 
-      m.size() shouldBe 1000
+      m.size() shouldBe size.toLong
 
-      (0 until m.size()).foreach(i => m.putByte(i, (i % 128).toByte))
-      (0 until m.size()).forall(i => m.getByte(i) == (i % 128).toByte) should be (true)
+      (0 until size).foreach(i => m.putByte(i, (i % 128).toByte))
+      (0 until size).forall(i => m.getByte(i) == (i % 128).toByte) should be (true)
 
       m.clear()
 
-      (0 until 1000).forall(i => m.getByte(i) == 0) should be (true)
+      (0 until size).forall(i => m.getByte(i) == 0) should be (true)
 
       m.release()
     }
 
     "convert to array" in {
-      val m = new Buffer(12);
-      for(i <- 0 until m.size)
+      val size = 12
+      val m = new Buffer(size);
+      for(i <- 0 until size)
         m(i) = i.toByte
       debug(m.toCSV)
 

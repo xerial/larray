@@ -24,8 +24,7 @@ package xerial.larray.mmap
 
 
 import java.io.File
-import xerial.larray.{LIntArray, RawByteArray, LArray}
-import xerial.larray.buffer.LArraySpec
+import xerial.larray.{LArraySpec, LIntArray, RawByteArray, LArray}
 import org.xerial.snappy.Snappy
 
 /**

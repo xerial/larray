@@ -22,6 +22,8 @@
 
 package xerial.larray.buffer
 
+import xerial.larray.LArraySpec
+
 
 /**
  * @author Taro L. Saito
