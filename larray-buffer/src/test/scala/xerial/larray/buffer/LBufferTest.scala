@@ -58,6 +58,51 @@ class LBufferTest extends LArraySpec {
     }
 
 
+    "allocate in single-thread" taggedAs("bench-single") in {
+
+      val N = 100
+      def range = (0 until N)
+      val R = 2
+      val S = 1024 * 1024
+
+      info("start buffer allocation test")
+
+      time("single-thread allocation", repeat=10) {
+        block("without zero-filling", repeat=R) {
+          for(i <- range) yield {
+            new LBuffer(S)
+          }
+        }
+
+        block("with zero-filling", repeat=R) {
+          for(i <- range) yield {
+            val m = new LBuffer(S)
+            m.clear()
+            m
+          }
+        }
+
+        block("java array", repeat=R) {
+          for(i <- range) yield {
+            new Array[Byte](S)
+          }
+        }
+
+        block("byte buffer", repeat=R) {
+          for(i <- range) yield {
+            ByteBuffer.allocate(S)
+          }
+        }
+
+        block("direct byte buffer", repeat=R) {
+          for(i <- range) yield {
+            ByteBuffer.allocateDirect(S)
+          }
+        }
+
+      }
+    }
+
     "allocate concurrently" taggedAs("bench") in {
 
       val N = 100
