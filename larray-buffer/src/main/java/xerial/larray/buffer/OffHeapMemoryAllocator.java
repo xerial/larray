@@ -1,7 +1,9 @@
 package xerial.larray.buffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.ref.ReferenceQueue;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,8 +28,13 @@ class OffHeapMemory implements Memory {
     }
 
     public OffHeapMemory(long address, long size) {
-        this._data = address + HEADER_SIZE;
-        unsafe.putLong(address, size);
+        if(address != 0) {
+            this._data = address + HEADER_SIZE;
+            unsafe.putLong(address, size);
+        }
+        else {
+            this._data = 0L;
+        }
     }
 
     public long headerAddress() {
@@ -67,7 +74,10 @@ class OffHeapMemoryReference extends MemoryReference {
     }
 
     public Memory toMemory() {
-        return new OffHeapMemory(address, unsafe.getLong(address));
+        if(address != 0)
+            return new OffHeapMemory(address, unsafe.getLong(address));
+        else
+            return new OffHeapMemory();
     }
 
     public String name() { return "off-heap"; }
@@ -83,6 +93,8 @@ class OffHeapMemoryReference extends MemoryReference {
  */
 public class OffHeapMemoryAllocator implements MemoryAllocator {
 
+    private Logger logger = LoggerFactory.getLogger(OffHeapMemoryAllocator.class);
+
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
@@ -92,11 +104,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                synchronized(this) {
-                    for(long address : allocatedMemoryReferences.keySet()) {
-                        // TODO Display warnings for unreleased memory addresses
-                    }
-                }
+                releaseAll();
             }
         }));
 
@@ -117,6 +125,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
             }
         });
         collector.setDaemon(true);
+        logger.trace("Start memory collector");
         collector.start();
     }
 
@@ -133,7 +142,9 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
 
         // Allocate memory of the given size + HEADER space
         long memorySize = size + OffHeapMemory.HEADER_SIZE;
-        Memory m = new OffHeapMemory(unsafe.allocateMemory(memorySize), size);
+        long address = unsafe.allocateMemory(memorySize);
+        logger.trace(String.format("Allocated memory address:%x, size:%,d", address, size));
+        Memory m = new OffHeapMemory(address, size);
         register(m);
         return m;
     }
@@ -153,9 +164,11 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
      */
     public void releaseAll() {
         synchronized(this) {
-            Collection<MemoryReference> refSet = allocatedMemoryReferences.values();
-            for(MemoryReference ref : refSet) {
-                release(ref);
+            Object[] refSet = allocatedMemoryReferences.values().toArray();
+            if(refSet.length != 0)
+                logger.trace("Releasing allocated memory regions");
+            for(Object ref : refSet) {
+                release((MemoryReference) ref);
             }
         }
     }
@@ -169,6 +182,7 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         long address = m.headerAddress();
         if(allocatedMemoryReferences.containsKey(address)) {
             long size = m.size();
+            logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
             totalAllocatedSize.getAndAdd(-size);
             m.release();
             allocatedMemoryReferences.remove(address);

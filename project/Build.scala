@@ -96,6 +96,8 @@ object Build extends sbt.Build {
 
     val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0" % "test"
     val junit  = "junit" % "junit" % "4.10" % "test"
+    val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
+    val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
   }
 
   import Dependency._
@@ -141,7 +143,9 @@ object Build extends sbt.Build {
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-        "org.xerial" % "xerial-core" % "3.2.2" % "test"
+        "org.xerial" % "xerial-core" % "3.2.2" % "test",
+        slf4j,
+        slf4jSimple % "test"
       )
     )
   )

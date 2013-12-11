@@ -65,6 +65,8 @@ class BufferTest extends LArraySpec {
       val R = 2
       val S = 1024 * 1024
 
+      info("start buffer allocation test")
+
       time("concurrent allocation", repeat=10) {
         block("without zero-filling", repeat=R) {
           for(i <- range) yield {
