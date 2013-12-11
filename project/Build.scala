@@ -107,7 +107,7 @@ object Build extends sbt.Build {
 
   lazy val larrayScala = Project(
     id = "larray",
-    base = file("larray-scala"),
+    base = file("larray"),
     settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
       Seq(
         description := "LArray: A Large off-heap arrays for Scala/Java",
