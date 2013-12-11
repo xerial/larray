@@ -94,7 +94,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
- * November 11, 2013  version 0.2 
+ * November 11, 2013  version 0.2 - Extracted pure-java modules (larray-buffer.jar and larray-mmap.jar) from larray.jar (for Scala). 
  * August 28, 2013  version 0.1.2 - improved memory layout
  * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
  * Apr 23, 2013   Released version 0.1
@@ -105,7 +105,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.1.2"
+libraryDependencies += "org.xerial" % "larray" % "0.2"
 ```
 
  * Using snapshot versions:
@@ -141,22 +141,14 @@ For more examples, see [xerial/larray/example/LArrayExample.scala](larray-scala/
 
 ## Usage (Java)
 
-Add the following dependency to your pom.xml (Maven): 
+Add the following dependency to your pom.xml (Maven):
 ```xml
 <dependency>
   <groupId>org.xerial</groupId>
   <artifactId>larray</artifactId>
-  <version>0.1.2</version>
+  <version>0.2</version>
 </dependency>
 ```
-
-### Manual download
-
-To use LArray without sbt or Maven, append all of the following jar files to your classpath:
-
- * [larray-0.1.2.jar](http://repo1.maven.org/maven2/org/xerial/larray/0.1.2/larray-0.1.2.jar)
- * [scala-library-2.10.2.jar](http://repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.2/scala-library-2.10.2.jar)
- * [xerial-core-3.2.1.jar](http://repo1.maven.org/maven2/org/xerial/xerial-core/3.2.1/xerial-core-3.2.1.jar)
 
 ### Example 
 
@@ -177,12 +169,12 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray-sc
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.1.2/larray-0.1.2-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.2/larray-0.2-javadoc.jar/!/index.html#xerial.larray.package)
  
 ## For developers
 
 * Building LArray: `./sbt compile`
 * Run tests: `./sbt ~test`
-* Creating IntelliJ IDEA project: `bin/sbt gen-idea`
+* Creating IntelliJ IDEA project: `./sbt gen-idea`
 
 
