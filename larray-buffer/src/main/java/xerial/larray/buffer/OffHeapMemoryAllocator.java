@@ -27,8 +27,15 @@ class OffHeapMemory implements Memory {
         this._data = 0L;
     }
 
+    public OffHeapMemory(long address) {
+        if(address != 0L)
+            this._data = address + HEADER_SIZE;
+        else
+            this._data = 0L;
+    }
+
     public OffHeapMemory(long address, long size) {
-        if(address != 0) {
+        if(address != 0L) {
             this._data = address + HEADER_SIZE;
             unsafe.putLong(address, size);
         }
@@ -75,7 +82,7 @@ class OffHeapMemoryReference extends MemoryReference {
 
     public Memory toMemory() {
         if(address != 0)
-            return new OffHeapMemory(address, unsafe.getLong(address));
+            return new OffHeapMemory(address);
         else
             return new OffHeapMemory();
     }
@@ -100,13 +107,13 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
-        // Register a shutdown hook to deallocate memory
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                releaseAll();
-            }
-        }));
+//        // Register a shutdown hook to deallocate memory
+//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                // releaseAll();
+//            }
+//        }));
 
         // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
@@ -115,7 +122,8 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
                 while(true) {
                     try {
                         MemoryReference ref = MemoryReference.class.cast(queue.remove());
-                        //System.err.println(String.format("collected by GC. address:%x", ref.address.longValue()));
+                        if(logger.isTraceEnabled())
+                            logger.trace(String.format("collected by GC. address:%x", ref.address));
                         release(ref);
                     }
                     catch(Exception e) {
