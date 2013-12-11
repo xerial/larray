@@ -79,7 +79,7 @@ LArray consists of three-modules.
 
 You can use each module independently. For example, if you only need an off-heap memory allocator that collects memory upon GC, use `LBuffer` in **larray-buffer**. 
 
-Simply you can include ***larray** to the dependency in Maven or SBT so that all modules will be added to your classpaths.
+Simply you can include **larray** to the dependency in Maven or SBT so that all modules will be added to your classpaths.
 
 ## Supported Platforms
 
