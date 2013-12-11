@@ -58,17 +58,17 @@ public class MMapBuffer extends LBufferAPI {
             if(!OSInfo.isWindows()) {
                 Field idf = rawfd.getClass().getDeclaredField("fd");
                 idf.setAccessible(true);
-                this.fd = idf.getInt(f);
+                this.fd = idf.getInt(rawfd);
             }
             else {
                 // In Windows, fd is stored as 'handle'
                 Field idf = rawfd.getClass().getDeclaredField("handle");
                 idf.setAccessible(true);
-                this.fd = idf.getLong(f);
+                this.fd = idf.getLong(rawfd);
             }
         }
         catch(Exception e) {
-            throw new IOException("Failed to retrieve file descriptor of " + f.getPath());
+            throw new IOException("Failed to retrieve file descriptor of " + f.getPath() + ": " + e.getMessage());
         }
 
         long allocationGranule = UnsafeUtil.unsafe.pageSize();

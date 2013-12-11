@@ -23,7 +23,6 @@
 package xerial.larray
 
 import java.io.File
-import xerial.larray.{LArraySpec, LIntArray, RawByteArray, LArray}
 import xerial.larray.mmap.MMapMode
 import org.xerial.snappy.Snappy
 

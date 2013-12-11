@@ -20,6 +20,7 @@ import org.xerial.snappy.Snappy;
 import xerial.larray.LByteArray;
 import xerial.larray.LIntArray;
 import xerial.larray.MappedLByteArray;
+import xerial.larray.mmap.MMapMode;
 import xerial.larray.util.Logger;
 
 import java.io.File;

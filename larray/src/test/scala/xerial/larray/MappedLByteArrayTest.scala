@@ -23,7 +23,6 @@
 package xerial.larray
 
 import java.io.File
-import xerial.larray.{MappedLByteArray, LArraySpec, LArray}
 
 /**
  * @author Taro L. Saito
