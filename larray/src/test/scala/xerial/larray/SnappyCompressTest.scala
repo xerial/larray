@@ -54,7 +54,7 @@ class SnappyCompressTest extends LArraySpec {
       val maxCompressedLength = Snappy.maxCompressedLength(bufSize)
 
       val GN = 10
-      val R = 10
+      val R = 5
 
       info("Start compression benchmark")
       time("compress", repeat = GN) {
