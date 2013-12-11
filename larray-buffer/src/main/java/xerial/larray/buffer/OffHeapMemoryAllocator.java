@@ -102,11 +102,15 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
 
     private Logger logger = Logger.getLogger(OffHeapMemoryAllocator.class);
 
+
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
+        // Enable ANSI Color
+        logger.enableColor(true);
+
         // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
@@ -183,10 +187,9 @@ public class OffHeapMemoryAllocator implements MemoryAllocator {
         synchronized(this) {
             long address = m.headerAddress();
             if(allocatedMemoryReferences.containsKey(address)) {
-                long size = m.size();
                 if(logger.isTraceEnabled())
-                    logger.trace(String.format("Released memory address:%x, size:%,d", address, size));
-                totalAllocatedSize.getAndAdd(-size);
+                    logger.trace(String.format("Released memory address:%x, size:%,d", address, m.dataSize()));
+                totalAllocatedSize.getAndAdd(-m.size());
                 allocatedMemoryReferences.remove(address);
                 m.release();
             }
