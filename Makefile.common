@@ -1,5 +1,5 @@
-TARGET:=target
-SRC:=src/main/scala
+TARGET:=larray-mmap/target
+SRC:=larray-mmap/src/main/scala
 
 ifndef JAVA_HOME
 $(error Set JAVA_HOME environment variable)
