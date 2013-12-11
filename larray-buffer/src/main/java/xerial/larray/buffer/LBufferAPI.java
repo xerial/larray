@@ -94,119 +94,119 @@ public class LBufferAPI {
     }
 
     public void fill(long offset, long length, byte value) {
-        unsafe.setMemory(m.address() + offset, length, value);
+        unsafe.setMemory(address() + offset, length, value);
     }
 
     public byte getByte(int offset) {
-        return unsafe.getByte(m.address() + offset);
+        return unsafe.getByte(address() + offset);
     }
 
     public char getChar(int offset) {
-        return unsafe.getChar(m.address() + offset);
+        return unsafe.getChar(address() + offset);
     }
 
     public short getShort(int offset) {
-        return unsafe.getShort(m.address() + offset);
+        return unsafe.getShort(address() + offset);
     }
 
     public int getInt(int offset) {
-        return unsafe.getInt(m.address() + offset);
+        return unsafe.getInt(address() + offset);
     }
 
     public float getFloat(int offset) {
-        return unsafe.getFloat(m.address() + offset);
+        return unsafe.getFloat(address() + offset);
     }
 
     public long getLong(int offset) {
-        return unsafe.getLong(m.address() + offset);
+        return unsafe.getLong(address() + offset);
     }
 
     public double getDouble(int offset) {
-        return unsafe.getDouble(m.address() + offset);
+        return unsafe.getDouble(address() + offset);
     }
 
     public void putByte(int offset, byte value) {
-        unsafe.putByte(m.address() + offset, value);
+        unsafe.putByte(address() + offset, value);
     }
 
     public void putChar(int offset, char value) {
-        unsafe.putChar(m.address() + offset, value);
+        unsafe.putChar(address() + offset, value);
     }
 
     public void putShort(int offset, short value) {
-        unsafe.putShort(m.address() + offset, value);
+        unsafe.putShort(address() + offset, value);
     }
 
     public void putInt(int offset, int value) {
-        unsafe.putInt(m.address() + offset, value);
+        unsafe.putInt(address() + offset, value);
     }
 
     public void putFloat(int offset, float value) {
-        unsafe.putFloat(m.address() + offset, value);
+        unsafe.putFloat(address() + offset, value);
     }
 
     public void putLong(int offset, long value) {
-        unsafe.putLong(m.address() + offset, value);
+        unsafe.putLong(address() + offset, value);
     }
 
     public void putDouble(int offset, double value) {
-        unsafe.putDouble(m.address() + offset, value);
+        unsafe.putDouble(address() + offset, value);
     }
 
     public byte getByte(long offset) {
-        return unsafe.getByte(m.address() + offset);
+        return unsafe.getByte(address() + offset);
     }
 
     public char getChar(long offset) {
-        return unsafe.getChar(m.address() + offset);
+        return unsafe.getChar(address() + offset);
     }
 
     public short getShort(long offset) {
-        return unsafe.getShort(m.address() + offset);
+        return unsafe.getShort(address() + offset);
     }
 
     public int getInt(long offset) {
-        return unsafe.getInt(m.address() + offset);
+        return unsafe.getInt(address() + offset);
     }
 
     public float getFloat(long offset) {
-        return unsafe.getFloat(m.address() + offset);
+        return unsafe.getFloat(address() + offset);
     }
 
     public long getLong(long offset) {
-        return unsafe.getLong(m.address() + offset);
+        return unsafe.getLong(address() + offset);
     }
 
     public double getDouble(long offset) {
-        return unsafe.getDouble(m.address() + offset);
+        return unsafe.getDouble(address() + offset);
     }
 
     public void putByte(long offset, byte value) {
-        unsafe.putByte(m.address() + offset, value);
+        unsafe.putByte(address() + offset, value);
     }
 
     public void putChar(long offset, char value) {
-        unsafe.putChar(m.address() + offset, value);
+        unsafe.putChar(address() + offset, value);
     }
 
     public void putShort(long offset, short value) {
-        unsafe.putShort(m.address() + offset, value);
+        unsafe.putShort(address() + offset, value);
     }
 
     public void putInt(long offset, int value) {
-        unsafe.putInt(m.address() + offset, value);
+        unsafe.putInt(address() + offset, value);
     }
 
     public void putFloat(long offset, float value) {
-        unsafe.putFloat(m.address() + offset, value);
+        unsafe.putFloat(address() + offset, value);
     }
 
     public void putLong(long offset, long value) {
-        unsafe.putLong(m.address() + offset, value);
+        unsafe.putLong(address() + offset, value);
     }
 
     public void putDouble(long offset, double value) {
-        unsafe.putDouble(m.address() + offset, value);
+        unsafe.putDouble(address() + offset, value);
     }
 
 
@@ -222,7 +222,7 @@ public class LBufferAPI {
     }
 
     public void copyTo(long srcOffset, LBuffer dest, long destOffset, long size) {
-        unsafe.copyMemory(m.address() + srcOffset, dest.address() + destOffset, size);
+        unsafe.copyMemory(address() + srcOffset, dest.address() + destOffset, size);
     }
 
     public LBuffer slice(long from, long to) {
@@ -301,7 +301,7 @@ public class LBufferAPI {
         int index = 0;
         while (pos < limit) {
             long blockLength = Math.min(limit - pos, blockSize);
-            result[index++] = UnsafeUtil.newDirectByteBuffer(m.address() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
+            result[index++] = UnsafeUtil.newDirectByteBuffer(address() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
             pos += blockLength;
         }
         return result;
@@ -309,7 +309,7 @@ public class LBufferAPI {
     }
 
     public ByteBuffer toDirectByteBuffer(long offset, int size) {
-        return UnsafeUtil.newDirectByteBuffer(m.address() + offset, size);
+        return UnsafeUtil.newDirectByteBuffer(address() + offset, size);
     }
 
 }

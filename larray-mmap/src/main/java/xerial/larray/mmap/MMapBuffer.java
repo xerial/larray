@@ -29,6 +29,8 @@ public class MMapBuffer extends LBufferAPI {
     private final long address;
     private long winHandle = -1;
 
+    @Override
+    public long address()  { return address; }
 
     /**
      * Open an memory mapped file.

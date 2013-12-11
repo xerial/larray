@@ -874,6 +874,10 @@ class LByteArray(val size: Long, private[larray] val m: Memory)(implicit val all
     UnsafeUtil.unsafe.getByte(m.address + i)
   }
 
+  def apply(i: Int) : Byte = {
+    UnsafeUtil.unsafe.getByte(m.address + i)
+  }
+
   /**
    * Update an element
    * @param i index to be updated
@@ -881,6 +885,17 @@ class LByteArray(val size: Long, private[larray] val m: Memory)(implicit val all
    * @return the value
    */
   def update(i: Long, v: Byte): Byte = {
+    UnsafeUtil.unsafe.putByte(m.address + i, v)
+    v
+  }
+
+  /**
+   * Update an element
+   * @param i index to be updated
+   * @param v value to set
+   * @return the value
+   */
+  def update(i: Int, v: Byte): Byte = {
     UnsafeUtil.unsafe.putByte(m.address + i, v)
     v
   }
