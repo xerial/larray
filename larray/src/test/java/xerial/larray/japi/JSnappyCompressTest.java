@@ -20,6 +20,7 @@ import org.xerial.snappy.Snappy;
 import xerial.larray.LByteArray;
 import xerial.larray.LIntArray;
 import xerial.larray.MappedLByteArray;
+import xerial.larray.buffer.LBuffer;
 import xerial.larray.mmap.MMapMode;
 import xerial.larray.util.Logger;
 
@@ -28,6 +29,8 @@ import java.io.File;
 public class JSnappyCompressTest {
 
     private Logger _logger = new Logger(this.getClass());
+
+
 
     @Test
     public void testCompress() throws Exception {

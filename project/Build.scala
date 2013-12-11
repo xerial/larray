@@ -127,6 +127,8 @@ object Build extends sbt.Build {
           "org.xerial" % "xerial-core" % "3.2.2",
           snappy % "test",
           junit,
+          "org.iq80.snappy" % "snappy" % "0.3" % "test",
+
           "com.novocode" % "junit-interface" % "0.10-M2" % "test",
           "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
           "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",

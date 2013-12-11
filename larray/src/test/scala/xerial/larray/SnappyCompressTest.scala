@@ -25,6 +25,7 @@ package xerial.larray
 import java.io.File
 import xerial.larray.mmap.MMapMode
 import org.xerial.snappy.Snappy
+import xerial.larray.buffer.LBuffer
 
 /**
  * @author Taro L. Saito
@@ -38,6 +39,61 @@ class SnappyCompressTest extends LArraySpec {
   "Snappy" should {
 
     import xerial.larray._
+
+    "support zero-copy compress with LBuffer" taggedAs("zerocopy") in {
+      val N = 10000
+      val buf = new LBuffer(4 * N)
+      for(i <- 0 Until N) {
+        buf.putFloat(i * 4, math.sin(i * 0.01).toFloat)
+      }
+
+      val arr = buf.toArray
+      val bufSize = buf.size.toInt
+      val R = 10
+
+      val maxCompressedLength = Snappy.maxCompressedLength(bufSize)
+      val compressedLBuffer = new LBuffer(maxCompressedLength)
+      val compressedArray = new Array[Byte](maxCompressedLength)
+      val compressedArrayDain = new Array[Byte](maxCompressedLength)
+
+      val GN = 10
+
+      info("Start compression benchmark")
+      time("compress", repeat = GN) {
+        block("LBuffer -> LBuffer (raw)", repeat=R) {
+          Snappy.rawCompress(buf.address(), bufSize, compressedLBuffer.address())
+        }
+
+        block("Array -> Array (raw) ", repeat=R) {
+          Snappy.rawCompress(arr, 0, bufSize, compressedArray, 0)
+        }
+
+        block("Array -> Array (dain)", repeat=R) {
+          org.iq80.snappy.Snappy.compress(arr, 0, bufSize, compressedArrayDain, 0)
+        }
+      }
+
+      val decompressedLBuffer = new LBuffer(bufSize)
+      val decompressedArray = new Array[Byte](bufSize)
+      val compressedSize = Snappy.compress(buf.toArray).length
+
+      time("decompress", repeat = GN) {
+        block("LBuffer -> LBuffer (raw)", repeat=R) {
+          Snappy.rawUncompress(compressedLBuffer.address(), compressedSize, decompressedLBuffer.address())
+        }
+
+        block("Array -> Array (raw) ", repeat=R) {
+          Snappy.rawUncompress(compressedArray, 0, compressedSize, decompressedArray, 0)
+        }
+
+        block("Array -> Array (dain)", repeat=R) {
+          org.iq80.snappy.Snappy.uncompress(compressedArrayDain, 0, compressedSize, decompressedArray, 0)
+        }
+
+      }
+
+    }
+
 
     "compress LArray" in {
       val l = (for (i <- 0 until 3000) yield math.toDegrees(math.sin(i/360)).toInt).toLArray
