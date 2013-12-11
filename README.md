@@ -28,6 +28,7 @@ A library for managing large off-heap arrays that can hold more than 2G (2^31) e
 
 ## Performance
 
+### Memory allocation
 Here is a simple benchmark result that compares concurrent memory-allocation performances of LArray (with or without zero-filling), java arrays, `ByteBuffer.allocate` and `ByteBuffer.allocateDirect`, using Mac OS X with 2.9GHz Intelli Core i7. This test allocates 100 x 1MB of memory space concurrently using multiple threads, and repeats this process 20 times. 
 
 ```
@@ -40,7 +41,12 @@ Here is a simple benchmark result that compares concurrent memory-allocation per
 ```
 
 All allocators except LArray are orders of magnitude slower than LArray, and consumes CPUs because they need to fill the allocated memory with zeros due to their specification.
- 
+
+### Snappy Compression
+
+LArray has memory address that can be used with JNI-based methods (e.g, `rawCompress(...)` in snappy-java). 
+
+
 ## Limitations
 
   * LArray[A] of generic objects (e.g., LArray[String], LArray[AnyRef]) cannot be released immedeately from the main memory, because objects other than primitive types need to be created on JVM heaps and they are under the control of GC. 
