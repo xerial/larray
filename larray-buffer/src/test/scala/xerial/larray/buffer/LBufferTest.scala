@@ -9,6 +9,8 @@ package xerial.larray.buffer
 
 import java.nio.ByteBuffer
 import xerial.larray.LArraySpec
+import scala.util.Random
+import xerial.core.util.DataUnit
 
 
 /**
@@ -146,6 +148,63 @@ class LBufferTest extends LArraySpec {
         }
 
       }
+    }
+
+    "Use less memory" taggedAs("heap") in {
+
+      // Need to produce meaningful memory usage
+      pending
+
+      val N = 100000
+      val M = 1024
+
+      val rt = Runtime.getRuntime
+
+      case class Report(tag:String, free:Long, offHeap:Long, total:Long) {
+        override def toString = s"[${tag}] free:${DataUnit.toHumanReadableFormat(free)}, offheap:${DataUnit.toHumanReadableFormat(offHeap)}"
+      }
+
+      val memUsage = Seq.newBuilder[Report]
+
+      def report(tag:String) = {
+        val offHeap = LBufferConfig.allocator.allocatedSize()
+        val rep = Report(tag, rt.freeMemory(), offHeap, rt.totalMemory())
+        //memUsage += rep
+        rep
+      }
+
+      var r1 : Seq[Array[Byte]] = null
+      var r2 : Seq[LBuffer] = null
+
+      time("memory allocation", repeat=3) {
+        Thread.sleep(5000)
+        block("Array") {
+          info(report("Array"))
+          val result = for(i <- 0 until N) yield {
+            val a = new Array[Byte](M)
+            report("Array")
+            a
+          }
+          info(report("Array"))
+        }
+
+//        info("gc")
+//        System.gc()
+        Thread.sleep(5000)
+
+        block("LBuffer") {
+          info(report("LBuffer"))
+          val result = for(i <- 0 until N) yield {
+            val l = new LBuffer(M)
+            report("LBuffer")
+            l
+          }
+          info(report("LBuffer"))
+        }
+
+      }
+
+
     }
 
   }

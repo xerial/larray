@@ -15,6 +15,11 @@ public interface MemoryAllocator {
     Memory allocate(long size);
 
     /**
+     * Get the total amount of allocated memories
+     */
+    long allocatedSize();
+
+    /**
      * Register a memory
      * @param m
      */
