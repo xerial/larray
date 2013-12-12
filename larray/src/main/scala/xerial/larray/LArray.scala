@@ -220,6 +220,11 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
   def free
 
   /**
+   * Release the memory of LArray. After calling this mehtod, thr results of calling the other methods becomes undefined or might cause JVM crash.
+   */
+  def release = free
+
+  /**
    * Wraps with immutable interface
    * @return
    */
