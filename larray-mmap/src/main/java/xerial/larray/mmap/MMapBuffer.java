@@ -4,6 +4,7 @@ import sun.misc.SharedSecrets;
 import xerial.larray.buffer.LBufferConfig;
 import xerial.larray.buffer.LBufferAPI;
 import xerial.larray.buffer.UnsafeUtil;
+import xerial.larray.buffer.WrappedLBuffer;
 import xerial.larray.impl.LArrayNative;
 import xerial.larray.impl.OSInfo;
 
@@ -54,7 +55,7 @@ public class MMapBuffer extends LBufferAPI {
         super();
         this.raf = new RandomAccessFile(f, mode.mode);
         this.fc = raf.getChannel();
-        // Retreive file descriptor
+        // Retrieve file descriptor
         FileDescriptor rawfd = raf.getFD();
         try {
             if(!OSInfo.isWindows()) {
@@ -106,6 +107,20 @@ public class MMapBuffer extends LBufferAPI {
         this.address = rawAddr + pagePosition;
     }
 
+    /**
+     * Create a view of the range [from, to) of this buffer. Unlike slice(from, to), the generated view
+     * is a reference to this buffer.
+     * @param from
+     * @param to
+     * @return
+     */
+    @Override
+    public WrappedLBuffer view(long from, long to) {
+        if(from > to)
+            throw new IllegalArgumentException(String.format("invalid range %,d to %,d", from, to));
+
+        return new WrappedLBuffer(m, pagePosition + from, to - from);
+    }
 
     /**
      * Forces any changes made to this buffer to be written to the file
