@@ -280,7 +280,7 @@ public class LBufferAPI {
         if(from > to)
             throw new IllegalArgumentException(String.format("invalid range %,d to %,d", from, to));
 
-        return new WrappedLBuffer(m, from, to - from);
+        return new WrappedLBuffer(m, from + offset(), to - from);
     }
 
     /**
@@ -411,4 +411,7 @@ public class LBufferAPI {
         return UnsafeUtil.newDirectByteBuffer(address() + offset, size);
     }
 
+    protected long offset() {
+        return 0;
+    }
 }
