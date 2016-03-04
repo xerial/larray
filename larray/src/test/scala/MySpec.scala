@@ -15,11 +15,11 @@
  *--------------------------------------------------------------------------*/
 package scalamin
 
-import org.scalatest.matchers.{ShouldMatchers, MustMatchers}
-import org.scalatest.{Tag, OptionValues, GivenWhenThen, WordSpec}
+import org.scalatest._
 import xerial.core.io.Resource
 import xerial.core.log.Logger
 import xerial.core.util.Timer
+
 import scala.language.implicitConversions
 
 //--------------------------------------
@@ -30,10 +30,10 @@ import scala.language.implicitConversions
 //--------------------------------------
 
 /**
- * Helper trait for writing test codes. Extend this trait in your test classes
- */
-trait MySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger {
+  * Helper trait for writing test codes. Extend this trait in your test classes
+  */
+trait MySpec extends WordSpec with Matchers with GivenWhenThen with OptionValues with Resource with Timer with Logger {
 
-  implicit def toTag(s:String) = Tag(s)
+  implicit def toTag(s: String) = Tag(s)
 
 }
