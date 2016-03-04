@@ -118,7 +118,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.1"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.3"
 ```
 
  * Using snapshot versions:
@@ -126,7 +126,7 @@ libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.1"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.2-SNAPSHOT"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.4-SNAPSHOT"
 ```
 ### Example
 
@@ -159,7 +159,7 @@ Add the following dependency to your pom.xml (Maven):
 <dependency>
   <groupId>org.xerial.larray</groupId>
   <artifactId>larray_2.11</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.3</version>
 </dependency>
 ```
 
