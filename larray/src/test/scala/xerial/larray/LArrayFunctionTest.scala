@@ -73,9 +73,7 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
 
 trait LArrayBehaviour { this : LArraySpec =>
 
-
   import LArrayFunctionTest._
-  import xerial.larray._
 
   def validArray[A : ClassTag](arr:Seq[A]) {
     val l: LArray[A] = arr.toLArray
