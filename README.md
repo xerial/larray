@@ -104,6 +104,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
+ * 2016-03-04: version 0.3.1 - Add Scala 2.12.0-M3, 2.11.7, 2.10.6 support
  * March 4th, 2016  version 0.3.0 - Scala 2.11.7 support
  * November 11, 2013  version 0.2.1 - Use orgnization name `org.xerial.larray`. Add LBuffer.view.  
  * November 11, 2013  version 0.2 - Extracted pure-java modules (larray-buffer.jar and larray-mmap.jar) from larray.jar (for Scala). 
@@ -117,7 +118,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.0"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.1"
 ```
 
  * Using snapshot versions:
@@ -125,7 +126,7 @@ libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.0"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.0-SNAPSHOT"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.2-SNAPSHOT"
 ```
 ### Example
 
