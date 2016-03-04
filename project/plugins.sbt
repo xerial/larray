@@ -6,3 +6,4 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-multi-jvm" % "0.3.11")
 
+addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")

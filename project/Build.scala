@@ -17,7 +17,7 @@ object Build
     pomIncludeRepository := {
       _ => false
     },
-    crossScalaVersions := Seq("2.11.7", "2.10.6"),
+    scalaVersion := SCALA_VERSION,
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
@@ -98,7 +98,7 @@ object Build
             Seq(
               description := "LArray: A Large off-heap arrays for Scala/Java",
               logBuffered in MultiJvm := false,
-
+              crossScalaVersions := Seq("2.12.0-M3", "2.11.7", "2.10.6"),
               compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
               executeTests in Test := {
                 val testResults: Tests.Output = (executeTests in Test).value
@@ -111,10 +111,7 @@ object Build
               },
               libraryDependencies ++= Seq(
                 // Add dependent jars here
-                "org.xerial" % "xerial-core" % (scalaVersion.value match {
-                  case "2.10.6" => "3.2.2"
-                  case x => "3.3.8"
-                }),
+                "org.xerial" %% "xerial-core" % "3.5.0",
                 snappy % "test",
                 junit,
                 "org.iq80.snappy" % "snappy" % "0.3" % "test",
@@ -132,12 +129,13 @@ object Build
     base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
       description := "LArray off-heap buffer library",
+      crossScalaVersions := Seq(SCALA_VERSION),
       crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % "2.2.6" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
-        "org.xerial" % "xerial-core" % "3.3.8" % "test"
+        "org.xerial" %% "xerial-core" % "3.5.0" % "test"
         //        slf4j,
         //        slf4jSimple % "test"
       )
@@ -150,6 +148,7 @@ object Build
     settings = buildSettings ++
             Seq(
               description := "LArray mmap implementation",
+              crossScalaVersions := Seq(SCALA_VERSION),
               crossPaths := false,
               autoScalaLibrary := false,
               libraryDependencies ++= Seq(
