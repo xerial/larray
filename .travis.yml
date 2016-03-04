@@ -7,8 +7,8 @@ sudo: false
 script: sbt test -Dloglevel=debug
 
 jdk:
- - openjdk8
  - oraclejdk8
+ - oraclejdk7
 
 branches:
   only:
