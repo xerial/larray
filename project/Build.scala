@@ -116,7 +116,7 @@ object Build
                 "org.iq80.snappy" % "snappy" % "0.3" % "test",
                 "com.novocode" % "junit-interface" % "0.11" % "test",
                 "org.scalatest" %% "scalatest" % "2.2.6" % "test",
-                "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
+                "org.scalacheck" %% "scalacheck" % "1.11.0" % "test",
                 "com.typesafe.akka" %% "akka-testkit" % "2.4.2" % "test",
                 "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.4.2" % "test"
               )
