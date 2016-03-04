@@ -133,7 +133,7 @@ object Build
       crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+        "org.scalatest" %% "scalatest" % "2.2.+" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
         "org.xerial" %% "xerial-core" % "3.5.0" % "test"
         //        slf4j,
