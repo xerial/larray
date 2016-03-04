@@ -1,11 +1,5 @@
 package xerial.larray.mmap;
 
-import sun.misc.SharedSecrets;
-import xerial.larray.buffer.LBufferConfig;
-import xerial.larray.buffer.LBufferAPI;
-import xerial.larray.buffer.UnsafeUtil;
-import xerial.larray.impl.LArrayNative;
-import xerial.larray.impl.OSInfo;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -13,6 +7,12 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.nio.channels.FileChannel;
+import sun.misc.SharedSecrets;
+import xerial.larray.buffer.LBufferAPI;
+import xerial.larray.buffer.LBufferConfig;
+import xerial.larray.buffer.UnsafeUtil;
+import xerial.larray.impl.LArrayNative;
+import xerial.larray.impl.OSInfo;
 
 /**
  * Memory-mapped file buffer
@@ -54,7 +54,7 @@ public class MMapBuffer extends LBufferAPI {
         super();
         this.raf = new RandomAccessFile(f, mode.mode);
         this.fc = raf.getChannel();
-        // Retreive file descriptor
+        // Retrieve file descriptor
         FileDescriptor rawfd = raf.getFD();
         try {
             if(!OSInfo.isWindows()) {
@@ -106,7 +106,6 @@ public class MMapBuffer extends LBufferAPI {
         this.address = rawAddr + pagePosition;
     }
 
-
     /**
      * Forces any changes made to this buffer to be written to the file
      */
@@ -122,6 +121,8 @@ public class MMapBuffer extends LBufferAPI {
         fc.close();
     }
 
-
+    protected long offset() {
+        return pagePosition;
+    }
 
 }

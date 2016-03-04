@@ -25,4 +25,9 @@ public class WrappedLBuffer extends LBufferAPI {
     public long size() {
         return size;
     }
+
+    @Override
+    protected long offset() {
+        return offset;
+    }
 }
