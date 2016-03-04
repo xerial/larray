@@ -1,7 +1,5 @@
 sonatypeProfileName := "org.xerial"
 
-
-
 import ReleaseTransformations._
 
 releaseProcess := Seq[ReleaseStep](
@@ -12,7 +10,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  ReleaseStep(action = Command.process("so publishSigned", _), enableCrossBuild = true),
+  ReleaseStep(action = Command.process("publishSigned", _), enableCrossBuild = true),
   setNextVersion,
   commitNextVersion,
   ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
