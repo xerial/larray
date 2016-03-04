@@ -50,6 +50,7 @@ declare -r jvm_opts_file=".jvmopts"
 declare -r latest_28="2.8.2"
 declare -r latest_29="2.9.2"
 declare -r latest_210="2.10.2"
+declare -r latest_211="2.11.7"
 
 declare -r script_path=$(get_script_path "$BASH_SOURCE")
 
@@ -237,6 +238,7 @@ Usage: $script_name [options]
   -28                       use $latest_28
   -29                       use $latest_29
   -210                      use $latest_210
+  -211                      use $latest_211
   -scala-home <path>        use the scala build at the specified directory
   -scala-version <version>  use the specified version of scala
 
@@ -335,6 +337,7 @@ process_args ()
             -28) addSbt "++ $latest_28" && shift ;;
             -29) addSbt "++ $latest_29" && shift ;;
            -210) addSbt "++ $latest_210" && shift ;;
+           -211) addSbt "++ $latest_211" && shift ;;
 
               *) addResidual "$1" && shift ;;
     esac

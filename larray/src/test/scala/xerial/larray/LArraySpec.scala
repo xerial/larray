@@ -22,30 +22,32 @@
 
 package xerial.larray
 
-import org.scalatest.matchers.{MustMatchers, ShouldMatchers}
-import xerial.core.util.Timer
+import java.io.{ByteArrayOutputStream, PrintStream}
+
 import org.scalatest._
-import java.io.{PrintStream, ByteArrayOutputStream}
-import scala.language.implicitConversions
 import xerial.core.io.Resource
 import xerial.core.log.Logger
+import xerial.core.util.Timer
+
+import scala.language.implicitConversions
 
 
 /**
- * @author leo
- */
-trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
- with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
+  * @author leo
+  */
+trait LArraySpec extends WordSpec with Matchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
+  with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
 
-  implicit def toTag(t:String) = Tag(t)
+  implicit def toTag(t: String) = Tag(t)
 
   /**
-   * Captures the output stream and returns the printed messages as a String
-   * @param body
-   * @tparam U
-   * @return
-   */
-  def captureOut[U](body: => U) : String = {
+    * Captures the output stream and returns the printed messages as a String
+    *
+    * @param body
+    * @tparam U
+    * @return
+    */
+  def captureOut[U](body: => U): String = {
     val out = new ByteArrayOutputStream
     Console.withOut(out) {
       body
@@ -54,12 +56,13 @@ trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with Giv
   }
 
   /**
-   * Captures the output stream and returns the printed messages as a String
-   * @param body
-   * @tparam U
-   * @return
-   */
-  def captureSystemOut[U](body: => U) : String = {
+    * Captures the output stream and returns the printed messages as a String
+    *
+    * @param body
+    * @tparam U
+    * @return
+    */
+  def captureSystemOut[U](body: => U): String = {
     val prev = System.out
     val b = new ByteArrayOutputStream
     val out = new PrintStream(b)
@@ -73,7 +76,7 @@ trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with Giv
     new String(b.toByteArray)
   }
 
-  def captureErr[U](body: => U) : String = {
+  def captureErr[U](body: => U): String = {
     val out = new ByteArrayOutputStream
     Console.withErr(out) {
       body

@@ -21,7 +21,7 @@ object Build extends sbt.Build {
     }
   }
 
-  private val SCALA_VERSION = "2.10.3"
+  private val SCALA_VERSION = "2.11.7"
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "org.xerial.larray",
@@ -100,9 +100,9 @@ object Build extends sbt.Build {
   object Dependency {
 
     val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0"
-    val junit  = "junit" % "junit" % "4.10" % "test"
-    val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-    val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
+    val junit  = "junit" % "junit" % "4.12" % "test"
+    val slf4j = "org.slf4j" % "slf4j-api" % "1.7.13"
+    val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.13"
   }
 
   import Dependency._
@@ -132,12 +132,12 @@ object Build extends sbt.Build {
           "org.xerial" % "xerial-core" % "3.2.2",
           snappy % "test",
           junit,
-          "org.iq80.snappy" % "snappy" % "0.3" % "test",
-          "com.novocode" % "junit-interface" % "0.10-M2" % "test",
-          "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
-          "com.typesafe.akka" %% "akka-testkit" % "2.2-M2" % "test",
-          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
+          "org.iq80.snappy" % "snappy" % "0.4" % "test",
+          "com.novocode" % "junit-interface" % "0.11" % "test",
+          "org.scalatest" % "scalatest_2.11" % "3.0.0-M15" % "test",
+          "org.scalacheck" % "scalacheck_2.11" % "1.12.5" % "test",
+          "com.typesafe.akka" %% "akka-testkit" % "2.4.1" % "test",
+          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.4.1" % "test"
         )
       )
   ) dependsOn(larrayBuffer % scope, larrayMMap) configs(MultiJvm)
@@ -149,7 +149,7 @@ object Build extends sbt.Build {
       description := "LArray off-heap buffer library",
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
+        "org.scalatest" % "scalatest_2.11" % "3.0.0-M15" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
         "org.xerial" % "xerial-core" % "3.2.2" % "test"
 //        slf4j,
