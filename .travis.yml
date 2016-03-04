@@ -4,7 +4,7 @@ scala:
 
 sudo: false
 
-script: sbt "so test" -Dloglevel=debug
+script: sbt "+ test" -Dloglevel=debug
 
 jdk:
  - oraclejdk8
