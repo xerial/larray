@@ -21,7 +21,7 @@ object Build extends sbt.Build {
     }
   }
 
-  private val SCALA_VERSION = "2.10.3"
+  private val SCALA_VERSION = "2.11.7"
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "org.xerial.larray",
@@ -57,7 +57,7 @@ object Build extends sbt.Build {
     testOptions in Test <+= (target in Test) map {
       t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t /"test-reports" ), "stdout")
     },
-    crossPaths := false,
+    crossPaths := true,
     pomExtra := {
       <url>https://github.com/xerial/larray</url>
         <licenses>
@@ -99,7 +99,7 @@ object Build extends sbt.Build {
 
   object Dependency {
 
-    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.0"
+    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.2.1"
     val junit  = "junit" % "junit" % "4.10" % "test"
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
     val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
@@ -129,15 +129,15 @@ object Build extends sbt.Build {
         },
         libraryDependencies ++= Seq(
           // Add dependent jars here
-          "org.xerial" % "xerial-core" % "3.2.2",
+          "org.xerial" % "xerial-core" % "3.3.8",
           snappy % "test",
           junit,
           "org.iq80.snappy" % "snappy" % "0.3" % "test",
-          "com.novocode" % "junit-interface" % "0.10-M2" % "test",
-          "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
-          "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test",
-          "com.typesafe.akka" %% "akka-testkit" % "2.2-M2" % "test",
-          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.2-M2" % "test"
+	  "com.novocode" % "junit-interface" % "0.11" % "test",
+	  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+          "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
+          "com.typesafe.akka" %% "akka-testkit" % "2.4.2" % "test",
+          "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.4.2" % "test"
         )
       )
   ) dependsOn(larrayBuffer % scope, larrayMMap) configs(MultiJvm)
@@ -147,11 +147,12 @@ object Build extends sbt.Build {
     base = file("larray-buffer"),
     settings = buildSettings ++ Seq(
       description := "LArray off-heap buffer library",
+      crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
+        "org.scalatest" %% "scalatest" % "2.2.6" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
-        "org.xerial" % "xerial-core" % "3.2.2" % "test"
+        "org.xerial" % "xerial-core" % "3.3.8" % "test"
 //        slf4j,
 //        slf4jSimple % "test"
       )
@@ -164,6 +165,7 @@ object Build extends sbt.Build {
     settings = buildSettings ++
       Seq(
         description := "LArray mmap implementation",
+	crossPaths := false,
         autoScalaLibrary := false,
         libraryDependencies ++= Seq(
           snappy % "test",

@@ -22,7 +22,6 @@
 
 package xerial.larray
 
-import org.scalatest.matchers.{MustMatchers, ShouldMatchers}
 import xerial.core.util.Timer
 import org.scalatest._
 import java.io.{PrintStream, ByteArrayOutputStream}
@@ -34,8 +33,8 @@ import xerial.core.log.Logger
 /**
  * @author leo
  */
-trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
- with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
+trait LArraySpec extends WordSpec with ShouldMatchers with Resource with Timer with Logger
+ with BeforeAndAfterAll with BeforeAndAfter {
 
   implicit def toTag(t:String) = Tag(t)
 
