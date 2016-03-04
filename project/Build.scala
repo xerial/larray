@@ -116,8 +116,8 @@ object Build
                 junit,
                 "org.iq80.snappy" % "snappy" % "0.3" % "test",
                 "com.novocode" % "junit-interface" % "0.11" % "test",
-                "org.scalatest" %% "scalatest" % "2.2.6" % "test",
-                "org.scalacheck" %% "scalacheck" % "1.11.0" % "test",
+                "org.scalatest" %% "scalatest" % "[2.2.5-M3,2.3)" % "test",
+                "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
                 "com.typesafe.akka" %% "akka-testkit" % "2.3.14" % "test",
                 "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.3.14" % "test"
               )
@@ -133,7 +133,7 @@ object Build
       crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "2.2.+" % "test",
+        "org.scalatest" %% "scalatest" % "[2.2.5-M3,2.3)" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
         "org.xerial" %% "xerial-core" % "3.5.0" % "test"
         //        slf4j,
