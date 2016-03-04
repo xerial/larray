@@ -22,9 +22,10 @@
 
 package xerial.larray
 
+import xerial.larray
+
 import reflect.ClassTag
-import org.scalatest.{GivenWhenThen, WordSpec, FlatSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest._
 import xerial.core.log.Logger
 import java.io.File
 
@@ -72,7 +73,9 @@ object LArrayFunctionTest extends Logger with ShouldMatchers {
 
 trait LArrayBehaviour { this : LArraySpec =>
 
+
   import LArrayFunctionTest._
+  import xerial.larray._
 
   def validArray[A : ClassTag](arr:Seq[A]) {
     val l: LArray[A] = arr.toLArray
