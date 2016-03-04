@@ -17,7 +17,7 @@ object Build
     pomIncludeRepository := {
       _ => false
     },
-    scalaVersion := SCALA_VERSION,
+    crossScalaVersions := Seq("2.11.7", "2.10.6"),
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
@@ -98,6 +98,7 @@ object Build
             Seq(
               description := "LArray: A Large off-heap arrays for Scala/Java",
               logBuffered in MultiJvm := false,
+
               compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
               executeTests in Test := {
                 val testResults: Tests.Output = (executeTests in Test).value
@@ -110,15 +111,18 @@ object Build
               },
               libraryDependencies ++= Seq(
                 // Add dependent jars here
-                "org.xerial" % "xerial-core" % "3.3.8",
+                "org.xerial" % "xerial-core" % (scalaVersion.value match {
+                  case "2.10.6" => "3.2.2"
+                  case x => "3.3.8"
+                }),
                 snappy % "test",
                 junit,
                 "org.iq80.snappy" % "snappy" % "0.3" % "test",
                 "com.novocode" % "junit-interface" % "0.11" % "test",
                 "org.scalatest" %% "scalatest" % "2.2.6" % "test",
                 "org.scalacheck" %% "scalacheck" % "1.11.0" % "test",
-                "com.typesafe.akka" %% "akka-testkit" % "2.4.2" % "test",
-                "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.4.2" % "test"
+                "com.typesafe.akka" %% "akka-testkit" % "2.3.14" % "test",
+                "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.3.14" % "test"
               )
             )
   ) dependsOn(larrayBuffer % scope, larrayMMap) configs (MultiJvm)
