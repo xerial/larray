@@ -118,8 +118,8 @@ object Build
                 "com.novocode" % "junit-interface" % "0.11" % "test",
                 "org.scalatest" %% "scalatest" % "[2.2.5-M3,2.3)" % "test",
                 "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
-                "com.typesafe.akka" %% "akka-testkit" % "2.3.14" % "test",
-                "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.3.14" % "test"
+                "com.typesafe.akka" %% "akka-testkit" % "[2.3.14, 2.5)" % "test",
+                "com.typesafe.akka" %% "akka-multi-node-testkit" % "[2.3.14, 2.5)" % "test"
               )
             )
   ) dependsOn(larrayBuffer % scope, larrayMMap) configs (MultiJvm)
