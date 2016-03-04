@@ -98,7 +98,7 @@ object Build
             Seq(
               description := "LArray: A Large off-heap arrays for Scala/Java",
               logBuffered in MultiJvm := false,
-              crossScalaVersions := Seq("2.12.0-M3", "2.11.7", "2.10.6"),
+              crossScalaVersions := Seq("2.11.7", "2.10.6"),
               compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
               executeTests in Test := {
                 val testResults: Tests.Output = (executeTests in Test).value
