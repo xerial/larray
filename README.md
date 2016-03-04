@@ -104,6 +104,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
+ * March 4th, 2016  version 0.3.0 - Scala 2.11.7 support
  * November 11, 2013  version 0.2.1 - Use orgnization name `org.xerial.larray`. Add LBuffer.view.  
  * November 11, 2013  version 0.2 - Extracted pure-java modules (larray-buffer.jar and larray-mmap.jar) from larray.jar (for Scala). 
  * August 28, 2013  version 0.1.2 - improved memory layout
