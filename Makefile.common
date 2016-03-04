@@ -1,5 +1,5 @@
 TARGET:=larray-mmap/target
-SRC:=larray-mmap/src/main/scala
+SRC:=larray-mmap/src/main/java
 
 ifndef JAVA_HOME
 $(error Set JAVA_HOME environment variable)
@@ -95,7 +95,7 @@ Mac-i386_LIBNAME   := liblarray.jnilib
 Mac-x86_64_CC       := gcc -arch $(OS_ARCH)
 Mac-x86_64_STRIP     := strip -x
 Mac-x86_64_CFLAGS  := -Iinclude/inc_mac -I$(JAVA_HOME)/include -O2 -fPIC -mmacosx-version-min=10.5 -fvisibility=hidden
-Mac-x86_64_LINKFLAGS := -dynamiclib -static-libgcc 
+Mac-x86_64_LINKFLAGS := -dynamiclib 
 Mac-x86_64_LIBNAME   := liblarray.jnilib
 
 Windows-x86_CC          := $(CROSS_PREFIX)gcc
