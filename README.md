@@ -178,7 +178,7 @@ int e0 = l.apply(0L);  //  Get l[0L]
 // release 
 l.free();
 ```
-For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
+For more examples, see [xerial/larray/example/LArrayJavaExample.java](larray/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 
