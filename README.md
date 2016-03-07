@@ -182,9 +182,9 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.java](larray/src
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray/0.3.0/larray-0.3.0-javadoc.jar/!/index.html#xerial.larray.package)
- * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.3.0/larray-buffer-0.3.0-javadoc.jar/!/index.html#)
- * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.3.0/larray-mmap-0.3.0-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray_2.11/0.3.3/larray_2.11-0.3.3-javadoc.jar/!/index.html#xerial.larray.package)
+ * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.3.3/larray-buffer-0.3.0-javadoc.jar/!/index.html#)
+ * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.3.3/larray-mmap-0.3.0-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
  
 ## For developers
 
