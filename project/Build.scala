@@ -81,7 +81,7 @@ object Build
 
   object Dependency
   {
-    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.2.1"
+    val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.2.4"
     val junit = "junit" % "junit" % "4.10" % "test"
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
     val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
