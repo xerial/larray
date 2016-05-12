@@ -34,7 +34,7 @@ import scala.inline
  *
  * @author Taro L. Saito
  */
-trait LIterable[A] extends Logger { self : LSeq[A] =>
+trait LIterable[A] { self : LSeq[A] =>
 
   type Repr = LArray[A]
 
