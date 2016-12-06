@@ -28,12 +28,10 @@ public class UnsafeUtil {
 
     private static Constructor<?> findDirectByteBufferConstructor() {
         try {
-          return Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(Long.TYPE, Integer.TYPE);
-        }
-        catch(ClassNotFoundException e) {
+            return Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(Long.TYPE, Integer.TYPE, Object.class);
+        } catch (ClassNotFoundException e) {
             throw new IllegalStateException(String.format("Failed to find java.nio.DirectByteBuffer: $s", e.getMessage()));
-        }
-        catch(NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             throw new IllegalStateException(String.format("Failed to find constructor f java.nio.DirectByteBuffer: $s", e.getMessage()));
         }
     }
@@ -46,14 +44,16 @@ public class UnsafeUtil {
      *
      * @param addr
      * @param size
+     * @param att object holding the underlying memory to attach to the buffer.
+     *            This will prevent the garbage collection of the memory area that's
+     *            associated with the new <code>DirectByteBuffer</code>
      * @return
      */
-    public static ByteBuffer newDirectByteBuffer(long addr, int size)
-    {
+    public static ByteBuffer newDirectByteBuffer(long addr, int size, Object att) {
         dbbCC.setAccessible(true);
         Object b = null;
         try {
-            b = dbbCC.newInstance(new Long(addr), new Integer(size));
+            b = dbbCC.newInstance(new Long(addr), new Integer(size), att);
             return ByteBuffer.class.cast(b);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("Failed to create DirectByteBuffer: %s", e.getMessage()));
