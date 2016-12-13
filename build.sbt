@@ -12,7 +12,7 @@ val buildSettings = Defaults.coreDefaultSettings ++ Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  crossScalaVersions := Seq("2.12.1", "2.11.8"),
+  scalaVersion := SCALA_VERSION,
   logBuffered in Test := false,
   parallelExecution := true,
   parallelExecution in Test := false,
@@ -22,14 +22,14 @@ val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     "-sourcepath", baseDirectory.value.getAbsolutePath,
     "-doctitle", s"LArray ${version.value} API"
   ),
-  scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
+  scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
   scalacOptions in(Compile, doc) ++= Seq("-sourcepath", baseDirectory.value.getAbsolutePath,
     "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
     "-doc-title", "LArray API",
     "-doc-version", version.value,
     "-diagrams"
   ),
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(target.value / "test-reports"), "stdout"),
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", s"${target.value / "test-reports"}", "-o"),
   crossPaths := true,
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   homepage := Some(url("https://github.com/xerial/larray")),
@@ -90,9 +90,9 @@ lazy val larrayScala = Project(
   base = file("larray"),
   settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
     Seq(
+      crossScalaVersions := Seq("2.12.1", "2.11.8"),
       description := "LArray: A Large off-heap arrays for Scala/Java",
       logBuffered in MultiJvm := false,
-      crossScalaVersions := Seq("2.11.7", "2.10.6"),
       compile in MultiJvm := {(compile in MultiJvm) triggeredBy (compile in Test)}.value,
       executeTests in Test := {
         val testResults: Tests.Output = (executeTests in Test).value
@@ -123,7 +123,6 @@ lazy val larrayBuffer = Project(
   base = file("larray-buffer"),
   settings = buildSettings ++ Seq(
     description := "LArray off-heap buffer library",
-    crossScalaVersions := Seq(SCALA_VERSION),
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
@@ -140,7 +139,6 @@ lazy val larrayMMap = Project(
   settings = buildSettings ++
     Seq(
       description := "LArray mmap implementation",
-      crossScalaVersions := Seq(SCALA_VERSION),
       crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
