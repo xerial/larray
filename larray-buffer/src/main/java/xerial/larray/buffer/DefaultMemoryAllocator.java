@@ -1,13 +1,12 @@
 package xerial.larray.buffer;
 
 
-import org.xerial.util.log.Logger;
-
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -17,16 +16,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class DefaultMemoryAllocator implements MemoryAllocator {
 
-    private static Logger logger = Logger.getLogger(DefaultMemoryAllocator.class);
+    private static Logger logger = Logger.getLogger(DefaultMemoryAllocator.class.getName());
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();
     private ReferenceQueue<Memory> queue = new ReferenceQueue<Memory>();
 
     {
-        // Enable ANSI Color
-        logger.enableColor(true);
-
         // Start OffHeapMemory collector that releases the allocated memory when the corresponding Memory object is collected by GC.
         Thread collector = new Thread(new Runnable() {
             @Override
@@ -34,8 +30,9 @@ public class DefaultMemoryAllocator implements MemoryAllocator {
                 while(true) {
                     try {
                         MemoryReference ref = MemoryReference.class.cast(queue.remove());
-                        if(logger.isTraceEnabled())
-                            logger.trace(String.format("collected by GC. address:%x", ref.address));
+                        if(logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("Found GC target at %x", ref.address));
+                        }
                         release(ref);
                     }
                     catch(Exception e) {
@@ -44,8 +41,9 @@ public class DefaultMemoryAllocator implements MemoryAllocator {
                 }
             }
         });
+        collector.setName("LArray-GC");
         collector.setDaemon(true);
-        logger.trace("Start memory collector");
+        logger.finer("Start memory collector");
         collector.start();
     }
 
@@ -90,8 +88,9 @@ public class DefaultMemoryAllocator implements MemoryAllocator {
     public void releaseAll() {
         synchronized(this) {
             Object[] refSet = allocatedMemoryReferences.values().toArray();
-            if(refSet.length != 0)
-                logger.trace("Releasing allocated memory regions");
+            if(refSet.length != 0) {
+                logger.finer("Releasing allocated memory regions");
+            }
             for(Object ref : refSet) {
                 release((MemoryReference) ref);
             }
@@ -107,8 +106,9 @@ public class DefaultMemoryAllocator implements MemoryAllocator {
         synchronized(this) {
             long address = m.headerAddress();
             if(allocatedMemoryReferences.containsKey(address)) {
-                if(logger.isTraceEnabled())
-                    logger.trace(String.format("Released memory address:%x, size:%,d", address, m.dataSize()));
+                if(logger.isLoggable(Level.FINER)) {
+                    logger.finer(String.format("Released memory at %x (size:%,d)", address, m.dataSize()));
+                }
                 totalAllocatedSize.getAndAdd(-m.size());
                 allocatedMemoryReferences.remove(address);
                 m.release();

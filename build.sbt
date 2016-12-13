@@ -127,7 +127,6 @@ lazy val larrayBuffer = Project(
     scalaVersion := SCALA_VERSION,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      "org.xerial.java" % "xerial-core" % "2.1",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.wvlet" %% "wvlet-log" % "1.1" % "test"
     )
