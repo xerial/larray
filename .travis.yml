@@ -6,6 +6,17 @@ sudo: false
 
 script: sbt "+ test" -Dloglevel=debug
 
+# These directories are cached to S3 at the end of the build
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
+
+before_cache:
+  # Tricks to avoid unnecessary cache updates
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
+
 jdk:
  - oraclejdk8
 
