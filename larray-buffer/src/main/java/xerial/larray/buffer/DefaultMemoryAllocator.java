@@ -17,8 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class DefaultMemoryAllocator implements MemoryAllocator {
 
-    private Logger logger = Logger.getLogger(DefaultMemoryAllocator.class);
-
+    private static Logger logger = Logger.getLogger(DefaultMemoryAllocator.class);
 
     // Table from address -> MemoryReference
     private Map<Long, MemoryReference> allocatedMemoryReferences = new ConcurrentHashMap<Long, MemoryReference>();

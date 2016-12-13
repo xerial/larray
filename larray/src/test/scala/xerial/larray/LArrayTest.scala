@@ -211,24 +211,24 @@ class LArrayTest extends LArraySpec {
           a
         }
         val R = 5
-        time("random access performance", repeat = 2) {
-          block("scala array", repeat = R) {
+        time("random access performance", repeat = 2, blockRepeat = R) {
+          block("scala array") {
             for (i <- indexes)
               arr1(i) = 1
           }
 
-          block("LIntArray", repeat = R) {
+          block("LIntArray") {
             for (i <- indexes)
               arr2(i) = 1
 
           }
 
-          block("LIntArraySimple", repeat = R) {
+          block("LIntArraySimple") {
             for (i <- indexes)
               arr3(i) = 1
           }
 
-          block("MatrixBasedLIntArray", repeat = R) {
+          block("MatrixBasedLIntArray") {
             for (i <- indexes)
               arr4(i) = 1
           }

@@ -57,18 +57,18 @@ class SnappyCompressTest extends LArraySpec {
       val R = 5
 
       info("Start compression benchmark")
-      time("compress", repeat = GN) {
-        block("LBuffer -> LBuffer (raw)", repeat=R) {
+      time("compress", repeat = GN, blockRepeat = R) {
+        block("LBuffer -> LBuffer (raw)") {
           val out = new LBuffer(maxCompressedLength)
           Snappy.rawCompress(buf.address, bufSize, out.address)
         }
 
-        block("Array -> Array (raw) ", repeat=R) {
+        block("Array -> Array (raw) ") {
           val out = new Array[Byte](maxCompressedLength)
           Snappy.rawCompress(arr, 0, bufSize, out, 0)
         }
 
-        block("Array -> Array (dain)", repeat=R) {
+        block("Array -> Array (dain)") {
           val out = new Array[Byte](maxCompressedLength)
           org.iq80.snappy.Snappy.compress(arr, 0, bufSize, out, 0)
         }
@@ -84,18 +84,18 @@ class SnappyCompressTest extends LArraySpec {
 
       val compressedSize = Snappy.compress(buf.toArray).length
 
-      time("decompress", repeat = GN) {
-        block("LBuffer -> LBuffer (raw)", repeat=R) {
+      time("decompress", repeat = GN, blockRepeat = R) {
+        block("LBuffer -> LBuffer (raw)") {
           val out = new LBuffer(bufSize)
           Snappy.rawUncompress(compressedLBuffer.address, compressedSize, out.address)
         }
 
-        block("Array -> Array (raw) ", repeat=R) {
+        block("Array -> Array (raw) ") {
           val out = new Array[Byte](bufSize)
           Snappy.rawUncompress(compressedArray, 0, compressedSize, out, 0)
         }
 
-        block("Array -> Array (dain)", repeat=R) {
+        block("Array -> Array (dain)") {
           val out = new Array[Byte](bufSize)
           org.iq80.snappy.Snappy.uncompress(compressedArrayDain, 0, compressedSize, out, 0)
         }

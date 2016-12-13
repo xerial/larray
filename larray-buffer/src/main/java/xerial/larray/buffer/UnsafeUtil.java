@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Helper methods for using sun.misc.Unsafe.
+ *
  * @author Taro L. Saito
  */
 public class UnsafeUtil {
@@ -17,9 +18,11 @@ public class UnsafeUtil {
             Field f = Unsafe.class.getDeclaredField("theUnsafe");
             f.setAccessible(true);
             return Unsafe.class.cast(f.get(null));
-        } catch (NoSuchFieldException e) {
+        }
+        catch(NoSuchFieldException e) {
             throw new IllegalStateException("sun.misc.Unsafe is not available in this JVM");
-        } catch (IllegalAccessException e) {
+        }
+        catch(IllegalAccessException e) {
             throw new IllegalStateException("sun.misc.Unsafe is not available in this JVM");
         }
     }
@@ -29,9 +32,11 @@ public class UnsafeUtil {
     private static Constructor<?> findDirectByteBufferConstructor() {
         try {
             return Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(Long.TYPE, Integer.TYPE, Object.class);
-        } catch (ClassNotFoundException e) {
+        }
+        catch(ClassNotFoundException e) {
             throw new IllegalStateException(String.format("Failed to find java.nio.DirectByteBuffer: $s", e.getMessage()));
-        } catch (NoSuchMethodException e) {
+        }
+        catch(NoSuchMethodException e) {
             throw new IllegalStateException(String.format("Failed to find constructor f java.nio.DirectByteBuffer: $s", e.getMessage()));
         }
     }
@@ -44,9 +49,9 @@ public class UnsafeUtil {
      *
      * @param addr
      * @param size
-     * @param att object holding the underlying memory to attach to the buffer.
-     *            This will prevent the garbage collection of the memory area that's
-     *            associated with the new <code>DirectByteBuffer</code>
+     * @param att  object holding the underlying memory to attach to the buffer.
+     *             This will prevent the garbage collection of the memory area that's
+     *             associated with the new <code>DirectByteBuffer</code>
      * @return
      */
     public static ByteBuffer newDirectByteBuffer(long addr, int size, Object att) {
@@ -55,7 +60,8 @@ public class UnsafeUtil {
         try {
             b = dbbCC.newInstance(new Long(addr), new Integer(size), att);
             return ByteBuffer.class.cast(b);
-        } catch (Exception e) {
+        }
+        catch(Exception e) {
             throw new IllegalStateException(String.format("Failed to create DirectByteBuffer: %s", e.getMessage()));
         }
     }

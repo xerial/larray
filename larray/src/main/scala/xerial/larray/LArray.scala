@@ -23,11 +23,13 @@
 package xerial.larray
 
 import scala.reflect.ClassTag
-import xerial.core.log.Logger
-import java.nio.{ByteOrder, ByteBuffer}
+import java.nio.{ByteBuffer, ByteOrder}
 import java.nio.channels.{FileChannel, WritableByteChannel}
+
 import sun.nio.ch.DirectBuffer
-import java.io.{FileInputStream, FileOutputStream, File}
+import java.io.{File, FileInputStream, FileOutputStream}
+
+import wvlet.log.LogSupport
 import xerial.larray.buffer.{Memory, MemoryAllocator}
 import xerial.larray.mmap.MMapMode
 
@@ -742,7 +744,7 @@ trait RawByteArray[A] extends LArray[A] {
 }
 
 
-private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
+private[larray] trait UnsafeArray[T] extends RawByteArray[T] with LogSupport {
   self: LArray[T] =>
   private[larray] def m: Memory
   def address = m.address

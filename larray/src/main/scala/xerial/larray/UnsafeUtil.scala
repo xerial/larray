@@ -21,15 +21,18 @@
 //--------------------------------------
 
 package xerial.larray
-import sun.misc.Unsafe
-import xerial.core.log.Logger
+
 import java.nio.ByteBuffer
 
+import sun.misc.Unsafe
+import wvlet.log.LogSupport
+
 /**
- * Utilities for accessing sun.misc.Unsafe
- * @author Taro L. Saito
- */
-object UnsafeUtil extends Logger {
+  * Utilities for accessing sun.misc.Unsafe
+  *
+  * @author Taro L. Saito
+  */
+object UnsafeUtil extends LogSupport {
   val unsafe = {
     val f = classOf[Unsafe].getDeclaredField("theUnsafe")
     f.setAccessible(true)
@@ -44,19 +47,23 @@ object UnsafeUtil extends Logger {
     b.asInstanceOf[ByteBuffer]
   }
 
-
-  val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
+  val byteArrayOffset   = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
   val objectArrayOffset = unsafe.arrayBaseOffset(classOf[Array[AnyRef]]).toLong
-  val objectArrayScale = unsafe.arrayIndexScale(classOf[Array[AnyRef]]).toLong
-  val addressBandWidth = System.getProperty("sun.arch.data.model", "64").toInt
-  private val addressFactor = if (addressBandWidth == 64) 8L else 1L
+  val objectArrayScale  = unsafe.arrayIndexScale(classOf[Array[AnyRef]]).toLong
+  val addressBandWidth  = System.getProperty("sun.arch.data.model", "64").toInt
+  private val addressFactor = if (addressBandWidth == 64) {
+    8L
+  }
+  else {
+    1L
+  }
   val addressSize = unsafe.addressSize()
 
   /**
-   * @param obj
-   * @return
-   *
-   */
+    * @param obj
+    * @return
+    *
+    */
   @deprecated(message = "Deprecated because this method does not return correct object addresses in some platform", since = "0.1")
   def getObjectAddr(obj: AnyRef): Long = {
     trace(f"address factor:$addressFactor%d, addressSize:$addressSize, objectArrayOffset:$objectArrayOffset, objectArrayScale:$objectArrayScale")

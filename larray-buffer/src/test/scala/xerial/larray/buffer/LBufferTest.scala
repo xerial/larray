@@ -8,10 +8,8 @@
 package xerial.larray.buffer
 
 import java.nio.ByteBuffer
-import xerial.larray.LArraySpec
-import scala.util.Random
-import xerial.core.util.DataUnit
 
+import xerial.larray.{DataUnit, LArraySpec}
 
 /**
  * @author Taro L. Saito
@@ -69,14 +67,14 @@ class LBufferTest extends LArraySpec {
 
       info("start buffer allocation test")
 
-      time("single-thread allocation", repeat=10) {
-        block("without zero-filling", repeat=R) {
+      time("single-thread allocation", repeat=10, blockRepeat = R) {
+        block("without zero-filling") {
           for(i <- range) yield {
             new LBuffer(S)
           }
         }
 
-        block("with zero-filling", repeat=R) {
+        block("with zero-filling") {
           for(i <- range) yield {
             val m = new LBuffer(S)
             m.clear()
@@ -84,19 +82,19 @@ class LBufferTest extends LArraySpec {
           }
         }
 
-        block("java array", repeat=R) {
+        block("java array") {
           for(i <- range) yield {
             new Array[Byte](S)
           }
         }
 
-        block("byte buffer", repeat=R) {
+        block("byte buffer") {
           for(i <- range) yield {
             ByteBuffer.allocate(S)
           }
         }
 
-        block("direct byte buffer", repeat=R) {
+        block("direct byte buffer") {
           for(i <- range) yield {
             ByteBuffer.allocateDirect(S)
           }
@@ -114,14 +112,14 @@ class LBufferTest extends LArraySpec {
 
       info("start buffer allocation test")
 
-      time("concurrent allocation", repeat=10) {
-        block("without zero-filling", repeat=R) {
+      time("concurrent allocation", repeat=10, blockRepeat = R) {
+        block("without zero-filling") {
           for(i <- range) yield {
             new LBuffer(S)
           }
         }
 
-        block("with zero-filling", repeat=R) {
+        block("with zero-filling") {
           for(i <- range) yield {
             val m = new LBuffer(S)
             m.clear()
@@ -129,19 +127,19 @@ class LBufferTest extends LArraySpec {
           }
         }
 
-        block("java array", repeat=R) {
+        block("java array") {
           for(i <- range) yield {
             new Array[Byte](S)
           }
         }
 
-        block("byte buffer", repeat=R) {
+        block("byte buffer") {
           for(i <- range) yield {
             ByteBuffer.allocate(S)
           }
         }
 
-        block("direct byte buffer", repeat=R) {
+        block("direct byte buffer") {
           for(i <- range) yield {
             ByteBuffer.allocateDirect(S)
           }

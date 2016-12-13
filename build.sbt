@@ -105,7 +105,7 @@ lazy val larrayScala = Project(
       },
       libraryDependencies ++= Seq(
         // Add dependent jars here
-        "org.xerial" %% "xerial-core" % "3.6.0",
+        "org.wvlet" %% "wvlet-log" % "1.1",
         snappy % "test",
         junit,
         "org.iq80.snappy" % "snappy" % "0.3" % "test",
@@ -124,11 +124,12 @@ lazy val larrayBuffer = Project(
   settings = buildSettings ++ Seq(
     description := "LArray off-heap buffer library",
     crossPaths := false,
+    scalaVersion := SCALA_VERSION,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.xerial.java" % "xerial-core" % "2.1",
-      "org.xerial" %% "xerial-core" % "3.6.0" % "test"
+      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+      "org.wvlet" %% "wvlet-log" % "1.1" % "test"
     )
   )
 )

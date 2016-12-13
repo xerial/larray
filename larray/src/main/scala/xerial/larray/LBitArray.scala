@@ -22,17 +22,17 @@
 
 package xerial.larray
 
-import xerial.core.log.Logger
+import java.io.{File, FileOutputStream}
 import java.nio.ByteBuffer
-import java.io.{FileOutputStream, File}
-import sun.nio.ch.DirectBuffer
+
+import wvlet.log.LogSupport
 import xerial.larray.buffer.Memory
 
-
 /**
- * Helper methods for packing bit sequences into Array[Long]
- * @author leo
- */
+  * Helper methods for packing bit sequences into Array[Long]
+  *
+  * @author leo
+  */
 object BitEncoder {
 
   def minArraySize(numBits: Long): Long = {
@@ -49,8 +49,8 @@ object BitEncoder {
 }
 
 /**
- * Utilities to build LBitArray
- */
+  * Utilities to build LBitArray
+  */
 object LBitArray {
 
   def newBuilder = new LBitArrayBuilder()
@@ -61,55 +61,60 @@ object LBitArray {
     val b = newBuilder
     b.sizeHint(bitString.length)
     for (ch <- bitString) {
-      b += (if(ch == '0') true else false)
+      b += (if (ch == '0') {
+        true
+      }
+      else {
+        false
+      })
     }
     b.result()
   }
 
 }
 
-
 trait LBitArrayOps {
 
   /**
-   * Count the number of bits within the specified range [start, end)
-   * @param checkTrue count true or false
-   * @param start
-   * @param end
-   * @return the number of occurrences
-   */
+    * Count the number of bits within the specified range [start, end)
+    *
+    * @param checkTrue count true or false
+    * @param start
+    * @param end
+    * @return the number of occurrences
+    */
   def count(checkTrue: Boolean, start: Long, end: Long): Long
 
   /**
-   * Extract a slice of the sequence [start, end)
-   * @param start
-   * @param end
-   * @return
-   */
+    * Extract a slice of the sequence [start, end)
+    *
+    * @param start
+    * @param end
+    * @return
+    */
   def slice(start: Long, end: Long): LBitArray
 
 }
 
 /**
- *
- * Specialized implementaiton of LArray[Boolean] using LArray[Long]
- * To generate an instance of LBitArray, use ``LBitArray.newBuilder(Long)`` or [[xerial.larray.LBitArray#apply]]
- *
- * @param seq raw bit string
- * @param numBits
- */
+  *
+  * Specialized implementaiton of LArray[Boolean] using LArray[Long]
+  * To generate an instance of LBitArray, use ``LBitArray.newBuilder(Long)`` or [[xerial.larray.LBitArray#apply]]
+  *
+  * @param seq raw bit string
+  * @param numBits
+  */
 class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) extends LArray[Boolean] with UnsafeArray[Boolean] with LBitArrayOps {
 
   self =>
 
-  import UnsafeUtil.unsafe
-
   import BitEncoder._
+  import UnsafeUtil.unsafe
 
   private[larray] def alloc = seq.alloc
 
-  def this(numBits:Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
-  def this(numBits:Long, m:Memory) = this(new LLongArray(BitEncoder.minArraySize(numBits), m), numBits)
+  def this(numBits: Long) = this(new LLongArray(BitEncoder.minArraySize(numBits)), numBits)
+  def this(numBits: Long, m: Memory) = this(new LLongArray(BitEncoder.minArraySize(numBits), m), numBits)
 
   def size = numBits
   private var hash: Int = 0
@@ -119,32 +124,38 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   protected[this] def newBuilder: LBuilder[Boolean, LBitArray] = new LBitArrayBuilder()
   private[larray] def m: Memory = seq.m
 
-
   override def toString = {
     val displaySize = math.min(500L, numBits)
     val b = new StringBuilder
-    for(i <- 0L until displaySize)
-      b.append(if(self(i)) "1" else "0")
+    for (i <- 0L until displaySize) {
+      b.append(if (self(i)) {
+        "1"
+      }
+      else {
+        "0"
+      })
+    }
     b.result()
   }
 
-  def on(index:Long) = update(index, true)
-  def off(index:Long) = update(index, false)
+  def on(index: Long) = update(index, true)
+  def off(index: Long) = update(index, false)
 
   /**
-   * Set all bits to 1
-   * @return
-   */
+    * Set all bits to 1
+    *
+    * @return
+    */
   def fill {
     unsafe.setMemory(seq.m.address, byteLength, 0xFF.toByte)
   }
 
-
   /**
-   * Return the DNA base at the specified index
-   * @param index
-   * @return
-   */
+    * Return the DNA base at the specified index
+    *
+    * @param index
+    * @return
+    */
   def apply(index: Long): Boolean = {
     val addr = blockAddr(index)
     val offset = blockOffset(index)
@@ -152,13 +163,15 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
     table(code)
   }
 
-  def update(index:Long, v:Boolean) : Boolean = {
+  def update(index: Long, v: Boolean): Boolean = {
     val addr = blockAddr(index)
     val offset = blockOffset(index)
-    if(v)
+    if (v) {
       seq.putLong(addr, seq.getLong(addr) | (1L << offset))
-    else
+    }
+    else {
       seq.putLong(addr, seq.getLong(addr) & (~(1L << offset)))
+    }
     v
   }
 
@@ -185,8 +198,9 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   override def equals(obj: Any): Boolean = {
     obj match {
       case other: LBitArray => {
-        if (this.size != other.size)
+        if (this.size != other.size) {
           false
+        }
         else {
           (0L until numFilledBlocks).find(i => this.seq(i) != other.seq(i)) match {
             case Some(x) => false
@@ -201,16 +215,22 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   protected def fastCount(v: Long, checkTrue: Boolean): Long = {
     // JVM optimizer is smart enough to replace this code to a pop count operation available in the CPU
     val c = java.lang.Long.bitCount(v)
-    if(checkTrue) c else 64L - c
+    if (checkTrue) {
+      c
+    }
+    else {
+      64L - c
+    }
   }
 
   /**
-   * Count the number of bits within the specified range [start, end)
-   * @param checkTrue count true or false
-   * @param start
-   * @param end
-   * @return the number of occurrences
-   */
+    * Count the number of bits within the specified range [start, end)
+    *
+    * @param checkTrue count true or false
+    * @param start
+    * @param end
+    * @return the number of occurrences
+    */
   def count(checkTrue: Boolean, start: Long, end: Long): Long = {
 
     val sPos = blockIndex(start)
@@ -240,21 +260,25 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
       pos += 1
     }
 
-    if(checkTrue)
+    if (checkTrue) {
       count - num0sInMaskedRegion
-    else
+    }
+    else {
       count
+    }
   }
 
   /**
-   * Extract a slice of the sequence [start, end)
-   * @param start
-   * @param end
-   * @return
-   */
+    * Extract a slice of the sequence [start, end)
+    *
+    * @param start
+    * @param end
+    * @return
+    */
   override def slice(start: Long, end: Long): LBitArray = {
-    if (start > end)
+    if (start > end) {
       sys.error("illegal argument start:%,d > end:%,d".format(start, end))
+    }
 
     val sliceLen = end - start
     val newSeq = new LLongArray(minArraySize(sliceLen))
@@ -296,19 +320,20 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
   }
 
   /**
-   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
-   */
+    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+    */
   private[larray] def elementByteSize: Int =
     throw new UnsupportedOperationException("elementByteSize of LBitArray")
 
-  def view(from: Long, to: Long) = new LArrayView.LBitArrayView(this, from, to-from)
+  def view(from: Long, to: Long) = new LArrayView.LBitArrayView(this, from, to - from)
 
   /**
-   * Save to a file.
-   * @param f
-   * @return
-   */
-  override def saveTo(f:File) : File = {
+    * Save to a file.
+    *
+    * @param f
+    * @return
+    */
+  override def saveTo(f: File): File = {
     val fout = new FileOutputStream(f).getChannel
     try {
       // LBitArray need to record numBits
@@ -323,83 +348,92 @@ class LBitArray(private[larray] val seq: LLongArray, private val numBits: Long) 
       fout.close
   }
 
-
 }
 
-
 /**
- * BitVector builder
- */
-class LBitArrayBuilder extends LBuilder[Boolean, LBitArray] with Logger
-{
+  * BitVector builder
+  */
+class LBitArrayBuilder extends LBuilder[Boolean, LBitArray] with LogSupport {
+
   import BitEncoder._
 
   def elementSize = throw new UnsupportedOperationException("elementSize of LBitArrayBuilder")
 
-  private var elems : LLongArray = _
-  private var capacity : Long = 0L
-  private var numBits: Long = 0L
+  private var elems   : LLongArray = _
+  private var capacity: Long       = 0L
+  private var numBits : Long       = 0L
 
-  protected def mkArray(size:Long) : LLongArray = {
+  protected def mkArray(size: Long): LLongArray = {
     val newArray = new LLongArray(minArraySize(size))
     newArray.clear()
-    if(capacity > 0L) {
+    if (capacity > 0L) {
       LArray.copy(elems, newArray)
       elems.free
     }
     newArray
   }
 
-  def sizeHint(size:Long) {
-    if(capacity < size) resize(size)
+  def sizeHint(size: Long) {
+    if (capacity < size) resize(size)
   }
 
-  protected def ensureSize(size:Long) {
+  protected def ensureSize(size: Long) {
     val factor = 2L
-    if(capacity < size || capacity == 0L){
-      var newsize = if(capacity <= 1L) 64L else capacity * factor
-      while(newsize < size) newsize *= factor
+    if (capacity < size || capacity == 0L) {
+      var newsize = if (capacity <= 1L) {
+        64L
+      }
+      else {
+        capacity * factor
+      }
+      while (newsize < size) newsize *= factor
       resize(newsize)
     }
   }
 
-  protected def resize(size:Long) {
+  protected def resize(size: Long) {
     elems = mkArray(size)
     capacity = size
   }
 
   def clear() {
-    if(numBits > 0)
+    if (numBits > 0) {
       elems.free
+    }
     capacity = 0L
     numBits = 0L
   }
 
   /**
-   * Append a bit value
-   * @param v
-   */
-  override def +=(v: Boolean) : this.type = {
+    * Append a bit value
+    *
+    * @param v
+    */
+  override def +=(v: Boolean): this.type = {
     ensureSize(numBits + 1)
     val pos = blockIndex(numBits)
     val offset = blockOffset(numBits)
-    if(v)
+    if (v) {
       elems(pos) |= (1L << offset)
-    else
+    }
+    else {
       elems(pos) &= ~(1L << offset)
+    }
     numBits += 1
     this
   }
 
-  def result() : LBitArray = {
+  def result(): LBitArray = {
     val s = minArraySize(numBits)
-    if(capacity != 0L && capacity == s)
+    if (capacity != 0L && capacity == s) {
       new LBitArray(elems, numBits)
-    else
+    }
+    else {
       new LBitArray(mkArray(numBits), numBits)
+    }
   }
 
-  def result(numBits:Long) : LBitArray = {
+  def result(numBits: Long): LBitArray = {
     this.numBits = numBits
     result()
   }
@@ -410,14 +444,13 @@ class LBitArrayBuilder extends LBuilder[Boolean, LBitArray] with Logger
     val N = seq.length
     ensureSize(numBits + N)
     var i = 0L
-    while(i < N) {
+    while (i < N) {
       +=(seq(i))
       i += 1
     }
     numBits += N
     this
   }
-
 
   def write(src: ByteBuffer) = throw new UnsupportedOperationException("write(ByteBuffer)")
 

@@ -25,7 +25,6 @@ package xerial.larray
 import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
-import xerial.core.log.Logger
 import scala.inline
 
 
