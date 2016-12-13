@@ -2,6 +2,8 @@ sonatypeProfileName := "org.xerial"
 
 import ReleaseTransformations._
 
+scalaVersion := "2.12.1"
+
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
