@@ -104,7 +104,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
- * 2016-12-13: vesrion 0.4.0 - Fix #52. Support Scala 2.12
+ * 2016-12-13: vesrion 0.4.0 - Fix #52. Support Scala 2.12. Use [wvlet-log](https://github.com/wvlet/log) for internal logging.
  * 2016-05-12: version 0.3.4 - Minor performance improvement release
  * 2016-03-04: version 0.3.3 - Add Scala 2.11.7, 2.10.6 support
  * March 4th, 2016  version 0.3.0 - Scala 2.11.7 support
