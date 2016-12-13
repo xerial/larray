@@ -3,8 +3,7 @@ import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys.MultiJvm
 import sbt.Keys._
 import sbt._
 
-object Build
-        extends sbt.Build
+object Build extends sbt.Build
 {
   private val SCALA_VERSION = "2.11.8"
 
@@ -23,24 +22,19 @@ object Build
     parallelExecution := true,
     parallelExecution in Test := false,
     javacOptions in Compile ++= Seq("-Xlint:unchecked"),
-    javacOptions in(Compile, doc) <<= (baseDirectory, version) map { (bd, v) => Seq(
+    javacOptions in(Compile, doc) := Seq(
       "-locale", "en_US",
-      "-sourcepath", bd.getAbsolutePath,
-      "-doctitle", s"LArray ${v} API"
-    )
-    },
+      "-sourcepath", baseDirectory.value.getAbsolutePath,
+      "-doctitle", s"LArray ${version.value} API"
+    ),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature", "-target:jvm-1.6"),
-    scalacOptions in(Compile, doc) <++= (baseDirectory, version) map { (bd, v) =>
-      Seq("-sourcepath", bd.getAbsolutePath,
+    scalacOptions in(Compile, doc) ++= Seq("-sourcepath", baseDirectory.value.getAbsolutePath,
         "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
         "-doc-title", "LArray API",
-        "-doc-version", v,
+        "-doc-version", version.value,
         "-diagrams"
-      )
-    },
-    testOptions in Test <+= (target in Test) map {
-      t => Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(t / "test-reports"), "stdout")
-    },
+      ),
+    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "junitxml(directory=\"%s\")".format(target.value / "test-reports"), "stdout"),
     crossPaths := true,
     pomExtra := {
       <url>https://github.com/xerial/larray</url>
@@ -100,7 +94,7 @@ object Build
               description := "LArray: A Large off-heap arrays for Scala/Java",
               logBuffered in MultiJvm := false,
               crossScalaVersions := Seq("2.11.7", "2.10.6"),
-              compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
+              compile in MultiJvm := {(compile in MultiJvm) triggeredBy (compile in Test)}.value,
               executeTests in Test := {
                 val testResults: Tests.Output = (executeTests in Test).value
                 val multiJvmTestResults: Tests.Output = (executeTests in MultiJvm).value
