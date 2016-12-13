@@ -118,7 +118,7 @@ trait LIterable[A] { self : LSeq[A] =>
         index += 1
         v
       }
-      def remove() { throw new UnsupportedOperationException("remove") }
+      override def remove() { throw new UnsupportedOperationException("remove") }
     }
   }
 

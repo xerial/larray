@@ -5,7 +5,7 @@ import sbt._
 
 object Build extends sbt.Build
 {
-  private val SCALA_VERSION = "2.11.8"
+  private val SCALA_VERSION = "2.12.1"
 
   val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     organization := "org.xerial.larray",
@@ -106,13 +106,13 @@ object Build extends sbt.Build
               },
               libraryDependencies ++= Seq(
                 // Add dependent jars here
-                "org.xerial" %% "xerial-core" % "3.5.0",
+                "org.xerial" %% "xerial-core" % "3.6.0",
                 snappy % "test",
                 junit,
                 "org.iq80.snappy" % "snappy" % "0.3" % "test",
                 "com.novocode" % "junit-interface" % "0.11" % "test",
-                "org.scalatest" %% "scalatest" % "[2.2.5-M3,2.3)" % "test",
-                "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
+                "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+                "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
                 "com.typesafe.akka" %% "akka-testkit" % "[2.3.14, 2.5)" % "test",
                 "com.typesafe.akka" %% "akka-multi-node-testkit" % "[2.3.14, 2.5)" % "test"
               )
@@ -128,9 +128,9 @@ object Build extends sbt.Build
       crossPaths := false,
       autoScalaLibrary := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "[2.2.5-M3,2.3)" % "test",
+        "org.scalatest" %% "scalatest" % "3.0.1" % "test",
         "org.xerial.java" % "xerial-core" % "2.1",
-        "org.xerial" %% "xerial-core" % "3.5.0" % "test"
+        "org.xerial" %% "xerial-core" % "3.6.0" % "test"
         //        slf4j,
         //        slf4jSimple % "test"
       )

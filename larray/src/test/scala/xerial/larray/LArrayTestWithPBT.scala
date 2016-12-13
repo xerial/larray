@@ -24,39 +24,36 @@ import org.scalatest.prop.PropertyChecks
   * Time: 15:06
   */
 class LArrayTestWithPBT
-        extends LArraySpec with PropertyChecks with LArrayBehaviour
-{
-  val maxNumberOfTests = 3
-  val maxSizeOfList = 10000
-  val minSizeOfList = 1
+  extends LArraySpec with PropertyChecks with LArrayBehaviour {
+  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful= 3, minSize = 1, maxSize = 10000)
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList)) {
+  forAll {
     (input: Array[Int]) =>
-      "int test with length " + input.take(10).toString should {
+      s"int array [${input.take(10).mkString(", ")}, ...]" should {
         behave like validArray(input)
         behave like validIntArray(input)
       }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList)) {
+  forAll {
     (input: Array[Long]) =>
-      "long test with length " + input.take(10).toString should {
+      s"long array [${input.take(10).mkString(", ")}, ...]" should {
         behave like validArray(input)
         behave like validLongArray(input)
       }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList)) {
+  forAll {
     (input: Array[Float]) =>
-      "float test with length " + input.take(10).toString should {
+      s"float array [${input.take(10).mkString(", ")}, ...]" should {
         behave like validArray(input)
         behave like validFloatArray(input)
       }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList)) {
+  forAll {
     (input: Array[Double]) =>
-      "double test with length " + input.take(10).toString should {
+      s"double array [${input.take(10).mkString(", ")}, ...]" should {
         behave like validArray(input)
         behave like validDoubleArray(input)
       }

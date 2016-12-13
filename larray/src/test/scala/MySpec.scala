@@ -31,7 +31,7 @@ import scala.language.implicitConversions
 /**
  * Helper trait for writing test codes. Extend this trait in your test classes
  */
-trait MySpec extends WordSpec with ShouldMatchers with BeforeAndAfter with BeforeAndAfterAll with Resource with Timer with Logger {
+trait MySpec extends WordSpec with Matchers with BeforeAndAfter with BeforeAndAfterAll with Resource with Timer with Logger {
 
   implicit def toTag(s:String) = Tag(s)
 

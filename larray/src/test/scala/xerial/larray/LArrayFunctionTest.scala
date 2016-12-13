@@ -30,7 +30,7 @@ import xerial.core.log.Logger
 import java.io.File
 
 
-object LArrayFunctionTest extends Logger with ShouldMatchers {
+object LArrayFunctionTest extends Logger with Matchers {
 
   def stringRepr[A : ClassTag](l:LSeq[A]) : String = {
     val tag = implicitly[ClassTag[A]]
@@ -75,7 +75,7 @@ trait LArrayBehaviour { this : LArraySpec =>
 
   import LArrayFunctionTest._
 
-  def validArray[A : ClassTag](arr:Seq[A]) {
+  def validArray[A : ClassTag](arr:Seq[A]) = {
     val l: LArray[A] = arr.toLArray
 
     When(s"input is (${stringRepr(arr).take(100)})")
@@ -174,7 +174,7 @@ trait LArrayBehaviour { this : LArraySpec =>
   }
 
 
-  def validDoubleArray(arr:Seq[Double]) {
+  def validDoubleArray(arr:Seq[Double]) = {
     val l: LArray[Double] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ").take(100)})")
@@ -253,7 +253,7 @@ trait LArrayBehaviour { this : LArraySpec =>
 
 
 
-  def validFloatArray(arr:Seq[Float]) {
+  def validFloatArray(arr:Seq[Float]) = {
     val l: LArray[Float] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ").take(100)})")
@@ -331,7 +331,7 @@ trait LArrayBehaviour { this : LArraySpec =>
   }
 
 
-  def validIntArray(arr:Seq[Int]) {
+  def validIntArray(arr:Seq[Int]) = {
     val l: LArray[Int] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ").take(100)})")
@@ -409,7 +409,7 @@ trait LArrayBehaviour { this : LArraySpec =>
 
   }
 
-  def validLongArray(arr:Seq[Long]) {
+  def validLongArray(arr:Seq[Long]) = {
     val l: LArray[Long] = arr.toLArray
 
     When(s"input is (${arr.mkString(", ").take(100)})")

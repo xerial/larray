@@ -33,7 +33,7 @@ import xerial.core.log.Logger
 /**
  * @author leo
  */
-trait LArraySpec extends WordSpec with ShouldMatchers with Resource with Timer with Logger with BeforeAndAfterAll with BeforeAndAfter with GivenWhenThen with BeforeAndAfterEach {
+trait LArraySpec extends WordSpec with Matchers with Resource with Timer with Logger with BeforeAndAfterAll with BeforeAndAfter with GivenWhenThen with BeforeAndAfterEach {
 
   implicit def toTag(t:String) = Tag(t)
 
