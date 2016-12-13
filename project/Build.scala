@@ -6,7 +6,7 @@ import sbt._
 object Build
         extends sbt.Build
 {
-  private val SCALA_VERSION = "2.11.7"
+  private val SCALA_VERSION = "2.11.8"
 
   val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     organization := "org.xerial.larray",
@@ -18,6 +18,7 @@ object Build
       _ => false
     },
     scalaVersion := SCALA_VERSION,
+    crossScalaVersions := Seq("2.12.1", "2.11.8"),
     logBuffered in Test := false,
     parallelExecution := true,
     parallelExecution in Test := false,
