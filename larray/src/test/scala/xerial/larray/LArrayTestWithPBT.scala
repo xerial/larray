@@ -16,6 +16,7 @@
 package xerial.larray
 
 import org.scalatest.prop.PropertyChecks
+import org.scalatest.prop.Checkers
 
 /**
   * Created with IntelliJ IDEA.
@@ -25,7 +26,8 @@ import org.scalatest.prop.PropertyChecks
   */
 class LArrayTestWithPBT
   extends LArraySpec with PropertyChecks with LArrayBehaviour {
-  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful= 3, minSize = 1, maxSize = 10000)
+
+  implicit val config = PropertyCheckConfig(minSuccessful = 3, minSize = 1, maxSize = 10000)
 
   forAll {
     (input: Array[Int]) =>
@@ -64,4 +66,5 @@ class LArrayTestWithPBT
     behave like validArray(input)
     behave like validIntArray(input)
   }
+
 }

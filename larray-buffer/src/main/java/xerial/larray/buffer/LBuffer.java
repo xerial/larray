@@ -7,7 +7,6 @@ package xerial.larray.buffer;
  * @author Taro L. Saito
  */
 public class LBuffer extends LBufferAPI {
-
     /**
      * Allocate a memory of the specified byte size
      *
@@ -16,8 +15,6 @@ public class LBuffer extends LBufferAPI {
     public LBuffer(long size) {
         super(LBufferConfig.allocator.allocate(size));
     }
-
-
 }
 
 
