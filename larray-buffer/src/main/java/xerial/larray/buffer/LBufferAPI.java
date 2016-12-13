@@ -394,7 +394,8 @@ public class LBufferAPI {
         int index = 0;
         while (pos < limit) {
             long blockLength = Math.min(limit - pos, blockSize);
-            result[index++] = UnsafeUtil.newDirectByteBuffer(address() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
+            result[index++] = UnsafeUtil.newDirectByteBuffer(address() + pos, (int) blockLength, this)
+                    .order(ByteOrder.nativeOrder());
             pos += blockLength;
         }
         return result;
@@ -408,7 +409,7 @@ public class LBufferAPI {
      * @return
      */
     public ByteBuffer toDirectByteBuffer(long offset, int size) {
-        return UnsafeUtil.newDirectByteBuffer(address() + offset, size);
+        return UnsafeUtil.newDirectByteBuffer(address() + offset, size, this);
     }
 
     protected long offset() {

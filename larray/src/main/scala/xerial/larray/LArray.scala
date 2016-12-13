@@ -711,7 +711,7 @@ trait RawByteArray[A] extends LArray[A] {
    */
   def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
-    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + srcOffset, writeLen)
+    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + srcOffset, writeLen, this)
     b.get(dest, destOffset, writeLen)
     writeLen
   }
@@ -725,7 +725,7 @@ trait RawByteArray[A] extends LArray[A] {
    */
   def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int = {
     val readLen = math.min(src.length - srcOffset, math.min(byteLength - destOffset, length)).toInt
-    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + destOffset, readLen)
+    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + destOffset, readLen, this)
     b.put(src, srcOffset, readLen)
     readLen
   }
