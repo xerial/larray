@@ -23,36 +23,36 @@
 package xerial.larray
 
 import java.io.InputStream
-import xerial.core.log.Logger
 
+import wvlet.log.LogSupport
 
 object LArrayInputStream {
 
   /**
-   * Create a new InputStream from a given LArray
-   * @param array input
-   * @tparam A element type
-   * @return input stream
-   */
-  def apply[A](array:LArray[A]) : InputStream = {
+    * Create a new InputStream from a given LArray
+    *
+    * @param array input
+    * @tparam A element type
+    * @return input stream
+    */
+  def apply[A](array: LArray[A]): InputStream = {
     array match {
-      case r:RawByteArray[A] => new RawLArrayInputStream[A](r)
+      case r: RawByteArray[A] => new RawLArrayInputStream[A](r)
       case _ => sys.error(s"cannot create InputStream from this LArray class:${array.getClass}")
     }
   }
 
 }
 
-
 /**
- * InputStream implementation for LArrays that uses RawByteArray internally.
- *
- * @author Taro L. Saito
- */
-private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends InputStream with Logger {
+  * InputStream implementation for LArrays that uses RawByteArray internally.
+  *
+  * @author Taro L. Saito
+  */
+private[larray] class RawLArrayInputStream[A](array: RawByteArray[A]) extends InputStream with LogSupport {
 
   private var cursor = 0L
-  private var mark = 0L
+  private var mark   = 0L
 
   def read() = {
     val v = array.getByte(cursor)
@@ -60,9 +60,10 @@ private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends Inp
     v
   }
 
-  override def read(b: Array[Byte], offset:Int, len:Int) : Int = {
-    if(cursor >= array.size)
+  override def read(b: Array[Byte], offset: Int, len: Int): Int = {
+    if (cursor >= array.size) {
       -1
+    }
     else {
       val readLen = math.min(len, array.byteLength - cursor).toInt
       array.writeToArray(cursor, b, offset, readLen)
@@ -70,7 +71,6 @@ private[larray] class RawLArrayInputStream[A](array:RawByteArray[A]) extends Inp
       readLen
     }
   }
-
 
   override def available = {
     val remaining = array.size - cursor

@@ -1,6 +1,6 @@
-LArray
+LArray [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.xerial.larray/larray_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.xerial.larray/larray_2.12/)
 === 
-A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala.
+A library for managing large off-heap arrays that can hold more than 2G (2^31) entries in Java and Scala. Notably LArray is *disposable* by calling `LArray.free`. Even if you forget to release it, GC will automatically deallocate the memory acquired by LArray. LArray also supports  `mmap` (memory-mapped file) whose size is more than 2GB. 
 
 ## Features 
  * LArray can create arrays with more than 2G(2^31) entries.
@@ -48,6 +48,16 @@ Here is a simple benchmark result that compares concurrent memory-allocation per
 
 All allocators except LArray are orders of magnitude slower than LArray, and consumes CPUs because they need to fill the allocated memory with zeros due to their specification.
 
+In a single thread execution, you can see more clearly how fast LArray can allocate memories.    
+```
+-single-thread allocation	total:3.655 sec. , count:   10, avg:0.366 sec. , core avg:0.356 sec. , min:0.247 sec. , max:0.558 sec.
+  -without zero-filling	total:0.030 sec. , count:   20, avg:1.496 msec., core avg:1.125 msec., min:0.950 msec., max:8.713 msec.
+  -with zero-filling	total:0.961 sec. , count:   20, avg:0.048 sec. , core avg:0.047 sec. , min:0.044 sec. , max:0.070 sec.
+  -java array     	    total:0.967 sec. , count:   20, avg:0.048 sec. , core avg:0.037 sec. , min:0.012 sec. , max:0.295 sec.
+  -byte buffer    	    total:0.879 sec. , count:   20, avg:0.044 sec. , core avg:0.033 sec. , min:0.014 sec. , max:0.276 sec.
+  -direct byte buffer	total:0.812 sec. , count:   20, avg:0.041 sec. , core avg:0.041 sec. , min:0.032 sec. , max:0.049 sec.
+```
+
 ### Snappy Compression
 
 LArray (and LBuffer) has memory address that can be used for seamlessly interacting with fast native methods through JNI. Here is an example of using `rawCompress(...)` in [snappy-java](http://github.com/xerial/snappy-java), which can take raw-memory address to compress/uncompress the data using C++ code, and is generally faster than [Dain's pure-java version of Snappy](http://github.com/dain/snappy).
@@ -75,7 +85,7 @@ LArray consists of three-modules.
 
  * **larray-buffer** (Java) Off-heap memory buffer `LBuffer` and its allocator with GC support.
  * **larray-mmap**   (Java + JNI (C code)) Memory-mapped file implementaiton `MMapBuffer`
- * **larray** (Scala and Java API) Provdes rich set of array operations through `LArray` class.
+ * **larray** (Scala and Java API) Provides rich set of array operations through `LArray` interface.
 
 You can use each module independently. For example, if you only need an off-heap memory allocator that collects memory upon GC, use `LBuffer` in **larray-buffer**. 
 
@@ -86,7 +96,7 @@ Simply you can include **larray** to the dependency in Maven or SBT so that all 
 A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be used since 
 **larray-buffer** depends on `sun.misc.Unsafe` class to allocate off-heap memory.
 
-**larray-mmap** (MMapBuffer and LArray.mmap) uses JNI and is available for the following major CPU architecutres:
+**larray-mmap** (MMapBuffer and LArray.mmap) uses JNI and is available for the following major CPU architectures:
 
  * Windows (32/64-bit)
  * Linux (i368, amd64 (Intel 64-bit), arm, armhf)
@@ -94,6 +104,11 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 
 
 ## History
+ * 2016-12-13: vesrion 0.4.0 - Fix #52. Support Scala 2.12. Use [wvlet-log](https://github.com/wvlet/log) for internal logging.
+ * 2016-05-12: version 0.3.4 - Minor performance improvement release
+ * 2016-03-04: version 0.3.3 - Add Scala 2.11.7, 2.10.6 support
+ * March 4th, 2016  version 0.3.0 - Scala 2.11.7 support
+ * November 11, 2013  version 0.2.1 - Use orgnization name `org.xerial.larray`. Add LBuffer.view.  
  * November 11, 2013  version 0.2 - Extracted pure-java modules (larray-buffer.jar and larray-mmap.jar) from larray.jar (for Scala). 
  * August 28, 2013  version 0.1.2 - improved memory layout
  * August 28, 2013  version 0.1.1 (for Scala 2.10.2)
@@ -105,7 +120,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial" % "larray" % "0.2"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.4.0"
 ```
 
  * Using snapshot versions:
@@ -113,7 +128,7 @@ libraryDependencies += "org.xerial" % "larray" % "0.2"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial" % "larray" % "0.2-SNAPSHOT"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.4.1-SNAPSHOT"
 ```
 ### Example
 
@@ -137,16 +152,16 @@ l2.free
 l2(0) // The result of accessing released LArray is undefined
 ```
 
-For more examples, see [xerial/larray/example/LArrayExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayExample.scala)
+For more examples, see [xerial/larray/example/LArrayExample.scala](larray/src/main/scala/xerial/larray/example/LArrayExample.scala)
 
 ## Usage (Java)
 
 Add the following dependency to your pom.xml (Maven):
 ```xml
 <dependency>
-  <groupId>org.xerial</groupId>
-  <artifactId>larray</artifactId>
-  <version>0.2</version>
+  <groupId>org.xerial.larray</groupId>
+  <artifactId>larray_2.12</artifactId>
+  <version>0.4.0</version>
 </dependency>
 ```
 
@@ -165,11 +180,13 @@ int e0 = l.apply(0L);  //  Get l[0L]
 // release 
 l.free();
 ```
-For more examples, see [xerial/larray/example/LArrayJavaExample.scala](larray-scala/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
+For more examples, see [xerial/larray/example/LArrayJavaExample.java](larray/src/main/scala/xerial/larray/example/LArrayJavaExample.java)
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/0.2/larray-0.2-javadoc.jar/!/index.html#xerial.larray.package)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray_2.12/0.4.0/larray_2.12-0.4.0-javadoc.jar/!/index.html#xerial.larray.package)
+ * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.4.0/larray-buffer-0.4.0-javadoc.jar/!/index.html#)
+ * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.4.0/larray-mmap-0.4.0-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
  
 ## For developers
 

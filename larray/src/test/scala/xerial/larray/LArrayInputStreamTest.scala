@@ -22,12 +22,8 @@
 
 package xerial.larray
 
-import xerial.core.io.IOUtil
+import wvlet.log.io.IOUtil
 
-
-/**
- * @author Taro L. Saito
- */
 class LArrayInputStreamTest extends LArraySpec {
 
   "LArrayInputStream" should {
@@ -35,16 +31,14 @@ class LArrayInputStreamTest extends LArraySpec {
       val l = LArray(1, 3, 4, 5)
       debug(s"input ${l.mkString(", ")}")
       val in = LArrayInputStream(l)
-      IOUtil.readFully(in) { buf =>
+      IOUtil.readFully(in) {buf =>
         debug(s"buf length: ${buf.length}")
         val out = new LArrayOutputStream[Int]
         out.write(buf)
         val r = out.result
         debug(s"output ${r.mkString(", ")}")
-        l.sameElements(r) should be (true)
+        l.sameElements(r) should be(true)
       }
     }
-
-
   }
 }

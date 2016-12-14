@@ -15,20 +15,19 @@
  *--------------------------------------------------------------------------*/
 package xerial.larray
 
-import java.io.{FileFilter, File}
-import xerial.core.log.Logger
-import xerial.larray.mmap.MMapMode
+import java.io.{File, FileFilter}
 
+import wvlet.log.LogSupport
+import xerial.larray.mmap.MMapMode
 
 object SharedMemoryTest {
 
-
-
 }
 
-trait Barrier extends Logger { this : LArraySpec =>
+trait Barrier extends LogSupport {
+  this: LArraySpec =>
 
-  val numJVMs : Int
+  val numJVMs: Int
 
   val jvmID = {
     val n = getClass.getSimpleName
@@ -38,37 +37,38 @@ trait Barrier extends Logger { this : LArraySpec =>
     id
   }
 
-  def enterBarrier(name:String) {
+  def enterBarrier(name: String) {
     debug(s"entering barrier:$name")
     val f = new File(s"target/${name}.barrier")
     f.deleteOnExit()
     val m = LArray.mmap(f, 0, numJVMs, MMapMode.READ_WRITE)
-    m(jvmID -1) = 1.toByte
+    m(jvmID - 1) = 1.toByte
     m.flush
 
-    def reached() : Boolean = {
+    def reached(): Boolean = {
       m.forall(_ == 1.toByte)
     }
 
-    while(!reached()) {
+    while (!reached()) {
       Thread.sleep(10)
     }
     debug(s"exit barrier: $name")
   }
 
   before {
-    if(jvmID == 1) {
+    if (jvmID == 1) {
       val lockFile = Option(new File("target").listFiles(new FileFilter {
         def accept(pathname: File) = pathname.getName.endsWith(s".barrier")
-      })) getOrElse(Array.empty[File])
+      })) getOrElse (Array.empty[File])
 
-      while(lockFile.exists(_.exists())) {
+      while (lockFile.exists(_.exists())) {
         lockFile.filter(_.exists()) map (_.delete())
         Thread.sleep(50)
       }
     }
-    else
+    else {
       Thread.sleep(1000)
+    }
   }
 
 }
@@ -77,7 +77,6 @@ trait SharedMemorySpec extends LArraySpec with Barrier {
   val numJVMs = 2
 
 }
-
 
 class SharedMemoryMultiJvm1 extends SharedMemorySpec {
 
@@ -91,17 +90,20 @@ class SharedMemoryMultiJvm1 extends SharedMemorySpec {
       val f = new File(new File("target"), "sharedmemory.mmap")
       //f.deleteOnExit
       val m = LArray.mmap(f, 0, 100, MMapMode.READ_WRITE)
-      for(i <- 0 Until m.size)
+      for (i <- 0 Until m.size) {
         m(i) = i.toByte
+      }
 
       m.flush
       debug(m.mkString(","))
 
-      for(i <- 0 Until m.size) {
-        if((i % 64) == 0)
+      for (i <- 0 Until m.size) {
+        if ((i % 64) == 0) {
           m(i) = 1.toByte
-        else
+        }
+        else {
           m(i) = 0.toByte
+        }
       }
 
       enterBarrier("prepare")
@@ -111,7 +113,6 @@ class SharedMemoryMultiJvm1 extends SharedMemorySpec {
     }
   }
 }
-
 
 class SharedMemoryMultiJvm2 extends SharedMemorySpec {
   "mmap" should {

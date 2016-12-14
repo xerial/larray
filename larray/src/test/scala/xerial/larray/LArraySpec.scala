@@ -22,20 +22,21 @@
 
 package xerial.larray
 
-import org.scalatest.matchers.{MustMatchers, ShouldMatchers}
-import xerial.core.util.Timer
 import org.scalatest._
-import java.io.{PrintStream, ByteArrayOutputStream}
+import java.io.{ByteArrayOutputStream, PrintStream}
+
+import wvlet.log.LogFormatter.SourceCodeLogFormatter
+import wvlet.log.{LogSupport, Logger}
+import wvlet.log.io.ResourceReader
+import wvlet.log.io.Timer
+
 import scala.language.implicitConversions
-import xerial.core.io.Resource
-import xerial.core.log.Logger
 
 
 /**
  * @author leo
  */
-trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
- with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
+trait LArraySpec extends WordSpec with Matchers with ResourceReader with Timer with LogSupport with BeforeAndAfterAll with BeforeAndAfter with GivenWhenThen with BeforeAndAfterEach {
 
   implicit def toTag(t:String) = Tag(t)
 
@@ -81,5 +82,17 @@ trait LArraySpec extends WordSpec with ShouldMatchers with MustMatchers with Giv
     new String(out.toByteArray)
   }
 
+  Logger.setDefaultFormatter(SourceCodeLogFormatter)
+
+  override protected def beforeAll(): Unit = {
+    // Run LogLevel scanner (log-test.properties or log.properties in classpath) every 1 minute
+    Logger.scheduleLogLevelScan
+    super.beforeAll()
+  }
+
+  override protected def afterAll(): Unit = {
+    Logger.stopScheduledLogLevelScan
+    super.afterAll()
+  }
 
 }

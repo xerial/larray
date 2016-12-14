@@ -16,7 +16,11 @@
 package xerial.larray.example;
 
 import scala.runtime.AbstractFunction1;
-import xerial.larray.*;
+import xerial.larray.LArray;
+import xerial.larray.LIntArray;
+import xerial.larray.LIntArrayBuilder;
+import xerial.larray.LIterator;
+import xerial.larray.buffer.LBuffer;
 import xerial.larray.japi.LArrayJ;
 
 import java.io.File;
@@ -82,6 +86,15 @@ public class LArrayJavaExample {
 
         // Release the memory contents
         l.free();
+
+
+        // Using LBuffer
+        LBuffer lbuf = new LBuffer(1000);
+        lbuf.putInt(0, 10);
+        int ten = lbuf.getInt(0);
+        lbuf.address(); // memory address
+        lbuf.release(); // deallocate the memory
+
 
         System.out.println("done.");
     }

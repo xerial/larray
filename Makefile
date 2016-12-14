@@ -4,7 +4,7 @@ all: larray
 include Makefile.common
 
 
-SRC:=larray-mmap/src/main/scala
+SRC:=larray-mmap/src/main/java
 
 LARRAY_OUT:=$(TARGET)/larray-$(os_arch)
 LARRAY_SRC_DIR:=$(SRC)/xerial/larray/impl
@@ -26,9 +26,6 @@ jni-header: $(LARRAY_HEADER)
 $(LARRAY_HEADER): $(SRC)/xerial/larray/impl/LArrayNative.java  $(TARGET)/classes/xerial/larray/impl/LArrayNative.class
 	@mkdir -p $(TARGET)/classes
 	$(JAVAH) -classpath $(TARGET)/classes -o $@ xerial.larray.impl.LArrayNative
-
-
-
 
 
 $(LARRAY_OUT)/%.o : $(LARRAY_SRC_DIR)/%.c 

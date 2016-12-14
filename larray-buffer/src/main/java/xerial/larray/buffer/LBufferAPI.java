@@ -21,6 +21,7 @@ public class LBufferAPI {
 
     public LBufferAPI() {
     }
+
     public LBufferAPI(Memory m) {
         this.m = m;
     }
@@ -71,7 +72,7 @@ public class LBufferAPI {
      * getXXX and putXXX methods becomes undefined.
      */
     public void release() {
-        BufferConfig.allocator.release(m);
+        LBufferConfig.allocator.release(m);
         m = null;
     }
 
@@ -85,14 +86,27 @@ public class LBufferAPI {
         return m.address();
     }
 
+    /**
+     * Size of this buffer
+     * @return
+     */
     public long size() {
         return m.dataSize();
     }
 
+    /**
+     * Clear the buffer by filling with zeros
+     */
     public void clear() {
         fill(0, size(), (byte) 0);
     }
 
+    /**
+     * Fill the buffer of the specified range with a given value
+     * @param offset
+     * @param length
+     * @param value
+     */
     public void fill(long offset, long length, byte value) {
         unsafe.setMemory(address() + offset, length, value);
     }
@@ -210,6 +224,13 @@ public class LBufferAPI {
     }
 
 
+    /**
+     * Copy the contents of this buffer begginning from the srcOffset to a destination byte array
+     * @param srcOffset
+     * @param destArray
+     * @param destOffset
+     * @param size
+     */
     public void copyTo(int srcOffset, byte[] destArray, int destOffset, int size) {
         int cursor = destOffset;
         for (ByteBuffer bb : toDirectByteBuffers(srcOffset, size)) {
@@ -221,10 +242,23 @@ public class LBufferAPI {
         }
     }
 
-    public void copyTo(long srcOffset, LBuffer dest, long destOffset, long size) {
+    /**
+     * Copy the contents of this buffer to the destination LBuffer
+     * @param srcOffset
+     * @param dest
+     * @param destOffset
+     * @param size
+     */
+    public void copyTo(long srcOffset, LBufferAPI dest, long destOffset, long size) {
         unsafe.copyMemory(address() + srcOffset, dest.address() + destOffset, size);
     }
 
+    /**
+     * Extract a slice [from, to) of this buffer. This methods creates a copy of the specified region.
+     * @param from
+     * @param to
+     * @return
+     */
     public LBuffer slice(long from, long to) {
         if(from > to)
             throw new IllegalArgumentException(String.format("invalid range %,d to %,d", from, to));
@@ -235,6 +269,24 @@ public class LBufferAPI {
         return b;
     }
 
+    /**
+     * Create a view of the range [from, to) of this buffer. Unlike slice(from, to), the generated view
+     * is a reference to this buffer.
+     * @param from
+     * @param to
+     * @return
+     */
+    public WrappedLBuffer view(long from, long to) {
+        if(from > to)
+            throw new IllegalArgumentException(String.format("invalid range %,d to %,d", from, to));
+
+        return new WrappedLBuffer(m, from + offset(), to - from);
+    }
+
+    /**
+     * Convert this buffer to a java array.
+     * @return
+     */
     public byte[] toArray() {
         if (size() > Integer.MAX_VALUE)
             throw new IllegalStateException("Cannot create byte array of more than 2GB");
@@ -247,10 +299,21 @@ public class LBufferAPI {
         return b;
     }
 
+    /**
+     * Write the buffer contents to the given file channel. This method just
+     * calls channel.write(this.toDirectByteBuffers());
+     * @param channel
+     * @throws IOException
+     */
     public void writeTo(FileChannel channel) throws IOException {
         channel.write(toDirectByteBuffers());
     }
 
+    /**
+     * Dump the buffer contents to a file
+     * @param file
+     * @throws IOException
+     */
     public void writeTo(File file) throws IOException {
         FileChannel channel = new FileOutputStream(file).getChannel();
         try {
@@ -260,10 +323,24 @@ public class LBufferAPI {
         }
     }
 
+    /**
+     * Read the given source byte array, then overwrite the buffer contents
+     * @param src
+     * @param destOffset
+     * @return
+     */
     public int readFrom(byte[] src, long destOffset) {
         return readFrom(src, 0, destOffset, src.length);
     }
 
+    /**
+     * Read the given source byte arrey, then overwrite the buffer contents
+     * @param src
+     * @param srcOffset
+     * @param destOffset
+     * @param length
+     * @return
+     */
     public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
         int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
         ByteBuffer b = toDirectByteBuffer(destOffset, readLen);
@@ -273,6 +350,12 @@ public class LBufferAPI {
     }
 
 
+    /**
+     * Create an LBuffer from a given file.
+     * @param file
+     * @return
+     * @throws IOException
+     */
     public static LBuffer loadFrom(File file) throws IOException {
         FileChannel fin = new FileInputStream(file).getChannel();
         long fileSize = fin.size();
@@ -288,10 +371,20 @@ public class LBufferAPI {
     }
 
 
+    /**
+     * Gives an sequence of ByteBuffers. Writing to these ByteBuffers modifies the contents of this LBuffer.
+     * @return
+     */
     public ByteBuffer[] toDirectByteBuffers() {
         return toDirectByteBuffers(0, size());
     }
 
+    /**
+     * Gives an sequence of ByteBuffers of a specified range. Writing to these ByteBuffers modifies the contents of this LBuffer.
+     * @param offset
+     * @param size
+     * @return
+     */
     public ByteBuffer[] toDirectByteBuffers(long offset, long size) {
         long pos = offset;
         long blockSize = Integer.MAX_VALUE;
@@ -301,15 +394,25 @@ public class LBufferAPI {
         int index = 0;
         while (pos < limit) {
             long blockLength = Math.min(limit - pos, blockSize);
-            result[index++] = UnsafeUtil.newDirectByteBuffer(address() + pos, (int) blockLength).order(ByteOrder.nativeOrder());
+            result[index++] = UnsafeUtil.newDirectByteBuffer(address() + pos, (int) blockLength, this)
+                    .order(ByteOrder.nativeOrder());
             pos += blockLength;
         }
         return result;
 
     }
 
+    /**
+     * Gives a ByteBuffer view of the specified range. Writing to the returned ByteBuffer modifies the contenets of this LByteBuffer
+     * @param offset
+     * @param size
+     * @return
+     */
     public ByteBuffer toDirectByteBuffer(long offset, int size) {
-        return UnsafeUtil.newDirectByteBuffer(address() + offset, size);
+        return UnsafeUtil.newDirectByteBuffer(address() + offset, size, this);
     }
 
+    protected long offset() {
+        return 0;
+    }
 }

@@ -16,67 +16,55 @@
 package xerial.larray
 
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.{WordSpec, ShouldMatchers}
-import scala.util.Random
-import org.scalacheck.Gen
+import org.scalatest.prop.Checkers
 
 /**
- * Created with IntelliJ IDEA.
- * User: hayato
- * Date: 13/03/27
- * Time: 15:06
- */
-class LArrayTestWithPBT extends PropertyChecks with LArraySpec with LArrayBehaviour
-{
-  val maxNumberOfTests = 3
-  val maxSizeOfList = 10000
-  val minSizeOfList = 1
+  * Created with IntelliJ IDEA.
+  * User: hayato
+  * Date: 13/03/27
+  * Time: 15:06
+  */
+class LArrayTestWithPBT
+  extends LArraySpec with PropertyChecks with LArrayBehaviour {
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
-  {
+  implicit val config = PropertyCheckConfig(minSuccessful = 3, minSize = 1, maxSize = 10000)
+
+  forAll {
     (input: Array[Int]) =>
-      "int test with length " + input.take(10).toString should
-        {
-          behave like validArray(input)
-          behave like validIntArray(input)
-        }
+      s"int array [${input.take(10).mkString(", ")}, ...]" should {
+        behave like validArray(input)
+        behave like validIntArray(input)
+      }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
-  {
+  forAll {
     (input: Array[Long]) =>
-      "long test with length " + input.take(10).toString should
-        {
-          behave like validArray(input)
-          behave like validLongArray(input)
-        }
+      s"long array [${input.take(10).mkString(", ")}, ...]" should {
+        behave like validArray(input)
+        behave like validLongArray(input)
+      }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
-  {
+  forAll {
     (input: Array[Float]) =>
-      "float test with length " + input.take(10).toString should
-        {
-          behave like validArray(input)
-          behave like validFloatArray(input)
-        }
-
+      s"float array [${input.take(10).mkString(", ")}, ...]" should {
+        behave like validArray(input)
+        behave like validFloatArray(input)
+      }
   }
 
-  forAll("array", minSuccessful(maxNumberOfTests), maxSize(maxSizeOfList), minSize(minSizeOfList))
-  {
+  forAll {
     (input: Array[Double]) =>
-      "double test with length " + input.take(10).toString should
-        {
-          behave like validArray(input)
-          behave like validDoubleArray(input)
-        }
+      s"double array [${input.take(10).mkString(", ")}, ...]" should {
+        behave like validArray(input)
+        behave like validDoubleArray(input)
+      }
   }
 
-  "empty test" should
-    {
-      val input = Seq.empty[Int]
-      behave like validArray(input)
-      behave like validIntArray(input)
-    }
+  "empty test" should {
+    val input = Seq.empty[Int]
+    behave like validArray(input)
+    behave like validIntArray(input)
+  }
+
 }

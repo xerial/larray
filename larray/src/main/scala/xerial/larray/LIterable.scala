@@ -25,7 +25,6 @@ package xerial.larray
 import reflect.ClassTag
 import annotation.tailrec
 import collection.{AbstractIterator, Iterator}
-import xerial.core.log.Logger
 import scala.inline
 
 
@@ -34,7 +33,7 @@ import scala.inline
  *
  * @author Taro L. Saito
  */
-trait LIterable[A] extends Logger { self : LSeq[A] =>
+trait LIterable[A] { self : LSeq[A] =>
 
   type Repr = LArray[A]
 
@@ -118,7 +117,7 @@ trait LIterable[A] extends Logger { self : LSeq[A] =>
         index += 1
         v
       }
-      def remove() { throw new UnsupportedOperationException("remove") }
+      override def remove() { throw new UnsupportedOperationException("remove") }
     }
   }
 

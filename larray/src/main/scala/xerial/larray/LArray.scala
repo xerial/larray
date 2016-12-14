@@ -23,11 +23,13 @@
 package xerial.larray
 
 import scala.reflect.ClassTag
-import xerial.core.log.Logger
-import java.nio.{ByteOrder, ByteBuffer}
+import java.nio.{ByteBuffer, ByteOrder}
 import java.nio.channels.{FileChannel, WritableByteChannel}
+
 import sun.nio.ch.DirectBuffer
-import java.io.{FileInputStream, FileOutputStream, File}
+import java.io.{File, FileInputStream, FileOutputStream}
+
+import wvlet.log.LogSupport
 import xerial.larray.buffer.{Memory, MemoryAllocator}
 import xerial.larray.mmap.MMapMode
 
@@ -218,6 +220,11 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
    */
   def free
+
+  /**
+   * Release the memory of LArray. After calling this mehtod, thr results of calling the other methods becomes undefined or might cause JVM crash.
+   */
+  def release = free
 
   /**
    * Wraps with immutable interface
@@ -706,8 +713,7 @@ trait RawByteArray[A] extends LArray[A] {
    */
   def writeToArray(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset)).toInt
-    trace("copy to array")
-    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + srcOffset, writeLen)
+    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + srcOffset, writeLen, this)
     b.get(dest, destOffset, writeLen)
     writeLen
   }
@@ -721,7 +727,7 @@ trait RawByteArray[A] extends LArray[A] {
    */
   def readFromArray(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int): Int = {
     val readLen = math.min(src.length - srcOffset, math.min(byteLength - destOffset, length)).toInt
-    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + destOffset, readLen)
+    val b = xerial.larray.buffer.UnsafeUtil.newDirectByteBuffer(address + destOffset, readLen, this)
     b.put(src, srcOffset, readLen)
     readLen
   }
@@ -738,7 +744,7 @@ trait RawByteArray[A] extends LArray[A] {
 }
 
 
-private[larray] trait UnsafeArray[T] extends RawByteArray[T] with Logger {
+private[larray] trait UnsafeArray[T] extends RawByteArray[T] with LogSupport {
   self: LArray[T] =>
   private[larray] def m: Memory
   def address = m.address
