@@ -4,7 +4,7 @@ scala:
 
 sudo: false
 
-script: sbt "+ test" -Dloglevel=debug
+script: ./sbt "+ test"
 
 # These directories are cached to S3 at the end of the build
 cache:
