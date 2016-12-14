@@ -22,27 +22,24 @@
 
 package xerial.larray
 
-import java.io.{IOException, FileDescriptor, RandomAccessFile, File}
-import java.lang.reflect.InvocationTargetException
-import xerial.larray._
+import java.io.File
+
 import xerial.larray.buffer.{Memory, MemoryAllocator}
-import xerial.larray.mmap.{MMapMemory, MMapMode, MMapBuffer}
-import sun.misc.SharedSecrets
-import sun.awt.OSInfo
-
-
+import xerial.larray.mmap.{MMapBuffer, MMapMode}
 
 /**
- * Memory-mapped LByteArray
- * @author Taro L. Saito
- */
-class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMode=MMapMode.READ_WRITE)(implicit alloc:MemoryAllocator) extends RawByteArray[Byte] {
+  * Memory-mapped LByteArray
+  *
+  * @author Taro L. Saito
+  */
+class MappedLByteArray(f: File, offset: Long = 0, val size: Long = -1, mode: MMapMode = MMapMode.READ_WRITE)(implicit alloc: MemoryAllocator) extends RawByteArray[Byte] {
+
+  import java.{lang => jl}
 
   import UnsafeUtil.unsafe
-  import java.{lang=>jl}
 
-  private val mmap = new MMapBuffer(f, offset, size, mode);
-  private val m : Memory = mmap.m
+  private val mmap      = new MMapBuffer(f, offset, size, mode);
+  private val m: Memory = mmap.m
 
   protected[this] def newBuilder = new LByteArrayBuilder
 
@@ -53,39 +50,41 @@ class MappedLByteArray(f:File, offset:Long = 0, val size:Long = -1, mode:MMapMod
   }
 
   /**
-   * Forces any changes made to this buffer to be written to the file
-   */
+    * Forces any changes made to this buffer to be written to the file
+    */
   def flush {
     mmap.flush()
-   }
+  }
 
   /**
-   * Close the memory mapped file. To ensure the written data is saved in the file, call flush before closing
-   */
+    * Close the memory mapped file. To ensure the written data is saved in the file, call flush before closing
+    */
   override def close() {
     mmap.close()
   }
 
   /**
-   * Update an element
-   * @param i index to be updated
-   * @param v value to set
-   * @return the value
-   */
-  def update(i: Long, v: Byte) = { unsafe.putByte(address+i, v); v }
+    * Update an element
+    *
+    * @param i index to be updated
+    * @param v value to set
+    * @return the value
+    */
+  def update(i: Long, v: Byte) = {unsafe.putByte(address + i, v); v}
 
-  def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from , to - from)
+  def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from, to - from)
 
   /**
-   * Retrieve an element
-   * @param i index
-   * @return the element value
-   */
+    * Retrieve an element
+    *
+    * @param i index
+    * @return the element value
+    */
   def apply(i: Long) = unsafe.getByte(address + i)
 
   /**
-   * Byte size of an element. For example, if A is Int, its elementByteSize is 4
-   */
+    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
+    */
   private[larray] def elementByteSize = 1
 
 }

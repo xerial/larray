@@ -4,7 +4,7 @@ import ReleaseTransformations._
 
 val SCALA_VERSION = "2.12.1"
 val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.8")
-scalaVersion := SCALA_VERSION
+scalaVersion in ThisBuild := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
   organization := "org.xerial.larray",
@@ -14,6 +14,7 @@ val buildSettings = Defaults.coreDefaultSettings ++ Seq(
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
   scalaVersion := SCALA_VERSION,
+  crossScalaVersions := CROSS_SCALA_VERSIONS,
   logBuffered in Test := false,
   parallelExecution := true,
   parallelExecution in Test := false,
@@ -78,8 +79,7 @@ lazy val root = Project(
   settings = buildSettings ++ Seq(
     publish := {},
     publishLocal := {},
-    publishArtifact := false,
-    crossScalaVersions := CROSS_SCALA_VERSIONS
+    publishArtifact := false
   )
 ) aggregate(larrayScala, larrayBuffer, larrayMMap)
 
@@ -96,8 +96,8 @@ lazy val larrayScala = Project(
   settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
     Seq(
       description := "LArray: A Large off-heap arrays for Scala/Java",
-      crossScalaVersions := CROSS_SCALA_VERSIONS,
       logBuffered in MultiJvm := false,
+      jvmOptions in MultiJvm ++= Seq("-Xmx128M"),
       compile in MultiJvm := {(compile in MultiJvm) triggeredBy (compile in Test)}.value,
       executeTests in Test := {
         val testResults: Tests.Output = (executeTests in Test).value
