@@ -25,13 +25,13 @@ package xerial.larray
 import java.io.File
 
 /**
- * @author Taro L. Saito
- */
+  * @author Taro L. Saito
+  */
 class MappedLByteArrayTest extends LArraySpec {
 
   "MappedLByteArray" should {
 
-    "create memory mapped file" taggedAs("simple") in {
+    "create memory mapped file" taggedAs ("simple") in {
 
       import xerial.larray._
 
@@ -41,29 +41,28 @@ class MappedLByteArrayTest extends LArraySpec {
       val L = 100L
       val m = new MappedLByteArray(f, 0, L)
       m.size shouldBe L
-      for(i <- 0 Until m.size) {
+      for (i <- 0 Until m.size) {
         m(i) = i.toByte
       }
-
 
       trace(m.mkString(", "))
       val mc = m.slice(0)
       m.close()
 
       val m2 = LArray.loadFrom[Byte](f)
-      mc.sameElements(m2) should be (true)
+      mc.sameElements(m2) should be(true)
 
       val mOffset = new MappedLByteArray(f, 3, L - 3)
       trace(mOffset.mkString(", "))
 
-      mc.slice(3).sameElements(mOffset) should be (true)
+      mc.slice(3).sameElements(mOffset) should be(true)
 
       //mOffset.flush
       //m.free
       //m2.free
     }
 
-    "create large memory mapped file more than 2GB" taggedAs("large") in {
+    "create large memory mapped file more than 2GB" taggedAs ("large") in {
 
       val f = File.createTempFile("mmap", ".larray", new File("target"))
       f.deleteOnExit()
