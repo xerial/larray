@@ -20,10 +20,6 @@ before_cache:
 jdk:
  - oraclejdk8
 
-branches:
-  only:
-    - develop
-
 addons:
   apt:
     packages:
