@@ -3,6 +3,7 @@ sonatypeProfileName := "org.xerial"
 import ReleaseTransformations._
 
 val SCALA_VERSION = "2.12.1"
+val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.8")
 scalaVersion := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
@@ -53,6 +54,8 @@ val buildSettings = Defaults.coreDefaultSettings ++ Seq(
         </developer>
       </developers>
   },
+  releaseTagName := { (version in ThisBuild).value },
+  releaseCrossBuild := true,
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
@@ -74,7 +77,9 @@ lazy val root = Project(
   base = file("."),
   settings = buildSettings ++ Seq(
     publish := {},
-    publishLocal := {}
+    publishLocal := {},
+    publishArtifact := false,
+    crossScalaVersions := CROSS_SCALA_VERSIONS
   )
 ) aggregate(larrayScala, larrayBuffer, larrayMMap)
 
@@ -90,8 +95,8 @@ lazy val larrayScala = Project(
   base = file("larray"),
   settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
     Seq(
-      crossScalaVersions := Seq("2.12.1", "2.11.8"),
       description := "LArray: A Large off-heap arrays for Scala/Java",
+      crossScalaVersions := CROSS_SCALA_VERSIONS,
       logBuffered in MultiJvm := false,
       compile in MultiJvm := {(compile in MultiJvm) triggeredBy (compile in Test)}.value,
       executeTests in Test := {
@@ -124,7 +129,6 @@ lazy val larrayBuffer = Project(
   settings = buildSettings ++ Seq(
     description := "LArray off-heap buffer library",
     crossPaths := false,
-    scalaVersion := SCALA_VERSION,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
