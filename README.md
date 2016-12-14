@@ -120,7 +120,7 @@ A standard JVM, (e.g. Oracle JVM (standard JVM, HotSpotVM) or OpenJDK) must be u
 Add the following sbt dependency to your project settings:
 
 ```scala
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.4"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.4.0"
 ```
 
  * Using snapshot versions:
@@ -128,7 +128,7 @@ libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.4"
 ```scala
 resolvers += "Sonatype shapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "org.xerial.larray" %% "larray" % "0.3.5-SNAPSHOT"
+libraryDependencies += "org.xerial.larray" %% "larray" % "0.4.1-SNAPSHOT"
 ```
 ### Example
 
@@ -160,8 +160,8 @@ Add the following dependency to your pom.xml (Maven):
 ```xml
 <dependency>
   <groupId>org.xerial.larray</groupId>
-  <artifactId>larray_2.11</artifactId>
-  <version>0.3.3</version>
+  <artifactId>larray_2.12</artifactId>
+  <version>0.4.0</version>
 </dependency>
 ```
 
@@ -184,9 +184,9 @@ For more examples, see [xerial/larray/example/LArrayJavaExample.java](larray/src
 
 ## Scaladoc
 
- * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray_2.11/0.3.3/larray_2.11-0.3.3-javadoc.jar/!/index.html#xerial.larray.package)
- * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.3.3/larray-buffer-0.3.0-javadoc.jar/!/index.html#)
- * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.3.3/larray-mmap-0.3.0-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
+ * [LArray Scala API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray_2.12/0.4.0/larray_2.12-0.4.0-javadoc.jar/!/index.html#xerial.larray.package)
+ * [larray-buffer Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-buffer/0.4.0/larray-buffer-0.4.0-javadoc.jar/!/index.html#)
+ * [larray-mmap Java API](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/larray/larray-mmap/0.4.0/larray-mmap-0.4.0-javadoc.jar/!/index.html?xerial/larray/mmap/package-summary.html)
  
 ## For developers
 
