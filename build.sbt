@@ -2,8 +2,8 @@ sonatypeProfileName := "org.xerial"
 
 import ReleaseTransformations._
 
-val SCALA_VERSION = "2.12.1"
-val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.8")
+val SCALA_VERSION = "2.12.4"
+val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.11")
 scalaVersion in ThisBuild := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
@@ -83,10 +83,10 @@ lazy val root = Project(
   )
 ) aggregate(larrayScala, larrayBuffer, larrayMMap)
 
-val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.2.4"
-val junit = "junit" % "junit" % "4.10" % "test"
-val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.5"
+val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.4"
+val junit = "junit" % "junit" % "4.11" % "test"
+val slf4j = "org.slf4j" % "slf4j-api" % "1.7.25"
+val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.25"
 
 val scope = "test->test;compile->compile"
 
