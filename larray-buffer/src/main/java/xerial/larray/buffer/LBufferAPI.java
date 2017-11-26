@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 import static xerial.larray.buffer.UnsafeUtil.unsafe;
 
@@ -310,6 +313,28 @@ public class LBufferAPI {
     }
 
     /**
+     * Writes the buffer contents to the given byte channel.
+     *
+     * @param channel
+     * @throws IOException
+     */
+    public void writeTo(GatheringByteChannel channel) throws IOException {
+        channel.write(toDirectByteBuffers());
+    }
+
+    /**
+     * Writes the buffer contents to the given byte channel.
+     *
+     * @param channel
+     * @throws IOException
+     */
+    public void writeTo(WritableByteChannel channel) throws IOException {
+        for (ByteBuffer buffer : toDirectByteBuffers()) {
+            channel.write(buffer);
+        }
+    }
+
+    /**
      * Dump the buffer contents to a file
      * @param file
      * @throws IOException
@@ -324,22 +349,24 @@ public class LBufferAPI {
     }
 
     /**
-     * Read the given source byte array, then overwrite the buffer contents
-     * @param src
-     * @param destOffset
-     * @return
+     * Read the given source byte array, then overwrite this buffer's contents
+     *
+     * @param src source byte array
+     * @param destOffset offset in this buffer to read to
+     * @return the number of bytes read
      */
     public int readFrom(byte[] src, long destOffset) {
         return readFrom(src, 0, destOffset, src.length);
     }
 
     /**
-     * Read the given source byte arrey, then overwrite the buffer contents
-     * @param src
-     * @param srcOffset
-     * @param destOffset
-     * @param length
-     * @return
+     * Read the given source byte array, then overwrite this buffer's contents
+     *
+     * @param src source byte array
+     * @param srcOffset offset in source byte array to read from
+     * @param destOffset offset in this buffer to read to
+     * @param length max number of bytes to read
+     * @return the number of bytes read
      */
     public int readFrom(byte[] src, int srcOffset, long destOffset, int length) {
         int readLen = (int) Math.min(src.length - srcOffset, Math.min(size() - destOffset, length));
@@ -349,6 +376,21 @@ public class LBufferAPI {
         return readLen;
     }
 
+    /**
+     * Reads the given source byte buffer into this buffer at the given offset
+     * @param src source byte buffer
+     * @param destOffset offset in this buffer to read to
+     * @return the number of bytes read
+     */
+    public int readFrom(ByteBuffer src, long destOffset) {
+        if (src.remaining() + destOffset >= size())
+            throw new BufferOverflowException();
+        int readLen = src.remaining();
+        ByteBuffer b = toDirectByteBuffer(destOffset, readLen);
+        b.position(0);
+        b.put(src);
+        return readLen;
+    }
 
     /**
      * Create an LBuffer from a given file.
