@@ -70,6 +70,12 @@ val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     commitNextVersion,
     ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
     pushChanges
+  ),
+  publishTo := Some(
+    if (isSnapshot.value)
+      Opts.resolver.sonatypeSnapshots
+    else
+      Opts.resolver.sonatypeStaging
   )
 )
 
