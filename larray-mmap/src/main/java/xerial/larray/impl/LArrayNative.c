@@ -67,7 +67,7 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_mmap
   }
 
   mapping = CreateFileMapping(fileHandle, NULL, fileProtect, highLen, lowLen, NULL);
-  mapAddress = MapViewOfFile(mapping, mapAccess, highOffset, lowOffset, (DWORD) size);
+  mapAddress = MapViewOfFile(mapping, mapAccess, highOffset, lowOffset, (size_t) size);
 
   result = CloseHandle(mapping);
   return (jlong) mapAddress;
