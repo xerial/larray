@@ -84,7 +84,7 @@ LArray (and LBuffer) has memory address that can be used for seamlessly interact
 LArray consists of three-modules.
 
  * **larray-buffer** (Java) Off-heap memory buffer `LBuffer` and its allocator with GC support.
- * **larray-mmap**   (Java + JNI (C code)) Memory-mapped file implementaiton `MMapBuffer`
+ * **larray-mmap**   (Java + JNI (C code)) Memory-mapped file implementation `MMapBuffer`
  * **larray** (Scala and Java API) Provides rich set of array operations through `LArray` interface.
 
 You can use each module independently. For example, if you only need an off-heap memory allocator that collects memory upon GC, use `LBuffer` in **larray-buffer**. 
