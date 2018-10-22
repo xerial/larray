@@ -22,16 +22,16 @@
 
 package xerial.larray
 
-import scala.reflect.ClassTag
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.nio.channels.WritableByteChannel
 import java.nio.{ByteBuffer, ByteOrder}
-import java.nio.channels.{FileChannel, WritableByteChannel}
 
 import sun.nio.ch.DirectBuffer
-import java.io.{File, FileInputStream, FileOutputStream}
-
 import wvlet.log.LogSupport
 import xerial.larray.buffer.{Memory, MemoryAllocator}
 import xerial.larray.mmap.MMapMode
+
+import scala.reflect.ClassTag
 
 
 /**
@@ -1096,15 +1096,15 @@ class LObjectArrayLarge[A: ClassTag](val size: Long) extends LArray[A] {
   /**
    * block size in pow(2, B)
    */
+  private val RESERVED = 3 // Due to JVM limitations
   private val B = 31
-  private val mask = (1L << B) - 1L
+  private val BLOCK_SIZE = ((1L << B) - RESERVED).toInt
 
-  @inline private def index(i: Long): Int = (i >>> B).toInt
+  @inline private def index(i: Long): Int = ((i + RESERVED) >>> B).toInt
 
-  @inline private def offset(i: Long): Int = (i & mask).toInt
+  @inline private def offset(i: Long): Int = (i - (index(i)) * BLOCK_SIZE).toInt
 
   private var array: Array[Array[A]] = {
-    val BLOCK_SIZE = (1L << B).toInt
     val NUM_BLOCKS = index(size - 1) + 1
     // initialize the array
     val a = new Array[Array[A]](NUM_BLOCKS)
