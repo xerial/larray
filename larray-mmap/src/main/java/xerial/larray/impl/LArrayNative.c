@@ -109,7 +109,7 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_munmap
 
 
 JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
-(JNIEnv *env, jclass cls, jlong fd, jlong addr, jlong size) {
+  (JNIEnv *env, jclass cls, jlong fd, jlong addr, jlong size) {
 
 #if defined(_WIN32) || defined(_WIN64)
   void *a = (void *) addr;
@@ -161,3 +161,17 @@ JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_duplicateHandle
 #endif
 
   }
+
+JNIEXPORT jboolean JNICALL Java_xerial_larray_impl_LArrayNative_prefetch
+  (JNIEnv *env, jclass cls, jlong addr, jlong size) {
+
+#if defined(_WIN32) || defined(_WIN64)
+  WIN32_MEMORY_RANGE_ENTRY range = {(PVOID) addr, (SIZE_T) size};
+  // PrefetchVirtualMemory returns non-zero on success
+  return PrefetchVirtualMemory(GetCurrentProcess(), 1, &range, 0) != 0 ? JNI_TRUE : JNI_FALSE;
+#else
+  // posix_madvise returns zero on success
+  return posix_madvise((void *) addr, (size_t) size, POSIX_MADV_WILLNEED) == 0 ? JNI_TRUE : JNI_FALSE;
+#endif
+
+}

@@ -121,6 +121,24 @@ public class MMapBuffer extends LBufferAPI {
         fc.close();
     }
 
+    /**
+     * Attempts to prefetch the specified range in memory so that followup
+     * accesses do not incur I/O. This method is best-effort: there are no
+     * guarantees that the JVM and the OS will honor this request, and even
+     * if they do there are no guarantees for how long the data in the range
+     * will remain in memory before being paged out. When this method
+     * returns the prefetch operation may be still ongoing.
+     * You should only attempt to prefetch data you are going to access soon,
+     * and most likely length should be significantly smaller than the size of
+     * the page cache.
+     * This method returns false if the prefetch request could not be issued
+     * to the OS; true otherwise. Note that the best-effort behavior described
+     * above applies even if prefetch returns true.
+     */
+    public bool prefetch(long offset, long length) {
+        return LArrayNative.prefetch(m.headerAddress()+offset, length);
+    }
+
     protected long offset() {
         return pagePosition;
     }
