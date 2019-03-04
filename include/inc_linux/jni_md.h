@@ -20,5 +20,6 @@ typedef long long jlong;
 #endif
 
 typedef signed char jbyte;
+typedef unsigned char jboolean;
 
 #endif /* !_JAVASOFT_JNI_MD_H_ */

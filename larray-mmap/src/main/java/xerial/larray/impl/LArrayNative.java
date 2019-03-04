@@ -37,4 +37,5 @@ public class LArrayNative {
     public static native void munmap(long address, long size);
     public static native void msync(long handle, long address, long size);
     public static native long duplicateHandle(long handle);
+    public static native boolean prefetch(long address, long size);
 }

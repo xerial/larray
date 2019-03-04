@@ -55,6 +55,14 @@ JNIEXPORT void JNICALL Java_xerial_larray_impl_LArrayNative_msync
 JNIEXPORT jlong JNICALL Java_xerial_larray_impl_LArrayNative_duplicateHandle
   (JNIEnv *, jclass, jlong);
 
+/*
+ * Class:     xerial_larray_impl_LArrayNative
+ * Method:    prefetch
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_xerial_larray_impl_LArrayNative_prefetch
+  (JNIEnv *, jclass, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif
