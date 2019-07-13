@@ -274,6 +274,9 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
   @inline def putLong(offset: Long, v: Long) = { unsafe.putLong(address + offset, v); v}
   @inline def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
 
+  @inline def casInt(offset: Long, exp: Int, v: Int) = { unsafe.compareAndSwapInt(null, address + offset, exp, v) }
+  @inline def casLong(offset: Long, exp: Long, v: Long) = { unsafe.compareAndSwapLong(null, address + offset, exp, v)}
+
 }
 
 
@@ -813,6 +816,10 @@ class LIntArray(val size: Long, private[larray] val m: Memory)(implicit val allo
     v
   }
 
+  def cas(i: Long, exp: Int, v: Int) = {
+    unsafe.compareAndSwapInt(null, m.address + (i << 2), exp, v)
+  }
+
   /**
    * Byte size of an element. For example, if A is Int, its elementByteSize is 4
    */
@@ -847,6 +854,10 @@ class LLongArray(val size: Long, private[larray] val m: Memory)(implicit val all
   def update(i: Long, v: Long): Long = {
     unsafe.putLong(m.address + (i << 3), v)
     v
+  }
+
+  def cas(i: Long, exp: Long, v: Long) = {
+    unsafe.compareAndSwapLong(null, m.address + (i << 2), exp, v)
   }
 
   def view(from: Long, to: Long) = new LArrayView.LLongArrayView(this, from, to - from)
