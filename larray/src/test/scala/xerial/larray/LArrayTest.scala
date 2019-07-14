@@ -98,6 +98,58 @@ class LArrayTest extends LArraySpec {
       }
     }
 
+    "implement cas correctly" in {
+      info("cas test")
+
+      val l = new LIntArray(3)
+      try {
+        l(0) = 1
+        l(1) = 2
+        l(2) = 3
+        l(0) should be (1)
+        l(1) should be (2)
+        l(2) should be (3)
+
+        l.cas(0, 1, 2) should be (true)
+        l(0) should be (2)
+
+        l.casInt(0, 2, 3) should be (true)
+        l(0) should be (3)
+
+        l.cas(0, 1, 1) should be (false)
+        l(0) should be (3)
+      }
+      finally {
+        l.free
+      }
+    }
+
+    "implement cas correctly for LLongArray" in {
+      info("cas test")
+
+      val l = new LLongArray(3)
+      try {
+        l(0) = 1
+        l(1) = 2
+        l(2) = 3
+        l(0) should be (1L)
+        l(1) should be (2L)
+        l(2) should be (3L)
+
+        l.cas(0, 1L, 2L) should be (true)
+        l(0) should be (2L)
+
+        l.casLong(0, 2, 3) should be (true)
+        l(0) should be (3L)
+
+        l.cas(0, 1L, 1L) should be (false)
+        l(0) should be (3L)
+      }
+      finally {
+        l.free
+      }
+    }
+
     "read/write data to Array[Byte]" taggedAs ("rw") in {
       val l = LArray(1, 3)
       val b = new Array[Byte](l.byteLength.toInt)
