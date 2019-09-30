@@ -2,8 +2,8 @@ sonatypeProfileName := "org.xerial"
 
 import ReleaseTransformations._
 
-val SCALA_VERSION = "2.12.4"
-val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.11")
+val SCALA_VERSION = "2.13.1"
+val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.12", "2.12.10")
 scalaVersion in ThisBuild := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
