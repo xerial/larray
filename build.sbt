@@ -2,8 +2,8 @@ sonatypeProfileName := "org.xerial"
 
 import ReleaseTransformations._
 
-val SCALA_VERSION = "2.12.4"
-val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.11")
+val SCALA_VERSION = "2.12.10"
+val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.12")
 scalaVersion in ThisBuild := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
@@ -137,7 +137,7 @@ lazy val larrayBuffer = Project(
     crossPaths := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+      "org.scalatest" %% "scalatest" % "3.0.8" % "test",
       "org.wvlet" %% "wvlet-log" % "1.1" % "test"
     )
   )

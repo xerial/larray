@@ -1,7 +1,7 @@
 language: scala
 scala:
-  - 2.11.8
-  - 2.12.1
+  - 2.11.12
+  - 2.12.10
 
 sudo: false
 
@@ -20,7 +20,9 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -delete
 
 jdk:
- - oraclejdk8
+ - openjdk8
+ - openjdk11
+ - openjdk12
 
 addons:
   apt:
