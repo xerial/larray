@@ -2,8 +2,8 @@ sonatypeProfileName := "org.xerial"
 
 import ReleaseTransformations._
 
-val SCALA_VERSION = "2.12.10"
-val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.12")
+val SCALA_VERSION = "2.13.1"
+val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.12", "2.12.10")
 scalaVersion in ThisBuild := SCALA_VERSION
 
 val buildSettings = Defaults.coreDefaultSettings ++ Seq(
@@ -116,15 +116,13 @@ lazy val larrayScala = Project(
       },
       libraryDependencies ++= Seq(
         // Add dependent jars here
-        "org.wvlet" %% "wvlet-log" % "1.1",
+        "org.wvlet.airframe" %% "airframe-log" % "19.9.8",
         snappy % "test",
         junit,
         "org.iq80.snappy" % "snappy" % "0.3" % "test",
         "com.novocode" % "junit-interface" % "0.11" % "test",
-        "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-        "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
-        "com.typesafe.akka" %% "akka-testkit" % "[2.3.14, 2.5)" % "test",
-        "com.typesafe.akka" %% "akka-multi-node-testkit" % "[2.3.14, 2.5)" % "test"
+        "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+        "org.scalacheck" %% "scalacheck" % "1.14.0" % "test"
       )
     )
 ) dependsOn(larrayBuffer % scope, larrayMMap) configs (MultiJvm)
@@ -138,7 +136,7 @@ lazy val larrayBuffer = Project(
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.0.8" % "test",
-      "org.wvlet" %% "wvlet-log" % "1.1" % "test"
+      "org.wvlet.airframe" %% "airframe-log" % "19.9.8"
     )
   )
 )
