@@ -106,8 +106,8 @@ class LBufferTest extends LArraySpec {
     "allocate concurrently" taggedAs("bench") in {
 
       val N = 100
-      // todo parallel not easily supported in 2.13
-      def range = (0 until N)
+
+      def range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
       val R = 2
       val S = 1024 * 1024
 

@@ -134,10 +134,18 @@ lazy val larrayBuffer = Project(
     description := "LArray off-heap buffer library",
     crossPaths := false,
     autoScalaLibrary := false,
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.8" % "test",
-      "org.wvlet.airframe" %% "airframe-log" % "19.9.8"
-    )
+    libraryDependencies ++= {
+      val parallelCollections = CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, major)) if major >= 13 =>
+          Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0" % "test")
+        case _ =>
+          Seq()
+      }
+      Seq(
+        "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+        "org.wvlet.airframe" %% "airframe-log" % "19.9.8"
+      ) ++ parallelCollections
+    }
   )
 )
 

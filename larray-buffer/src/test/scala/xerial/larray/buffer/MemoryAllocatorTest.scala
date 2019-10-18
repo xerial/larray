@@ -37,8 +37,8 @@ class MemoryAllocatorTest extends LArraySpec {
 
       val t = time("alloc", repeat = 5) {
         block("concurrent") {
-          // todo parallel not easily supported in 2.13
-          val l = for (i <- (0 until N)) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new LBuffer(B)
             a(B-1) = 1.toByte
             a
@@ -47,8 +47,8 @@ class MemoryAllocatorTest extends LArraySpec {
         }
 
         block("Array") {
-          // todo parallel not easily supported in 2.13
-          val l = for (i <- (0 until N)) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new Array[Int](B)
             a(B-1) = 1
             a
