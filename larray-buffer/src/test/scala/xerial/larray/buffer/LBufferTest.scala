@@ -205,5 +205,12 @@ class LBufferTest extends LArraySpec {
 
     }
 
+    "read from ByteBuffer" in {
+      val bytes = Array[Byte](1, 2, 3)
+      val byteBuffer = ByteBuffer.wrap(bytes)
+      val lbuffer = new LBuffer(3)
+      lbuffer.readFrom(byteBuffer, 0)
+      byteBuffer.array() === lbuffer.toArray
+    }
   }
 }
