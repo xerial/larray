@@ -383,7 +383,7 @@ public class LBufferAPI {
      * @return the number of bytes read
      */
     public int readFrom(ByteBuffer src, long destOffset) {
-        if (src.remaining() + destOffset >= size())
+        if (src.remaining() + destOffset > size())
             throw new BufferOverflowException();
         int readLen = src.remaining();
         ByteBuffer b = toDirectByteBuffer(destOffset, readLen);
