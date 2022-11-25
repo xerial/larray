@@ -102,12 +102,11 @@ class LBufferTest extends LArraySpec {
       }
     }
 
-    import scala.collection.parallel.CollectionConverters._
-
     test("allocate concurrently") {
 
-      val N     = 100
-      def range = (0 until N).par
+      val N = 100
+
+      def range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
       val R     = 2
       val S     = 1024 * 1024
 
