@@ -29,19 +29,28 @@ public class UnsafeUtil {
 
     public static Unsafe unsafe = getUnsafe();
 
-    private static Constructor<?> findDirectByteBufferConstructor() {
+    private static ByteBufferCreator findDirectByteBufferConstructor() {
         try {
-            return Class.forName("java.nio.DirectByteBuffer").getDeclaredConstructor(Long.TYPE, Integer.TYPE, Object.class);
+            return constructorWithAttStrategy();
         }
         catch(ClassNotFoundException e) {
-            throw new IllegalStateException(String.format("Failed to find java.nio.DirectByteBuffer: $s", e.getMessage()));
+            throw new IllegalStateException(
+                String.format("Failed to find java.nio.DirectByteBuffer: $s", e.getMessage()));
         }
         catch(NoSuchMethodException e) {
-            throw new IllegalStateException(String.format("Failed to find constructor f java.nio.DirectByteBuffer: $s", e.getMessage()));
+            try {
+                return constructorWithoutAttStrategy();
+            } catch (NoSuchMethodException e2) {
+                throw new IllegalStateException(
+                    String.format("Failed to find constructor f java.nio.DirectByteBuffer: $s", e2.getMessage()), e2);
+            } catch (ClassNotFoundException e2) {
+                throw new IllegalStateException(
+                    String.format("Failed to find constructor f java.nio.DirectByteBuffer: $s", e2.getMessage()), e2);
+            }
         }
     }
 
-    private static Constructor<?> dbbCC = findDirectByteBufferConstructor();
+    private static ByteBufferCreator byteBufferCreator = findDirectByteBufferConstructor();
 
     /**
      * Create a new DirectByteBuffer from a given address and size.
@@ -55,15 +64,49 @@ public class UnsafeUtil {
      * @return
      */
     public static ByteBuffer newDirectByteBuffer(long addr, int size, Object att) {
-        dbbCC.setAccessible(true);
-        Object b = null;
-        try {
-            b = dbbCC.newInstance(new Long(addr), new Integer(size), att);
-            return ByteBuffer.class.cast(b);
-        }
-        catch(Exception e) {
-            throw new IllegalStateException(String.format("Failed to create DirectByteBuffer: %s", e.getMessage()));
-        }
+        return byteBufferCreator.newDirectByteBuffer(addr, size, att);
+    }
+
+    private static ByteBufferCreator constructorWithAttStrategy()
+        throws ClassNotFoundException, NoSuchMethodException {
+        final Constructor<? extends ByteBuffer> dbbCC =
+            (Constructor<? extends ByteBuffer>) Class.forName("java.nio.DirectByteBuffer")
+                .getDeclaredConstructor(Long.TYPE, Integer.TYPE, Object.class);
+        return new ByteBufferCreator() {
+            @Override
+            public ByteBuffer newDirectByteBuffer(long addr, int size, Object att) {
+                dbbCC.setAccessible(true);
+                try {
+                    return dbbCC.newInstance(Long.valueOf(addr), Integer.valueOf(size), att);
+                } catch (Exception e) {
+                    throw new IllegalStateException(
+                        String.format("Failed to create DirectByteBuffer: %s", e.getMessage()), e);
+                }
+            }
+        };
+    }
+
+    private static ByteBufferCreator constructorWithoutAttStrategy()
+        throws ClassNotFoundException, NoSuchMethodException {
+        final Constructor<? extends ByteBuffer> dbbCC =
+            (Constructor<? extends ByteBuffer>) Class.forName("java.nio.DirectByteBuffer")
+                .getDeclaredConstructor(Long.TYPE, Integer.TYPE);
+        return new ByteBufferCreator() {
+            @Override
+            public ByteBuffer newDirectByteBuffer(long addr, int size, Object att) {
+                dbbCC.setAccessible(true);
+                try {
+                    return dbbCC.newInstance(Long.valueOf(addr), Integer.valueOf(size));
+                } catch (Exception e) {
+                    throw new IllegalStateException(
+                        String.format("Failed to create DirectByteBuffer: %s", e.getMessage()), e);
+                }
+            }
+        };
+    }
+
+    private interface ByteBufferCreator {
+        ByteBuffer newDirectByteBuffer(long addr, int size, Object att);
     }
 
 
