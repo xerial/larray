@@ -25,8 +25,9 @@ package xerial.larray
 import scala.util.Random
 
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class LBitArrayTest extends LArraySpec with LArrayBehaviour {
   "LBitArray" should {
 
@@ -50,7 +51,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.clear
       debug(b)
       b.forall(_ == false) shouldBe (true)
-      for(i <- 0L until b.length) {
+      for (i <- 0L until b.length) {
         b.on(i)
       }
       b.forall(_ == true) shouldBe (true)
@@ -61,7 +62,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.fill
       b.forall(_ == true) shouldBe (true)
 
-      for(pos <- Seq(91, 34, 5093, 443, 4)) {
+      for (pos <- Seq(91, 34, 5093, 443, 4)) {
         b.off(pos)
         b(pos) shouldBe (false)
       }
@@ -69,14 +70,14 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     "have builder" in {
 
-      val b = LArray.newBuilder[Boolean]
+      val b  = LArray.newBuilder[Boolean]
       val in = Seq(true, false, false, true, true, false, false, true, true)
-      in.foreach( b += _ )
+      in.foreach(b += _)
       val l = b.result()
 
       debug(l)
 
-      l.toString shouldBe (in.map(v => if(v) "1" else "0").mkString)
+      l.toString shouldBe (in.map(v => if (v) "1" else "0").mkString)
 
     }
 
@@ -86,7 +87,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
     }
 
     "behave like valid LArray for large input" should {
-      val input2 = (for(i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
+      val input2 = (for (i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
       behave like validArray(input2)
     }
 

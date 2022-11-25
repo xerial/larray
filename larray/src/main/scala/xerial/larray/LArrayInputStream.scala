@@ -31,14 +31,17 @@ object LArrayInputStream {
   /**
     * Create a new InputStream from a given LArray
     *
-    * @param array input
-    * @tparam A element type
-    * @return input stream
+    * @param array
+    *   input
+    * @tparam A
+    *   element type
+    * @return
+    *   input stream
     */
   def apply[A](array: LArray[A]): InputStream = {
     array match {
       case r: RawByteArray[A] => new RawLArrayInputStream[A](r)
-      case _ => sys.error(s"cannot create InputStream from this LArray class:${array.getClass}")
+      case _                  => sys.error(s"cannot create InputStream from this LArray class:${array.getClass}")
     }
   }
 
@@ -47,7 +50,8 @@ object LArrayInputStream {
 /**
   * InputStream implementation for LArrays that uses RawByteArray internally.
   *
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
 private[larray] class RawLArrayInputStream[A](array: RawByteArray[A]) extends InputStream with LogSupport {
 
@@ -63,8 +67,7 @@ private[larray] class RawLArrayInputStream[A](array: RawByteArray[A]) extends In
   override def read(b: Array[Byte], offset: Int, len: Int): Int = {
     if (cursor >= array.size) {
       -1
-    }
-    else {
+    } else {
       val readLen = math.min(len, array.byteLength - cursor).toInt
       array.writeToArray(cursor, b, offset, readLen)
       cursor += readLen

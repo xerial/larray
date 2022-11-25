@@ -25,8 +25,9 @@ package xerial.larray
 import scala.util.Random
 
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class LArrayBuilderTest extends LArraySpec {
 
   "LArrayBuilder" should {
@@ -35,15 +36,15 @@ class LArrayBuilderTest extends LArraySpec {
 
       val b = LArray.newBuilder[Int]
 
-      def elem(i:Long) = math.toDegrees(math.sin(i / 15.0)).toInt
+      def elem(i: Long) = math.toDegrees(math.sin(i / 15.0)).toInt
 
-      for(i <- 0L until 100L)
+      for (i <- 0L until 100L)
         b += elem(i)
 
       val l = b.result
       debug(l.mkString(", "))
       l.size shouldBe (100)
-      l.zipWithIndex.forall {case (v, i) => v == elem(i) } shouldBe (true)
+      l.zipWithIndex.forall { case (v, i) => v == elem(i) } shouldBe (true)
     }
 
     "build large LArray" in {
@@ -53,7 +54,7 @@ class LArrayBuilderTest extends LArraySpec {
       debug("Creating large array")
       val r = new Random(0)
       var i = 0L
-      while(i < N) {
+      while (i < N) {
         b += r.nextInt(255).toByte
         i += 1
       }
@@ -64,7 +65,6 @@ class LArrayBuilderTest extends LArraySpec {
       val r2 = new Random(0)
       l.forall(v => v == r2.nextInt(255).toByte) shouldBe (true)
     }
-
 
   }
 }

@@ -23,16 +23,17 @@
 package xerial.larray
 
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class UInt32ArrayTest extends LArraySpec {
 
   "UInt32Array" should {
 
     "record values larger than 2G" in {
 
-      val u = new UInt32Array(10)
-      val v : Long = Int.MaxValue.toLong + 10L
+      val u       = new UInt32Array(10)
+      val v: Long = Int.MaxValue.toLong + 10L
       u(0) = v
       u(0) shouldBe (v)
 
@@ -51,7 +52,7 @@ class UInt32ArrayTest extends LArraySpec {
       b += 4
       val u = b.result
 
-      u.size shouldBe(3)
+      u.size shouldBe (3)
       u(0) shouldBe (1L)
       u(1) shouldBe (Int.MaxValue.toLong + 3L)
       u(2) shouldBe (4L)

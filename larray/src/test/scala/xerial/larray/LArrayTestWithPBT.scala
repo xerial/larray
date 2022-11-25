@@ -19,46 +19,38 @@ import org.scalatest.prop.PropertyChecks
 import org.scalatest.prop.Checkers
 
 /**
-  * Created with IntelliJ IDEA.
-  * User: hayato
-  * Date: 13/03/27
-  * Time: 15:06
+  * Created with IntelliJ IDEA. User: hayato Date: 13/03/27 Time: 15:06
   */
-class LArrayTestWithPBT
-  extends LArraySpec with PropertyChecks with LArrayBehaviour {
+class LArrayTestWithPBT extends LArraySpec with PropertyChecks with LArrayBehaviour {
 
   implicit val config = PropertyCheckConfig(minSuccessful = 3, minSize = 1, maxSize = 10000)
 
-  forAll {
-    (input: Array[Int]) =>
-      s"int array [${input.take(10).mkString(", ")}, ...]" should {
-        behave like validArray(input)
-        behave like validIntArray(input)
-      }
+  forAll { (input: Array[Int]) =>
+    s"int array [${input.take(10).mkString(", ")}, ...]" should {
+      behave like validArray(input)
+      behave like validIntArray(input)
+    }
   }
 
-  forAll {
-    (input: Array[Long]) =>
-      s"long array [${input.take(10).mkString(", ")}, ...]" should {
-        behave like validArray(input)
-        behave like validLongArray(input)
-      }
+  forAll { (input: Array[Long]) =>
+    s"long array [${input.take(10).mkString(", ")}, ...]" should {
+      behave like validArray(input)
+      behave like validLongArray(input)
+    }
   }
 
-  forAll {
-    (input: Array[Float]) =>
-      s"float array [${input.take(10).mkString(", ")}, ...]" should {
-        behave like validArray(input)
-        behave like validFloatArray(input)
-      }
+  forAll { (input: Array[Float]) =>
+    s"float array [${input.take(10).mkString(", ")}, ...]" should {
+      behave like validArray(input)
+      behave like validFloatArray(input)
+    }
   }
 
-  forAll {
-    (input: Array[Double]) =>
-      s"double array [${input.take(10).mkString(", ")}, ...]" should {
-        behave like validArray(input)
-        behave like validDoubleArray(input)
-      }
+  forAll { (input: Array[Double]) =>
+    s"double array [${input.take(10).mkString(", ")}, ...]" should {
+      behave like validArray(input)
+      behave like validDoubleArray(input)
+    }
   }
 
   "empty test" should {

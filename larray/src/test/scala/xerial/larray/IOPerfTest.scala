@@ -29,7 +29,8 @@ import wvlet.log.io.IOUtil
 import scala.util.Random
 
 /**
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
 class IOPerfTest extends LArraySpec {
 
@@ -37,7 +38,7 @@ class IOPerfTest extends LArraySpec {
     val file = File.createTempFile("sample", ".larray", new File("target"))
     file.deleteOnExit()
     val b = new Array[Byte](1024 * 1024)
-    //val P = 1024 * 1024
+    // val P = 1024 * 1024
     val P = 64
     val f = new FileOutputStream(file)
     for (i <- 0 until P) {
@@ -59,7 +60,7 @@ class IOPerfTest extends LArraySpec {
         }
         block("FileOutputStream") {
           trace("Loading to Array")
-          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f1))) {buf =>
+          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f1))) { buf =>
             // do nothing
           }
         }

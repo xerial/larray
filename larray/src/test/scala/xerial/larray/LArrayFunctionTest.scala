@@ -32,27 +32,26 @@ import scala.reflect.ClassTag
 object LArrayFunctionTest extends LogSupport with Matchers {
 
   def stringRepr[A: ClassTag](l: LSeq[A]): String = {
-    val tag = implicitly[ClassTag[A]]
+    val tag       = implicitly[ClassTag[A]]
     val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
     if (isBoolean) {
       l.toString
-    }
-    else {
+    } else {
       l.mkString(", ")
     }
   }
   def stringRepr[A: ClassTag](l: Seq[A]): String = {
-    val tag = implicitly[ClassTag[A]]
+    val tag       = implicitly[ClassTag[A]]
     val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
     if (isBoolean) {
-      l.map(v => if (v.asInstanceOf[Boolean]) {
-        "1"
-      }
-      else {
-        "0"
-      }).mkString
-    }
-    else {
+      l.map(v =>
+        if (v.asInstanceOf[Boolean]) {
+          "1"
+        } else {
+          "0"
+        }
+      ).mkString
+    } else {
       l.mkString(", ")
     }
   }
@@ -62,7 +61,7 @@ object LArrayFunctionTest extends LogSupport with Matchers {
       val l = stringRepr(left)
       val a = stringRepr(answer)
       trace(s"target:$l, answer:$a")
-      l shouldBe(a)
+      l shouldBe (a)
     }
   }
 
@@ -98,7 +97,7 @@ trait LArrayBehaviour {
     }
 
     "check status" in {
-      l.isEmpty shouldBe(arr.isEmpty)
+      l.isEmpty shouldBe (arr.isEmpty)
       l.size shouldBe arr.size
     }
 
@@ -128,7 +127,7 @@ trait LArrayBehaviour {
 
     "report head/tail" in {
       if (!l.isEmpty) {
-        l.head shouldBe(arr.head)
+        l.head shouldBe (arr.head)
         l.tail === arr.tail
       }
     }
@@ -207,8 +206,8 @@ trait LArrayBehaviour {
     "find an element" taggedAs ("fel") in {
       l.find(_ == 4d) shouldBe arr.find(_ == 4d)
       l.find(_ == 10d) shouldBe arr.find(_ == 10d)
-      l.contains(3d) shouldBe(arr.contains(3d))
-      l.exists(_ == 1d) shouldBe(arr.exists(_ == 1d))
+      l.contains(3d) shouldBe (arr.contains(3d))
+      l.exists(_ == 1d) shouldBe (arr.exists(_ == 1d))
     }
 
     "take/drop while a condition is satisfied" in {
@@ -225,9 +224,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
-        (0d /: l) (_ + _) shouldBe ((0d /: arr) (_ + _))
+        (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
         l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
-        (l :\ 0d) (_ + _) shouldBe (arr :\ 0d) (_ + _)
+        (l :\ 0d)(_ + _) shouldBe (arr :\ 0d) (_ + _)
       }
     }
 
@@ -278,8 +277,8 @@ trait LArrayBehaviour {
     "find an element" taggedAs ("fel") in {
       l.find(_ == 4f) shouldBe arr.find(_ == 4f)
       l.find(_ == 10f) shouldBe arr.find(_ == 10f)
-      l.contains(3f) shouldBe(arr.contains(3f))
-      l.exists(_ == 1f) shouldBe(arr.exists(_ == 1f))
+      l.contains(3f) shouldBe (arr.contains(3f))
+      l.exists(_ == 1f) shouldBe (arr.exists(_ == 1f))
     }
 
     "be used in for-comprehension with if statements" in {
@@ -300,9 +299,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
-        (0f /: l) (_ + _) shouldBe ((0f /: arr) (_ + _))
+        (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
         l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
-        (l :\ 0f) (_ + _) shouldBe (arr :\ 0f) (_ + _)
+        (l :\ 0f)(_ + _) shouldBe (arr :\ 0f) (_ + _)
       }
     }
 
@@ -354,8 +353,8 @@ trait LArrayBehaviour {
       l.find(_ == 4) shouldBe arr.find(_ == 4)
       l.find(_ == 10) shouldBe arr.find(_ == 10)
 
-      l.contains(3) shouldBe(arr.contains(3))
-      l.exists(_ == 1) shouldBe(arr.exists(_ == 1))
+      l.contains(3) shouldBe (arr.contains(3))
+      l.exists(_ == 1) shouldBe (arr.exists(_ == 1))
     }
 
     "be used in for-comprehension with if statments" in {
@@ -376,9 +375,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
-        (0 /: l) (_ + _) shouldBe ((0 /: arr) (_ + _))
+        (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
         l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
-        (l :\ 0) (_ + _) shouldBe (arr :\ 0) (_ + _)
+        (l :\ 0)(_ + _) shouldBe (arr :\ 0) (_ + _)
       }
     }
 
@@ -430,8 +429,8 @@ trait LArrayBehaviour {
       l.find(_ == 4) shouldBe arr.find(_ == 4)
       l.find(_ == 10) shouldBe arr.find(_ == 10)
 
-      l.contains(3) shouldBe(arr.contains(3))
-      l.exists(_ == 1) shouldBe(arr.exists(_ == 1))
+      l.contains(3) shouldBe (arr.contains(3))
+      l.exists(_ == 1) shouldBe (arr.exists(_ == 1))
     }
 
     "be used in for-comprehension with if statements" in {
@@ -452,9 +451,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
-        (0L /: l) (_ + _) shouldBe ((0L /: arr) (_ + _))
+        (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
         l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
-        (l :\ 0L) (_ + _) shouldBe (arr :\ 0L) (_ + _)
+        (l :\ 0L)(_ + _) shouldBe (arr :\ 0L) (_ + _)
       }
     }
 
@@ -490,7 +489,8 @@ trait LArrayBehaviour {
 }
 
 /**
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
 class LArrayFunctionTest extends LArraySpec with LArrayBehaviour {
 
@@ -537,4 +537,3 @@ class LArrayFunctionTest extends LArraySpec with LArrayBehaviour {
   }
 
 }
-

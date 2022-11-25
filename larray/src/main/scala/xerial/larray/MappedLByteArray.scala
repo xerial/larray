@@ -30,9 +30,12 @@ import xerial.larray.mmap.{MMapBuffer, MMapMode}
 /**
   * Memory-mapped LByteArray
   *
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
-class MappedLByteArray(f: File, offset: Long = 0, val size: Long = -1, mode: MMapMode = MMapMode.READ_WRITE)(implicit alloc: MemoryAllocator) extends RawByteArray[Byte] {
+class MappedLByteArray(f: File, offset: Long = 0, val size: Long = -1, mode: MMapMode = MMapMode.READ_WRITE)(implicit
+    alloc: MemoryAllocator
+) extends RawByteArray[Byte] {
 
   import java.{lang => jl}
 
@@ -66,19 +69,24 @@ class MappedLByteArray(f: File, offset: Long = 0, val size: Long = -1, mode: MMa
   /**
     * Update an element
     *
-    * @param i index to be updated
-    * @param v value to set
-    * @return the value
+    * @param i
+    *   index to be updated
+    * @param v
+    *   value to set
+    * @return
+    *   the value
     */
-  def update(i: Long, v: Byte) = {unsafe.putByte(address + i, v); v}
+  def update(i: Long, v: Byte) = { unsafe.putByte(address + i, v); v }
 
   def view(from: Long, to: Long) = new LArrayView.LByteArrayView(this, from, to - from)
 
   /**
     * Retrieve an element
     *
-    * @param i index
-    * @return the element value
+    * @param i
+    *   index
+    * @return
+    *   the element value
     */
   def apply(i: Long) = unsafe.getByte(address + i)
 
