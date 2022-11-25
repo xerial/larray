@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - '**.scala'
+      - '**.java'
+      - '**.sbt'
+      - '.scalafmt.conf'
+      - '.github/workflows/test.yml'
+      - 'project/build.properties'
+  push:
+    branches:
+      - master
+    paths:
+      - '**.scala'
+      - '**.java'
+      - '**.sbt'
+      - '.scalafmt.conf'
+      - '.github/workflows/test.yml'
+      - 'project/build.properties'
+
+jobs:
+  code_format:
+    name: Code format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: scalafmt
+        run: ./sbt scalafmtCheckAll
+  test_2_12:
+    name: Scala 2.12
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Scala 2.12 test
+        run: ./sbt "++2.12; projectJVM/test"
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/target/test-reports/TEST-*.xml'
+          check_name: Test Report Scala 2.12
+  test_2_13:
+    name: Scala 2.13
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Scala 2.13 test
+        run: ./sbt "++2.13; projectJVM/test"
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/target/test-reports/TEST-*.xml'
+          check_name: Test Report Scala 2.13
+  test_3:
+    name: Scala 3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Scala 3 test
+        run: ./sbt "++3; projectJVM/test"
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/target/test-reports/TEST-*.xml'
+          check_name: Test Report Scala 3
