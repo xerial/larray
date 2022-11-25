@@ -37,7 +37,8 @@ class MemoryAllocatorTest extends LArraySpec {
 
       val t = time("alloc", repeat = 5) {
         block("concurrent") {
-          val l = for (i <- (0 until N).par) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new LBuffer(B)
             a(B-1) = 1.toByte
             a
@@ -46,7 +47,8 @@ class MemoryAllocatorTest extends LArraySpec {
         }
 
         block("Array") {
-          val l = for (i <- (0 until N).par) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new Array[Int](B)
             a(B-1) = 1
             a
