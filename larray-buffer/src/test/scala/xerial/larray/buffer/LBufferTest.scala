@@ -12,20 +12,20 @@ import java.nio.ByteBuffer
 import xerial.larray.{DataUnit, LArraySpec}
 
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class LBufferTest extends LArraySpec {
 
-  implicit class RichArray(m:LBuffer) {
+  implicit class RichArray(m: LBuffer) {
     def toCSV = m.toArray.mkString(", ")
   }
 
+  test("LBuffer") {
 
-  "LBuffer" should {
-
-    "allocate memory" in {
+    test("allocate memory") {
       val size = 1000
-      val m = new LBuffer(size)
+      val m    = new LBuffer(size)
       m.putInt(0, 0)
       m.putInt(4, 1)
       m.putInt(8, 130)
@@ -37,19 +37,19 @@ class LBufferTest extends LArraySpec {
       m.size() shouldBe size.toLong
 
       (0 until size).foreach(i => m.putByte(i, (i % 128).toByte))
-      (0 until size).forall(i => m.getByte(i) == (i % 128).toByte) should be (true)
+      (0 until size).forall(i => m.getByte(i) == (i % 128).toByte) shouldBe (true)
 
       m.clear()
 
-      (0 until size).forall(i => m.getByte(i) == 0) should be (true)
+      (0 until size).forall(i => m.getByte(i) == 0) shouldBe (true)
 
       m.release()
     }
 
-    "convert to array" in {
+    test("convert to array") {
       val size = 12
-      val m = new LBuffer(size);
-      for(i <- 0 until size)
+      val m    = new LBuffer(size);
+      for (i <- 0 until size)
         m(i) = i.toByte
       debug(m.toCSV)
 
@@ -57,25 +57,24 @@ class LBufferTest extends LArraySpec {
       debug(m.toCSV)
     }
 
+    test("allocate in single-thread") {
 
-    "allocate in single-thread" taggedAs("bench-single") in {
-
-      val N = 100
+      val N     = 100
       def range = (0 until N)
-      val R = 2
-      val S = 1024 * 1024
+      val R     = 2
+      val S     = 1024 * 1024
 
       info("start buffer allocation test")
 
-      time("single-thread allocation", repeat=10, blockRepeat = R) {
+      time("single-thread allocation", repeat = 10, blockRepeat = R) {
         block("without zero-filling") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             new LBuffer(S)
           }
         }
 
         block("with zero-filling") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             val m = new LBuffer(S)
             m.clear()
             m
@@ -83,19 +82,19 @@ class LBufferTest extends LArraySpec {
         }
 
         block("java array") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             new Array[Byte](S)
           }
         }
 
         block("byte buffer") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             ByteBuffer.allocate(S)
           }
         }
 
         block("direct byte buffer") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             ByteBuffer.allocateDirect(S)
           }
         }
@@ -103,24 +102,26 @@ class LBufferTest extends LArraySpec {
       }
     }
 
-    "allocate concurrently" taggedAs("bench") in {
+    import scala.collection.parallel.CollectionConverters._
 
-      val N = 100
+    test("allocate concurrently") {
+
+      val N     = 100
       def range = (0 until N).par
-      val R = 2
-      val S = 1024 * 1024
+      val R     = 2
+      val S     = 1024 * 1024
 
       info("start buffer allocation test")
 
-      time("concurrent allocation", repeat=10, blockRepeat = R) {
+      time("concurrent allocation", repeat = 10, blockRepeat = R) {
         block("without zero-filling") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             new LBuffer(S)
           }
         }
 
         block("with zero-filling") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             val m = new LBuffer(S)
             m.clear()
             m
@@ -128,19 +129,19 @@ class LBufferTest extends LArraySpec {
         }
 
         block("java array") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             new Array[Byte](S)
           }
         }
 
         block("byte buffer") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             ByteBuffer.allocate(S)
           }
         }
 
         block("direct byte buffer") {
-          for(i <- range) yield {
+          for (i <- range) yield {
             ByteBuffer.allocateDirect(S)
           }
         }
@@ -148,37 +149,36 @@ class LBufferTest extends LArraySpec {
       }
     }
 
-    "Use less memory" taggedAs("heap") in {
-
-      // Need to produce meaningful memory usage
-      pending
+    test("Use less memory") {
+      pending("Need to produce meaningful memory usage")
 
       val N = 100000
       val M = 1024
 
       val rt = Runtime.getRuntime
 
-      case class Report(tag:String, free:Long, offHeap:Long, total:Long) {
-        override def toString = s"[${tag}] free:${DataUnit.toHumanReadableFormat(free)}, offheap:${DataUnit.toHumanReadableFormat(offHeap)}"
+      case class Report(tag: String, free: Long, offHeap: Long, total: Long) {
+        override def toString =
+          s"[${tag}] free:${DataUnit.toHumanReadableFormat(free)}, offheap:${DataUnit.toHumanReadableFormat(offHeap)}"
       }
 
       val memUsage = Seq.newBuilder[Report]
 
-      def report(tag:String) = {
+      def report(tag: String) = {
         val offHeap = LBufferConfig.allocator.allocatedSize()
-        val rep = Report(tag, rt.freeMemory(), offHeap, rt.totalMemory())
-        //memUsage += rep
+        val rep     = Report(tag, rt.freeMemory(), offHeap, rt.totalMemory())
+        // memUsage += rep
         rep
       }
 
-      var r1 : Seq[Array[Byte]] = null
-      var r2 : Seq[LBuffer] = null
+      var r1: Seq[Array[Byte]] = null
+      var r2: Seq[LBuffer]     = null
 
-      time("memory allocation", repeat=3) {
+      time("memory allocation", repeat = 3) {
         Thread.sleep(5000)
         block("Array") {
           info(report("Array"))
-          val result = for(i <- 0 until N) yield {
+          val result = for (i <- 0 until N) yield {
             val a = new Array[Byte](M)
             report("Array")
             a
@@ -192,7 +192,7 @@ class LBufferTest extends LArraySpec {
 
         block("LBuffer") {
           info(report("LBuffer"))
-          val result = for(i <- 0 until N) yield {
+          val result = for (i <- 0 until N) yield {
             val l = new LBuffer(M)
             report("LBuffer")
             l
@@ -201,7 +201,6 @@ class LBufferTest extends LArraySpec {
         }
 
       }
-
 
     }
 

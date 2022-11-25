@@ -10,15 +10,16 @@ package xerial.larray.buffer
 import xerial.larray.LArraySpec
 
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class WrappedLBufferTest extends LArraySpec {
 
-  "WrappedLBuffer" should {
+  test("WrappedLBuffer") {
 
-    "be a subrange of LBuffer" in {
+    test("be a subrange of LBuffer") {
       val l = new LBuffer(10)
-      for(i <- 0 until l.size().toInt) {
+      for (i <- 0 until l.size().toInt) {
         l(i) = (10 - i).toByte
       }
 
@@ -27,7 +28,7 @@ class WrappedLBufferTest extends LArraySpec {
 
       debug(v.toArray.mkString(", "))
       v.size() shouldBe 8 - 3
-      v.toArray.zipWithIndex.forall{case (a, i) => a == l(i+3)}
+      v.toArray.zipWithIndex.forall { case (a, i) => a == l(i + 3) }
     }
 
   }

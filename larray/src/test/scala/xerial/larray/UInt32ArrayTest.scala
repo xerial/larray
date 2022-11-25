@@ -34,14 +34,14 @@ class UInt32ArrayTest extends LArraySpec {
       val u = new UInt32Array(10)
       val v : Long = Int.MaxValue.toLong + 10L
       u(0) = v
-      u(0) should be (v)
+      u(0) shouldBe (v)
 
       u(1) = 3141341
-      u(1) should be (3141341L)
+      u(1) shouldBe (3141341L)
 
       val v2 = Integer.MAX_VALUE.toLong * 2L
       u(2) = v2
-      u(2) should be (v2)
+      u(2) shouldBe (v2)
     }
 
     "have builder" in {
@@ -51,10 +51,10 @@ class UInt32ArrayTest extends LArraySpec {
       b += 4
       val u = b.result
 
-      u.size should be(3)
-      u(0) should be (1L)
-      u(1) should be (Int.MaxValue.toLong + 3L)
-      u(2) should be (4L)
+      u.size shouldBe(3)
+      u(0) shouldBe (1L)
+      u(1) shouldBe (Int.MaxValue.toLong + 3L)
+      u(2) shouldBe (4L)
 
     }
 

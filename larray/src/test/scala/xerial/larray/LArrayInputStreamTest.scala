@@ -37,7 +37,7 @@ class LArrayInputStreamTest extends LArraySpec {
         out.write(buf)
         val r = out.result
         debug(s"output ${r.mkString(", ")}")
-        l.sameElements(r) should be(true)
+        l.sameElements(r) shouldBe(true)
       }
     }
   }

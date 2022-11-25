@@ -37,7 +37,18 @@ val buildSettings = Seq(
     version.value,
     "-diagrams"
   ),
-  libraryDependencies += "org.wvlet.airframe" %% "airspec" % "22.11.4" % "test",
+  libraryDependencies ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, major)) if major <= 12 =>
+        Seq()
+      case _ =>
+        Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4")
+    }
+  } ++
+    Seq(
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
+      "org.wvlet.airframe"     %% "airspec"                 % "22.11.4" % "test"
+    ),
   testFrameworks += new TestFramework("wvlet.airspec.Framework"),
   crossPaths := true,
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),

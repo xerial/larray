@@ -50,12 +50,12 @@ class MappedLByteArrayTest extends LArraySpec {
       m.close()
 
       val m2 = LArray.loadFrom[Byte](f)
-      mc.sameElements(m2) should be(true)
+      mc.sameElements(m2) shouldBe(true)
 
       val mOffset = new MappedLByteArray(f, 3, L - 3)
       trace(mOffset.mkString(", "))
 
-      mc.slice(3).sameElements(mOffset) should be(true)
+      mc.slice(3).sameElements(mOffset) shouldBe(true)
 
       //mOffset.flush
       //m.free

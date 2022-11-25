@@ -61,7 +61,7 @@ class LArrayLoaderTest extends LArraySpec {
       m2.invoke(ni1, Seq.apply[AnyRef](new jl.Long(0L), arr2, new jl.Integer(0), new jl.Integer(0)):_*)
 
       nativeCls1 should not be (nativeCls2)
-      nativeCls1 should be (nativeCls1_2)
+      nativeCls1 shouldBe (nativeCls1_2)
 
       val arr3 = Array.ofDim[Byte](100)
       LArrayNative.copyToArray(0, arr3, 0, 0)

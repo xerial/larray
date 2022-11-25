@@ -32,38 +32,38 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     "have constructor" in {
       val b = new LBitArray(6)
-      b.size should be (6)
+      b.size shouldBe (6)
 
       b.clear
       b.on(1)
-      b.toString should be ("010000")
+      b.toString shouldBe ("010000")
 
       b.on(5)
-      b.toString should be ("010001")
+      b.toString shouldBe ("010001")
     }
 
     "set bits" in {
       val N = 100
       val b = new LBitArray(N)
-      b.size should be (N)
+      b.size shouldBe (N)
       debug(b)
       b.clear
       debug(b)
-      b.forall(_ == false) should be (true)
+      b.forall(_ == false) shouldBe (true)
       for(i <- 0L until b.length) {
         b.on(i)
       }
-      b.forall(_ == true) should be (true)
+      b.forall(_ == true) shouldBe (true)
     }
 
     "on and off specific bits" in {
       val b = new LBitArray(10000)
       b.fill
-      b.forall(_ == true) should be (true)
+      b.forall(_ == true) shouldBe (true)
 
       for(pos <- Seq(91, 34, 5093, 443, 4)) {
         b.off(pos)
-        b(pos) should be (false)
+        b(pos) shouldBe (false)
       }
     }
 
@@ -76,7 +76,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
       debug(l)
 
-      l.toString should be (in.map(v => if(v) "1" else "0").mkString)
+      l.toString shouldBe (in.map(v => if(v) "1" else "0").mkString)
 
     }
 

@@ -42,8 +42,8 @@ class LArrayBuilderTest extends LArraySpec {
 
       val l = b.result
       debug(l.mkString(", "))
-      l.size should be (100)
-      l.zipWithIndex.forall {case (v, i) => v == elem(i) } should be (true)
+      l.size shouldBe (100)
+      l.zipWithIndex.forall {case (v, i) => v == elem(i) } shouldBe (true)
     }
 
     "build large LArray" in {
@@ -58,11 +58,11 @@ class LArrayBuilderTest extends LArraySpec {
         i += 1
       }
       val l = b.result
-      l.size should be (N)
+      l.size shouldBe (N)
 
       debug("Checking the elements")
       val r2 = new Random(0)
-      l.forall(v => v == r2.nextInt(255).toByte) should be (true)
+      l.forall(v => v == r2.nextInt(255).toByte) shouldBe (true)
     }
 
 

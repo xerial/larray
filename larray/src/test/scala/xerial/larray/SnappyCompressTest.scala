@@ -117,7 +117,7 @@ class SnappyCompressTest extends LArraySpec {
       Snappy.rawUncompress(compressed.address, compressed.byteLength, uncompressed.address)
 
       debug(s"byteLength:${l.byteLength}, max compressed length:$maxLen ,compressed length:$compressedLen")
-      l.sameElements(uncompressed) should be (true)
+      l.sameElements(uncompressed) shouldBe (true)
     }
 
     "compress LIntArray" taggedAs("it") in {
@@ -144,7 +144,7 @@ class SnappyCompressTest extends LArraySpec {
 
       debug(f"l.length:${l.length}%,d, decompressed.length:${decompressed.length}%,d")
 
-      l.sameElements(decompressed) should be (true)
+      l.sameElements(decompressed) shouldBe (true)
       info("start bench")
       time("iterate", repeat=10) {
         block("new array") {
