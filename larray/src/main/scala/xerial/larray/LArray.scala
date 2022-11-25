@@ -31,7 +31,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 
 import wvlet.log.LogSupport
 import xerial.larray.buffer.{Memory, MemoryAllocator}
-import xerial.larray.mmap.MMapMode
+//import xerial.larray.mmap.MMapMode
 
 /**
   * Read-only interface of [[xerial.larray.LArray]]
@@ -214,7 +214,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
 
   def isOpen: Boolean = true
 
-  def close() {
+  def close(): Unit = {
     free
   }
 
@@ -222,13 +222,13 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
     * Release the memory of LArray. After calling this method, the results of calling the other methods becomes
     * undefined or might cause JVM crash.
     */
-  def free
+  def free: Unit
 
   /**
     * Release the memory of LArray. After calling this mehtod, thr results of calling the other methods becomes
     * undefined or might cause JVM crash.
     */
-  def release = free
+  def release: Unit = free
 
   /**
     * Wraps with immutable interface
@@ -239,7 +239,7 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
   /**
     * Clear the contents of the array. It simply fills the array with zero bytes.
     */
-  def clear()
+  def clear(): Unit
 
   /**
     * Write the contents of ByteBuffer to this array. This method increments the internal cursor.
@@ -272,13 +272,13 @@ trait LArray[A] extends LSeq[A] with WritableByteChannel {
 
   import UnsafeUtil.unsafe
 
-  @inline def putByte(offset: Long, v: Byte)     = { unsafe.putByte(address + offset, v); v }
-  @inline def putChar(offset: Long, v: Char)     = { unsafe.putChar(address + offset, v); v }
-  @inline def putShort(offset: Long, v: Short)   = { unsafe.putShort(address + offset, v); v }
-  @inline def putInt(offset: Long, v: Int)       = { unsafe.putInt(address + offset, v); v }
-  @inline def putFloat(offset: Long, v: Float)   = { unsafe.putFloat(address + offset, v); v }
-  @inline def putLong(offset: Long, v: Long)     = { unsafe.putLong(address + offset, v); v }
-  @inline def putDouble(offset: Long, v: Double) = { unsafe.putDouble(address + offset, v); v }
+  @inline def putByte(offset: Long, v: Byte): Unit     = { unsafe.putByte(address + offset, v); v }
+  @inline def putChar(offset: Long, v: Char): Unit     = { unsafe.putChar(address + offset, v); v }
+  @inline def putShort(offset: Long, v: Short): Unit   = { unsafe.putShort(address + offset, v); v }
+  @inline def putInt(offset: Long, v: Int): Unit       = { unsafe.putInt(address + offset, v); v }
+  @inline def putFloat(offset: Long, v: Float): Unit   = { unsafe.putFloat(address + offset, v); v }
+  @inline def putLong(offset: Long, v: Long): Unit     = { unsafe.putLong(address + offset, v); v }
+  @inline def putDouble(offset: Long, v: Double): Unit = { unsafe.putDouble(address + offset, v); v }
 
 }
 
@@ -344,7 +344,7 @@ object LArray {
   private[larray] object EmptyArray extends LArray[Nothing] with LIterable[Nothing] {
     private[larray] def elementByteSize: Int = 0
 
-    def clear() {}
+    def clear(): Unit = {}
 
     override def toDirectByteBuffer = Array.empty
 
@@ -645,31 +645,31 @@ object LArray {
     b.result
   }
 
-  /**
-    * Create a LArray[Byte] of a memory mapped file
-    * @param f
-    *   file
-    * @param offset
-    *   offset in file
-    * @param size
-    *   region byte size
-    * @param mode
-    *   open mode.
-    */
-  def mmap(f: File, offset: Long, size: Long, mode: MMapMode): MappedLByteArray = {
-    new MappedLByteArray(f, offset, size, mode)
-  }
-
-  /**
-    * Create a LArray[Byte] of a memory mapped file
-    * @param f
-    *   file
-    * @param mode
-    *   open mode.
-    */
-  def mmap(f: File, mode: MMapMode): MappedLByteArray = {
-    new MappedLByteArray(f, 0, f.length(), mode)
-  }
+//  /**
+//    * Create a LArray[Byte] of a memory mapped file
+//    * @param f
+//    *   file
+//    * @param offset
+//    *   offset in file
+//    * @param size
+//    *   region byte size
+//    * @param mode
+//    *   open mode.
+//    */
+//  def mmap(f: File, offset: Long, size: Long, mode: MMapMode): MappedLByteArray = {
+//    new MappedLByteArray(f, offset, size, mode)
+//  }
+//
+//  /**
+//    * Create a LArray[Byte] of a memory mapped file
+//    * @param f
+//    *   file
+//    * @param mode
+//    *   open mode.
+//    */
+//  def mmap(f: File, mode: MMapMode): MappedLByteArray = {
+//    new MappedLByteArray(f, 0, f.length(), mode)
+//  }
 
 }
 
@@ -693,7 +693,7 @@ trait RawByteArray[A] extends LArray[A] {
   protected var cursor = 0L
 
   override def write(src: ByteBuffer): Int = {
-    val len = math.max(src.limit - src.position, 0)
+    val len = math.max(src.limit() - src.position(), 0)
     val writeLen = src match {
       case d: DirectBuffer =>
         unsafe.copyMemory(d.address() + src.position(), address + cursor, len)
@@ -709,7 +709,7 @@ trait RawByteArray[A] extends LArray[A] {
         len
     }
     cursor += writeLen
-    src.position(src.position + writeLen)
+    src.position(src.position() + writeLen)
     writeLen
   }
 

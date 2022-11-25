@@ -30,15 +30,15 @@ import xerial.larray.LArraySpec
   */
 class LArrayExampleTest extends LArraySpec {
 
-  test("LArrayExample") {
-    test("run Scala API") {
+  "LArrayExample" should {
+    "run Scala API" in {
       val out = captureOut(new LArrayExample)
-      out.contains("done.") shouldBe true
+      out must include("done.")
     }
 
-    test("run Java API") {
+    "run Java API" in {
       val out = captureSystemOut(LArrayJavaExample.main(Array.empty[String]))
-      out.contains("done.") shouldBe true
+      out must include("done.")
     }
 
   }

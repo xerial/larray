@@ -65,7 +65,7 @@ trait LBuilder[Elem, +To] extends WritableByteChannel {
     * @return
     *   the coll itself.
     */
-  def ++=(xs: TraversableOnce[Elem]): this.type = { xs.seq foreach +=; this }
+  def ++=(xs: IterableOnce[Elem]): this.type = { xs foreach +=; this }
 
   def ++=(xs: LIterator[Elem]): this.type = { xs foreach +=; this }
 
@@ -166,12 +166,12 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] wit
 
   def write(src: ByteBuffer): Int = {
     import UnsafeUtil.unsafe
-    val len   = math.max(src.limit - src.position, 0)
+    val len   = math.max(src.limit() - src.position(), 0)
     val toAdd = (len + elementSize - 1) / elementSize
     ensureSize(numElems + toAdd)
     val writeLen = src match {
       case d: DirectBuffer =>
-        unsafe.copyMemory(d.address() + d.position, elems.address + cursor, len)
+        unsafe.copyMemory(d.address() + d.position(), elems.address + cursor, len)
         len
       case arr if src.hasArray =>
         elems.readFromArray(src.array(), src.position(), cursor, len)
@@ -185,7 +185,7 @@ abstract class LArrayBuilder[A, Repr <: LArray[A]] extends LBuilder[A, Repr] wit
         len
     }
     cursor += writeLen
-    src.position(src.position + writeLen)
+    src.position(src.position() + writeLen)
     writeLen
   }
 

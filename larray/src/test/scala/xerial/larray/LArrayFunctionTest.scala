@@ -23,7 +23,8 @@
 package xerial.larray
 
 import java.io.File
-
+import org.scalatest._
+import org.scalatest.matchers.should.Matchers
 import wvlet.log.LogSupport
 
 import scala.reflect.ClassTag
@@ -60,7 +61,7 @@ object LArrayFunctionTest extends LogSupport with Matchers {
       val l = stringRepr(left)
       val a = stringRepr(answer)
       trace(s"target:$l, answer:$a")
-      l shouldBe (a)
+      l should be(a)
     }
   }
 
@@ -89,14 +90,14 @@ trait LArrayBehaviour {
   def validArray[A: ClassTag](arr: Seq[A]) = {
     val l: LArray[A] = arr.toLArray
 
-    debug(s"input is (${stringRepr(arr).take(100)})")
+    When(s"input is (${stringRepr(arr).take(100)})")
 
     "have iterator" in {
       l.iterator === arr
     }
 
     "check status" in {
-      l.isEmpty shouldBe (arr.isEmpty)
+      l.isEmpty should be(arr.isEmpty)
       l.size shouldBe arr.size
     }
 
@@ -126,7 +127,7 @@ trait LArrayBehaviour {
 
     "report head/tail" in {
       if (!l.isEmpty) {
-        l.head shouldBe (arr.head)
+        l.head should be(arr.head)
         l.tail === arr.tail
       }
     }
@@ -205,8 +206,8 @@ trait LArrayBehaviour {
     "find an element" taggedAs ("fel") in {
       l.find(_ == 4d) shouldBe arr.find(_ == 4d)
       l.find(_ == 10d) shouldBe arr.find(_ == 10d)
-      l.contains(3d) shouldBe (arr.contains(3d))
-      l.exists(_ == 1d) shouldBe (arr.exists(_ == 1d))
+      l.contains(3d) should be(arr.contains(3d))
+      l.exists(_ == 1d) should be(arr.exists(_ == 1d))
     }
 
     "take/drop while a condition is satisfied" in {
@@ -276,8 +277,8 @@ trait LArrayBehaviour {
     "find an element" taggedAs ("fel") in {
       l.find(_ == 4f) shouldBe arr.find(_ == 4f)
       l.find(_ == 10f) shouldBe arr.find(_ == 10f)
-      l.contains(3f) shouldBe (arr.contains(3f))
-      l.exists(_ == 1f) shouldBe (arr.exists(_ == 1f))
+      l.contains(3f) should be(arr.contains(3f))
+      l.exists(_ == 1f) should be(arr.exists(_ == 1f))
     }
 
     "be used in for-comprehension with if statements" in {
@@ -352,8 +353,8 @@ trait LArrayBehaviour {
       l.find(_ == 4) shouldBe arr.find(_ == 4)
       l.find(_ == 10) shouldBe arr.find(_ == 10)
 
-      l.contains(3) shouldBe (arr.contains(3))
-      l.exists(_ == 1) shouldBe (arr.exists(_ == 1))
+      l.contains(3) should be(arr.contains(3))
+      l.exists(_ == 1) should be(arr.exists(_ == 1))
     }
 
     "be used in for-comprehension with if statments" in {
@@ -428,8 +429,8 @@ trait LArrayBehaviour {
       l.find(_ == 4) shouldBe arr.find(_ == 4)
       l.find(_ == 10) shouldBe arr.find(_ == 10)
 
-      l.contains(3) shouldBe (arr.contains(3))
-      l.exists(_ == 1) shouldBe (arr.exists(_ == 1))
+      l.contains(3) should be(arr.contains(3))
+      l.exists(_ == 1) should be(arr.exists(_ == 1))
     }
 
     "be used in for-comprehension with if statements" in {

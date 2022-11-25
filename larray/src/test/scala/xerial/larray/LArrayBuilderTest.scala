@@ -22,13 +22,15 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
+
 import scala.util.Random
 
 /**
   * @author
   *   Taro L. Saito
   */
-class LArrayBuilderTest extends LArraySpec {
+class LArrayBuilderTest extends AirSpec {
 
   test("LArrayBuilder") {
 

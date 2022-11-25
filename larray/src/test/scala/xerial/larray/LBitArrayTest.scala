@@ -22,6 +22,8 @@
 
 package xerial.larray
 
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+
 import scala.util.Random
 
 /**
@@ -29,9 +31,9 @@ import scala.util.Random
   *   Taro L. Saito
   */
 class LBitArrayTest extends LArraySpec with LArrayBehaviour {
-  test("LBitArray") {
+  "LBitArray" should {
 
-    test("have constructor") {
+    "have constructor" in {
       val b = new LBitArray(6)
       b.size shouldBe (6)
 
@@ -43,7 +45,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.toString shouldBe ("010001")
     }
 
-    test("set bits") {
+    "set bits" in {
       val N = 100
       val b = new LBitArray(N)
       b.size shouldBe (N)
@@ -57,7 +59,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.forall(_ == true) shouldBe (true)
     }
 
-    test("on and off specific bits") {
+    "on and off specific bits" in {
       val b = new LBitArray(10000)
       b.fill
       b.forall(_ == true) shouldBe (true)
@@ -68,7 +70,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       }
     }
 
-    test("have builder") {
+    "have builder" in {
 
       val b  = LArray.newBuilder[Boolean]
       val in = Seq(true, false, false, true, true, false, false, true, true)
@@ -81,12 +83,12 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     }
 
-    test("behave like valid LArray") {
+    "behave like valid LArray" should {
       val input = Seq(true, false, true, false, false, false, true, true)
       behave like validArray(input)
     }
 
-    test("behave like valid LArray for large input") {
+    "behave like valid LArray for large input" should {
       val input2 = (for (i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
       behave like validArray(input2)
     }

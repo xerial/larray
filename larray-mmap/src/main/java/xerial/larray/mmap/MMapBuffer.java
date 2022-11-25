@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.nio.channels.FileChannel;
-import sun.misc.SharedSecrets;
 import xerial.larray.buffer.LBufferAPI;
 import xerial.larray.buffer.LBufferConfig;
 import xerial.larray.buffer.UnsafeUtil;
@@ -95,7 +94,8 @@ public class MMapBuffer extends LBufferAPI {
         //trace(f"mmap addr:$rawAddr%x, start address:${rawAddr+pagePosition}%x")
 
         if(OSInfo.isWindows()) {
-            sun.misc.JavaIOFileDescriptorAccess a = SharedSecrets.getJavaIOFileDescriptorAccess();
+            // TODO SharedSecrets no longer accessible in Java 17
+            sun.misc.JavaIOFileDescriptorAccess a = sun.misc.SharedSecrets.getJavaIOFileDescriptorAccess();
             winHandle = LArrayNative.duplicateHandle(a.getHandle(raf.getFD()));
             //debug(f"win handle: $winHandle%x")
         }

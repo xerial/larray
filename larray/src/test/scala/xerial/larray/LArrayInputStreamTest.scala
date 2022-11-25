@@ -22,9 +22,10 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
 import wvlet.log.io.IOUtil
 
-class LArrayInputStreamTest extends LArraySpec {
+class LArrayInputStreamTest extends AirSpec {
 
   test("LArrayInputStream") {
     test("be created from LArray[A]") {

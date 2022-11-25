@@ -24,7 +24,8 @@ import wvlet.airspec.spi.PropertyCheck
   */
 class LArrayTestWithPBT extends LArraySpec with PropertyCheck with LArrayBehaviour {
 
-  implicit val config = PropertyCheckConfig(minSuccessful = 3, minSize = 1, maxSize = 10000)
+  implicit val config =
+    org.scalatest.prop.Configuration.PropertyCheckConfiguration(minSuccessful = 3, minSize = 1, maxSize = 10000)
 
   forAll { (input: Array[Int]) =>
     s"int array [${input.take(10).mkString(", ")}, ...]" should {

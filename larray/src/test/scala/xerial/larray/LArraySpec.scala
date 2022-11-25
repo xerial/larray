@@ -23,6 +23,11 @@
 package xerial.larray
 
 import wvlet.airspec.AirSpec
+import org.scalatest._
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import wvlet.log.LogFormatter.SourceCodeLogFormatter
+import wvlet.log.{LogSupport, Logger}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import wvlet.log.io.Timer
@@ -31,7 +36,30 @@ import wvlet.log.io.Timer
   * @author
   *   leo
   */
-trait LArraySpec extends AirSpec with Timer {
+trait LArraySpec
+    extends AnyWordSpec
+    with Matchers
+    with Timer
+    with LogSupport
+    with BeforeAndAfterAll
+    with BeforeAndAfter
+    with BeforeAndAfterEach
+    with GivenWhenThen {
+
+  implicit def toTag(t: String) = Tag(t)
+
+  Logger.setDefaultFormatter(SourceCodeLogFormatter)
+
+  override protected def beforeAll(): Unit = {
+    // Run LogLevel scanner (log-test.properties or log.properties in classpath) every 1 minute
+    Logger.scheduleLogLevelScan
+    super.beforeAll()
+  }
+
+  override protected def afterAll(): Unit = {
+    Logger.stopScheduledLogLevelScan
+    super.afterAll()
+  }
 
   /**
     * Captures the output stream and returns the printed messages as a String

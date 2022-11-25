@@ -73,7 +73,7 @@ package object larray {
     def toLArray: LArray[A] = {
       val b = LArray.newBuilder[A]
       it.foreach(b += _)
-      b.result
+      b.result()
     }
   }
 

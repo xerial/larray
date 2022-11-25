@@ -22,14 +22,17 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
+import wvlet.log.io.Timer
+
 import scala.util.Random
-import java.io.{FileInputStream, File, FileOutputStream}
+import java.io.{File, FileInputStream, FileOutputStream}
 
 /**
   * @author
   *   Taro L. Saito
   */
-class LArrayTest extends LArraySpec {
+class LArrayTest extends AirSpec with Timer {
 
   val G: Long = 1024L * 1024L * 1024L
 

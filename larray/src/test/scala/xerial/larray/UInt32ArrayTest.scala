@@ -22,15 +22,17 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
+
 /**
   * @author
   *   Taro L. Saito
   */
-class UInt32ArrayTest extends LArraySpec {
+class UInt32ArrayTest extends AirSpec {
 
-  "UInt32Array" should {
+  test("UInt32Array") {
 
-    "record values larger than 2G" in {
+    test("record values larger than 2G") {
 
       val u       = new UInt32Array(10)
       val v: Long = Int.MaxValue.toLong + 10L
@@ -45,12 +47,12 @@ class UInt32ArrayTest extends LArraySpec {
       u(2) shouldBe (v2)
     }
 
-    "have builder" in {
+    test("have builder") {
       val b = UInt32Array.newBuilder
       b += 1
       b += Int.MaxValue.toLong + 3L
       b += 4
-      val u = b.result
+      val u = b.result()
 
       u.size shouldBe (3)
       u(0) shouldBe (1L)

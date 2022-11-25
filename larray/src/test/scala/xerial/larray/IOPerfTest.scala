@@ -22,9 +22,10 @@
 
 package xerial.larray
 
-import java.io._
+import wvlet.airspec.AirSpec
 
-import wvlet.log.io.IOUtil
+import java.io._
+import wvlet.log.io.{IOUtil, Timer}
 
 import scala.util.Random
 
@@ -32,7 +33,7 @@ import scala.util.Random
   * @author
   *   Taro L. Saito
   */
-class IOPerfTest extends LArraySpec {
+class IOPerfTest extends AirSpec with Timer {
 
   def createSampleFile: File = {
     val file = File.createTempFile("sample", ".larray", new File("target"))

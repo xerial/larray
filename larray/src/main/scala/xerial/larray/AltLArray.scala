@@ -22,6 +22,8 @@
 
 package xerial.larray
 
+import xerial.larray.LArrayView.LIntArrayView
+
 /**
   * A common trait for alternative implementations of LArray. This implementation is provided only for testing purpose,
   * so many features might be missing in LArrays impemented this trait.
@@ -30,15 +32,15 @@ trait AltLIntArrayImpl extends LArray[Int] {
 
   def address = LArray.EmptyArray.address // throws an exception
 
-  def copyTo(dest: LByteArray, destOffset: Long) {
+  def copyTo(dest: LByteArray, destOffset: Long): Unit = {
     throw new UnsupportedOperationException("copyTo")
   }
 
-  def copyTo[B](srcOffset: Long, dest: RawByteArray[B], destOffset: Long, blen: Long) {
+  def copyTo[B](srcOffset: Long, dest: RawByteArray[B], destOffset: Long, blen: Long): Unit = {
     throw new UnsupportedOperationException("copyTo")
   }
 
-  def view(from: Long, to: Long) = new LArrayView.LIntArrayView(this, from, to - from)
+  def view(from: Long, to: Long): LIntArrayView = new LArrayView.LIntArrayView(this, from, to - from)
 }
 
 /**
