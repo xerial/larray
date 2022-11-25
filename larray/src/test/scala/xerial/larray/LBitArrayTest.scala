@@ -29,9 +29,9 @@ import scala.util.Random
   *   Taro L. Saito
   */
 class LBitArrayTest extends LArraySpec with LArrayBehaviour {
-  "LBitArray" should {
+  test("LBitArray") {
 
-    "have constructor" in {
+    test("have constructor") {
       val b = new LBitArray(6)
       b.size shouldBe (6)
 
@@ -43,7 +43,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.toString shouldBe ("010001")
     }
 
-    "set bits" in {
+    test("set bits") {
       val N = 100
       val b = new LBitArray(N)
       b.size shouldBe (N)
@@ -57,7 +57,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       b.forall(_ == true) shouldBe (true)
     }
 
-    "on and off specific bits" in {
+    test("on and off specific bits") {
       val b = new LBitArray(10000)
       b.fill
       b.forall(_ == true) shouldBe (true)
@@ -68,7 +68,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       }
     }
 
-    "have builder" in {
+    test("have builder") {
 
       val b  = LArray.newBuilder[Boolean]
       val in = Seq(true, false, false, true, true, false, false, true, true)
@@ -81,12 +81,12 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
 
     }
 
-    "behave like valid LArray" should {
+    test("behave like valid LArray") {
       val input = Seq(true, false, true, false, false, false, true, true)
       behave like validArray(input)
     }
 
-    "behave like valid LArray for large input" should {
+    test("behave like valid LArray for large input") {
       val input2 = (for (i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
       behave like validArray(input2)
     }

@@ -49,8 +49,8 @@ class IOPerfTest extends LArraySpec {
     file
   }
 
-  "LArray" should {
-    "compare I/O performance" in {
+  test("LArray") {
+    test("compare I/O performance") {
       val f1 = createSampleFile
       time("read", repeat = 10) {
         block("LArray.loadFrom") {

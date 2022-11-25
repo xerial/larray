@@ -24,7 +24,6 @@ package xerial.larray
 
 import java.io.File
 
-import org.scalatest._
 import wvlet.log.LogSupport
 
 import scala.reflect.ClassTag
@@ -90,7 +89,7 @@ trait LArrayBehaviour {
   def validArray[A: ClassTag](arr: Seq[A]) = {
     val l: LArray[A] = arr.toLArray
 
-    When(s"input is (${stringRepr(arr).take(100)})")
+    debug(s"input is (${stringRepr(arr).take(100)})")
 
     "have iterator" in {
       l.iterator === arr

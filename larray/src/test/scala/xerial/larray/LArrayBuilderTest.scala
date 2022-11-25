@@ -30,9 +30,9 @@ import scala.util.Random
   */
 class LArrayBuilderTest extends LArraySpec {
 
-  "LArrayBuilder" should {
+  test("LArrayBuilder") {
 
-    "build LArray" in {
+    test("build LArray") {
 
       val b = LArray.newBuilder[Int]
 
@@ -47,7 +47,7 @@ class LArrayBuilderTest extends LArraySpec {
       l.zipWithIndex.forall { case (v, i) => v == elem(i) } shouldBe (true)
     }
 
-    "build large LArray" in {
+    test("build large LArray") {
 
       val b = LArray.newBuilder[Byte]
       val N = 3L * 1024 * 1024

@@ -26,8 +26,8 @@ import wvlet.log.io.IOUtil
 
 class LArrayInputStreamTest extends LArraySpec {
 
-  "LArrayInputStream" should {
-    "be created from LArray[A]" in {
+  test("LArrayInputStream") {
+    test("be created from LArray[A]") {
       val l = LArray(1, 3, 4, 5)
       debug(s"input ${l.mkString(", ")}")
       val in = LArrayInputStream(l)

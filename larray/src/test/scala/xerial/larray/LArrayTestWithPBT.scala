@@ -17,11 +17,12 @@ package xerial.larray
 
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.prop.Checkers
+import wvlet.airspec.spi.PropertyCheck
 
 /**
   * Created with IntelliJ IDEA. User: hayato Date: 13/03/27 Time: 15:06
   */
-class LArrayTestWithPBT extends LArraySpec with PropertyChecks with LArrayBehaviour {
+class LArrayTestWithPBT extends LArraySpec with PropertyCheck with LArrayBehaviour {
 
   implicit val config = PropertyCheckConfig(minSuccessful = 3, minSize = 1, maxSize = 10000)
 
