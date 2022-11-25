@@ -209,7 +209,7 @@ class LBufferTest extends LArraySpec {
       val byteBuffer = ByteBuffer.wrap(bytes)
       val lbuffer    = new LBuffer(3)
       lbuffer.readFrom(byteBuffer, 0)
-      byteBuffer.array() === lbuffer.toArray
+      byteBuffer.array() shouldBe lbuffer.toArray
     }
   }
 }
