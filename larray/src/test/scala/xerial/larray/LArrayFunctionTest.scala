@@ -87,7 +87,7 @@ trait LArrayBehaviour {
 
   import LArrayFunctionTest._
 
-  def validArray[A: ClassTag](arr: Seq[A]) = {
+  def validArray[A: ClassTag](arr: Seq[A]): Unit = {
     val l: LArray[A] = arr.toLArray
 
     When(s"input is (${stringRepr(arr).take(100)})")

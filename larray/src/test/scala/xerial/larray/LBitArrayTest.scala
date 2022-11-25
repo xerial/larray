@@ -37,7 +37,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       val b = new LBitArray(6)
       b.size shouldBe (6)
 
-      b.clear
+      b.clear()
       b.on(1)
       b.toString shouldBe ("010000")
 
@@ -50,7 +50,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
       val b = new LBitArray(N)
       b.size shouldBe (N)
       debug(b)
-      b.clear
+      b.clear()
       debug(b)
       b.forall(_ == false) shouldBe (true)
       for (i <- 0L until b.length) {
@@ -89,7 +89,7 @@ class LBitArrayTest extends LArraySpec with LArrayBehaviour {
     }
 
     "behave like valid LArray for large input" should {
-      val input2 = (for (i <- 0 until 150) yield { Random.nextBoolean }).toArray.toSeq
+      val input2 = (for (i <- 0 until 150) yield { Random.nextBoolean() }).toArray.toSeq
       behave like validArray(input2)
     }
 

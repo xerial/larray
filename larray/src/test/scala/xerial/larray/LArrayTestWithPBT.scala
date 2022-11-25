@@ -22,10 +22,10 @@ import wvlet.airspec.spi.PropertyCheck
 /**
   * Created with IntelliJ IDEA. User: hayato Date: 13/03/27 Time: 15:06
   */
-class LArrayTestWithPBT extends LArraySpec with PropertyCheck with LArrayBehaviour {
+class LArrayTestWithPBT extends LArraySpec with PropertyChecks with LArrayBehaviour {
 
   implicit val config =
-    org.scalatest.prop.Configuration.PropertyCheckConfiguration(minSuccessful = 3, minSize = 1, maxSize = 10000)
+    org.scalatest.prop.Configuration.PropertyCheckConfiguration(minSuccessful = 3, minSize = 1, sizeRange = 10000)
 
   forAll { (input: Array[Int]) =>
     s"int array [${input.take(10).mkString(", ")}, ...]" should {
