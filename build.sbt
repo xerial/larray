@@ -1,159 +1,134 @@
+import xerial.sbt.Sonatype._
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 sonatypeProfileName := "org.xerial"
 
-import ReleaseTransformations._
+val CROSS_SCALA_VERSIONS = Seq("2.12.17", "2.13.10", "3.2.1")
+ThisBuild / scalaVersion := "3.2.1"
 
-val SCALA_VERSION = "2.12.4"
-val CROSS_SCALA_VERSIONS = Seq(SCALA_VERSION, "2.11.11")
-scalaVersion in ThisBuild := SCALA_VERSION
-
-val buildSettings = Defaults.coreDefaultSettings ++ Seq(
-  organization := "org.xerial.larray",
-  organizationName := "xerial.org",
-  organizationHomepage := Some(new URL("http://xerial.org")),
-  publishMavenStyle := true,
-  publishArtifact in Test := false,
-  pomIncludeRepository := { _ => false },
-  scalaVersion := SCALA_VERSION,
-  crossScalaVersions := CROSS_SCALA_VERSIONS,
-  logBuffered in Test := false,
-  parallelExecution := true,
-  parallelExecution in Test := false,
-  javacOptions in Compile ++= Seq("-Xlint:unchecked"),
-  javacOptions in(Compile, doc) := Seq(
-    "-locale", "en_US",
-    "-sourcepath", baseDirectory.value.getAbsolutePath,
-    "-doctitle", s"LArray ${version.value} API"
+val buildSettings = Seq(
+  organization             := "org.xerial.larray",
+  organizationName         := "xerial.org",
+  publishMavenStyle        := true,
+  Test / publishArtifact   := false,
+  crossScalaVersions       := CROSS_SCALA_VERSIONS,
+  Test / logBuffered       := false,
+  parallelExecution        := true,
+  Test / parallelExecution := false,
+  Compile / javacOptions ++= Seq("-Xlint:unchecked"),
+  Compile / doc / javacOptions := Seq(
+    "-locale",
+    "en_US",
+    "-sourcepath",
+    baseDirectory.value.getAbsolutePath,
+    "-doctitle",
+    s"LArray ${version.value} API"
   ),
   scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
-  scalacOptions in(Compile, doc) ++= Seq("-sourcepath", baseDirectory.value.getAbsolutePath,
-    "-doc-source-url", "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
-    "-doc-title", "LArray API",
-    "-doc-version", version.value,
+  Compile / doc / scalacOptions ++= Seq(
+    "-sourcepath",
+    baseDirectory.value.getAbsolutePath,
+    "-doc-source-url",
+    "https://github.com/xerial/larray/tree/develop/€{FILE_PATH}.scala",
+    "-doc-title",
+    "LArray API",
+    "-doc-version",
+    version.value,
     "-diagrams"
   ),
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", s"${target.value / "test-reports"}", "-o"),
+  libraryDependencies ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, major)) if major <= 12 =>
+        Seq()
+      case _ =>
+        Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4")
+    }
+  } ++
+    Seq(
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
+      "org.wvlet.airframe"     %% "airspec"                 % "22.11.4" % "test"
+    ),
+  testFrameworks += new TestFramework("wvlet.airspec.Framework"),
   crossPaths := true,
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-  homepage := Some(url("https://github.com/xerial/larray")),
-  pomExtra := {
-      <scm>
-        <connection>scm:git:github.com/xerial/larray.git</connection>
-        <developerConnection>scm:git:git@github.com:xerial/larray.git</developerConnection>
-        <url>github.com/xerial/larray.git</url>
-      </scm>
-      <properties>
-        <scala.version>
-          {SCALA_VERSION}
-        </scala.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      </properties>
-      <developers>
-        <developer>
-          <id>leo</id>
-          <name>Taro L. Saito</name>
-          <url>http://xerial.org/leo</url>
-        </developer>
-      </developers>
-  },
-  releaseTagName := { (version in ThisBuild).value },
-  releaseCrossBuild := true,
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    ReleaseStep(action = Command.process("publishSigned", _), enableCrossBuild = true),
-    setNextVersion,
-    commitNextVersion,
-    ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
-    pushChanges
-  ),
-  publishTo := Some(
-    if (isSnapshot.value)
-      Opts.resolver.sonatypeSnapshots
-    else
-      Opts.resolver.sonatypeStaging
-  )
+  sonatypeProjectHosting := Some(GitHubHosting("xerial", "larray", "leo@xerial.org")),
+  publishTo              := sonatypePublishToBundle.value
 )
 
-lazy val root = Project(
-  id = "larray-root",
-  base = file("."),
-  settings = buildSettings ++ Seq(
-    publish := {},
-    publishLocal := {},
+lazy val root = project
+  .in(file("."))
+  .settings(buildSettings)
+  .settings(
+    name            := "larray-root",
+    publish         := {},
+    publishLocal    := {},
     publishArtifact := false
   )
-) aggregate(larrayScala, larrayBuffer, larrayMMap)
+  .aggregate(larrayScala, larrayBuffer, larrayMMap)
 
-val snappy = "org.xerial.snappy" % "snappy-java" % "1.1.4"
-val junit = "junit" % "junit" % "4.11" % "test"
-val slf4j = "org.slf4j" % "slf4j-api" % "1.7.25"
-val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.25"
+val snappy      = "org.xerial.snappy" % "snappy-java"  % "1.1.4"
+val junit       = "junit"             % "junit"        % "4.11" % "test"
+val slf4j       = "org.slf4j"         % "slf4j-api"    % "1.7.25"
+val slf4jSimple = "org.slf4j"         % "slf4j-simple" % "1.7.25"
 
 val scope = "test->test;compile->compile"
 
-lazy val larrayScala = Project(
-  id = "larray",
-  base = file("larray"),
-  settings = buildSettings ++ SbtMultiJvm.multiJvmSettings ++
-    Seq(
-      description := "LArray: A Large off-heap arrays for Scala/Java",
-      logBuffered in MultiJvm := false,
-      jvmOptions in MultiJvm ++= Seq("-Xmx128M"),
-      compile in MultiJvm := {(compile in MultiJvm) triggeredBy (compile in Test)}.value,
-      executeTests in Test := {
-        val testResults: Tests.Output = (executeTests in Test).value
-        val multiJvmTestResults: Tests.Output = (executeTests in MultiJvm).value
-        val results = testResults.events ++ multiJvmTestResults.events
+lazy val larrayScala =
+  project
+    .in(file("larray"))
+    .settings(buildSettings)
+    .enablePlugins(MultiJvmPlugin)
+    .configs(MultiJvm)
+    .settings(
+      name                   := "larray",
+      description            := "LArray: A Large off-heap arrays for Scala/Java",
+      MultiJvm / logBuffered := false,
+      MultiJvm / jvmOptions ++= Seq("-Xmx128M"),
+      MultiJvm / compile := { (MultiJvm / compile) triggeredBy (Test / compile) }.value,
+      Test / executeTests := {
+        val testResults: Tests.Output         = (Test / executeTests).value
+        val multiJvmTestResults: Tests.Output = (MultiJvm / executeTests).value
+        val results                           = testResults.events ++ multiJvmTestResults.events
         Tests.Output(
           Tests.overall(Seq(testResults.overall, multiJvmTestResults.overall)),
           results,
-          testResults.summaries ++ multiJvmTestResults.summaries)
+          testResults.summaries ++ multiJvmTestResults.summaries
+        )
       },
       libraryDependencies ++= Seq(
         // Add dependent jars here
-        "org.wvlet" %% "wvlet-log" % "1.1",
-        snappy % "test",
+        "org.wvlet.airframe" %% "airframe-log" % "22.11.4",
+        snappy                % "test",
         junit,
-        "org.iq80.snappy" % "snappy" % "0.3" % "test",
-        "com.novocode" % "junit-interface" % "0.11" % "test",
-        "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-        "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
-        "com.typesafe.akka" %% "akka-testkit" % "[2.3.14, 2.5)" % "test",
-        "com.typesafe.akka" %% "akka-multi-node-testkit" % "[2.3.14, 2.5)" % "test"
+        "org.iq80.snappy"    % "snappy"                  % "0.3"    % "test",
+        "com.github.sbt"     % "junit-interface"         % "0.13.3" % "test",
+        "org.scalatest"     %% "scalatest"               % "3.2.14" % "test",
+        "org.scalacheck"    %% "scalacheck"              % "1.15.4" % "test",
+        "com.typesafe.akka" %% "akka-testkit"            % "2.7.0"  % "test",
+        "com.typesafe.akka" %% "akka-multi-node-testkit" % "2.7.0"  % "test"
       )
-    )
-) dependsOn(larrayBuffer % scope, larrayMMap) configs (MultiJvm)
+    ).dependsOn(larrayBuffer % scope)
 
-lazy val larrayBuffer = Project(
-  id = "larray-buffer",
-  base = file("larray-buffer"),
-  settings = buildSettings ++ Seq(
-    description := "LArray off-heap buffer library",
-    crossPaths := false,
+lazy val larrayBuffer = project
+  .in(file("larray-buffer"))
+  .settings(buildSettings)
+  .settings(
+    name             := "larray-buffer",
+    description      := "LArray off-heap buffer library",
+    crossPaths       := false,
+    autoScalaLibrary := false
+  )
+
+lazy val larrayMMap = project
+  .in(file("larray-mmap"))
+  .settings(buildSettings)
+  .settings(
+    description      := "LArray mmap implementation",
+    crossPaths       := false,
     autoScalaLibrary := false,
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-      "org.wvlet" %% "wvlet-log" % "1.1" % "test"
+      snappy % "test",
+      junit
     )
-  )
-)
-
-lazy val larrayMMap = Project(
-  id = "larray-mmap",
-  base = file("larray-mmap"),
-  settings = buildSettings ++
-    Seq(
-      description := "LArray mmap implementation",
-      crossPaths := false,
-      autoScalaLibrary := false,
-      libraryDependencies ++= Seq(
-        snappy % "test",
-        junit
-      )
-    )
-) dependsOn (larrayBuffer % scope)
+  ).dependsOn(larrayBuffer % scope)

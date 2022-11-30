@@ -17,3 +17,5 @@ larray/src/test/resources/log-test.properties
 
 # IntelliJ specific
 .idea*
+
+.bsp

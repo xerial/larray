@@ -24,36 +24,38 @@ package xerial.larray.buffer
 
 import xerial.larray.LArraySpec
 
-
 /**
- * @author Taro L. Saito
- */
+  * @author
+  *   Taro L. Saito
+  */
 class MemoryAllocatorTest extends LArraySpec {
-  "ConcurrentMemoryAllocator" should {
-    "perform better than the default heap allocator" in {
+  test("ConcurrentMemoryAllocator") {
+    test("perform better than the default heap allocator") {
 
       val N = 1000
       val B = 64 * 1024
 
       val t = time("alloc", repeat = 5) {
         block("concurrent") {
-          val l = for (i <- (0 until N).par) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new LBuffer(B)
-            a(B-1) = 1.toByte
+            a(B - 1) = 1.toByte
             a
           }
           l.foreach(_.release)
         }
 
         block("Array") {
-          val l = for (i <- (0 until N).par) yield {
+          val range = collection.parallel.immutable.ParRange(0, N, 1, inclusive = false)
+          val l = for (i <- range) yield {
             val a = new Array[Int](B)
-            a(B-1) = 1
+            a(B - 1) = 1
             a
           }
         }
       }
-      t("concurrent") should be <= (t("Array"))
+      t("concurrent") < t("Array") shouldBe true
     }
   }
 }

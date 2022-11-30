@@ -26,11 +26,12 @@ import java.io.OutputStream
 import reflect.ClassTag
 
 /**
- * Create LArray using `java.io.OutputStream` interface
- *
- * @author Taro L. Saito
- */
-class LArrayOutputStream[A : ClassTag] extends OutputStream {
+  * Create LArray using `java.io.OutputStream` interface
+  *
+  * @author
+  *   Taro L. Saito
+  */
+class LArrayOutputStream[A: ClassTag] extends OutputStream {
 
   private val buf = new LByteArrayBuilder
 
@@ -42,7 +43,7 @@ class LArrayOutputStream[A : ClassTag] extends OutputStream {
     buf.append(b, off, len)
   }
 
-  def result : LArray[A] = {
+  def result: LArray[A] = {
     val arr = buf.result.asInstanceOf[LByteArray]
     LArray.wrap[A](arr.size, arr.m)
   }

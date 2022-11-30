@@ -22,49 +22,51 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
+
 import scala.util.Random
 
 /**
- * @author Taro L. Saito
- */
-class LArrayBuilderTest extends LArraySpec {
+  * @author
+  *   Taro L. Saito
+  */
+class LArrayBuilderTest extends AirSpec {
 
-  "LArrayBuilder" should {
+  test("LArrayBuilder") {
 
-    "build LArray" in {
+    test("build LArray") {
 
       val b = LArray.newBuilder[Int]
 
-      def elem(i:Long) = math.toDegrees(math.sin(i / 15.0)).toInt
+      def elem(i: Long) = math.toDegrees(math.sin(i / 15.0)).toInt
 
-      for(i <- 0L until 100L)
+      for (i <- 0L until 100L)
         b += elem(i)
 
       val l = b.result
       debug(l.mkString(", "))
-      l.size should be (100)
-      l.zipWithIndex.forall {case (v, i) => v == elem(i) } should be (true)
+      l.size shouldBe (100)
+      l.zipWithIndex.forall { case (v, i) => v == elem(i) } shouldBe (true)
     }
 
-    "build large LArray" in {
+    test("build large LArray") {
 
       val b = LArray.newBuilder[Byte]
       val N = 3L * 1024 * 1024
       debug("Creating large array")
       val r = new Random(0)
       var i = 0L
-      while(i < N) {
+      while (i < N) {
         b += r.nextInt(255).toByte
         i += 1
       }
       val l = b.result
-      l.size should be (N)
+      l.size shouldBe (N)
 
       debug("Checking the elements")
       val r2 = new Random(0)
-      l.forall(v => v == r2.nextInt(255).toByte) should be (true)
+      l.forall(v => v == r2.nextInt(255).toByte) shouldBe (true)
     }
-
 
   }
 }

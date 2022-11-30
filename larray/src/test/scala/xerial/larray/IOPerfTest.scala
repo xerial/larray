@@ -22,22 +22,24 @@
 
 package xerial.larray
 
-import java.io._
+import wvlet.airspec.AirSpec
 
-import wvlet.log.io.IOUtil
+import java.io._
+import wvlet.log.io.{IOUtil, Timer}
 
 import scala.util.Random
 
 /**
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
-class IOPerfTest extends LArraySpec {
+class IOPerfTest extends AirSpec with Timer {
 
   def createSampleFile: File = {
     val file = File.createTempFile("sample", ".larray", new File("target"))
     file.deleteOnExit()
     val b = new Array[Byte](1024 * 1024)
-    //val P = 1024 * 1024
+    // val P = 1024 * 1024
     val P = 64
     val f = new FileOutputStream(file)
     for (i <- 0 until P) {
@@ -48,8 +50,8 @@ class IOPerfTest extends LArraySpec {
     file
   }
 
-  "LArray" should {
-    "compare I/O performance" in {
+  test("LArray") {
+    test("compare I/O performance") {
       val f1 = createSampleFile
       time("read", repeat = 10) {
         block("LArray.loadFrom") {
@@ -59,7 +61,7 @@ class IOPerfTest extends LArraySpec {
         }
         block("FileOutputStream") {
           trace("Loading to Array")
-          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f1))) {buf =>
+          IOUtil.readFully(new BufferedInputStream(new FileInputStream(f1))) { buf =>
             // do nothing
           }
         }

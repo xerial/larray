@@ -24,33 +24,36 @@ package xerial.larray
 /**
   * Translators of data sizes
   *
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
 object DataUnit {
 
   /**
     * Convert the given byte size into human readable format like 1024 -> 1K
     * @param byteSize
-    * @return string representation of the byte size
+    * @return
+    *   string representation of the byte size
     */
-  def toHumanReadableFormat(byteSize:Long) : String = {
+  def toHumanReadableFormat(byteSize: Long): String = {
     // kilo, mega, giga, tera, peta, exa, zetta, yotta
     val unitName = Seq("", "K", "M", "G", "T", "P", "E", "Z", "Y")
 
-    def loop(index:Int, v:Long) : (Long, String) = {
-      if(index >= unitName.length)
+    def loop(index: Int, v: Long): (Long, String) = {
+      if (index >= unitName.length)
         (byteSize, "")
       val next = v >> 10L
-      if(next == 0L)
+      if (next == 0L)
         (v, unitName(index))
       else
-        loop(index+1, next)
+        loop(index + 1, next)
     }
 
-    val (prefix, unit) = if(byteSize > 0)
-      loop(0, byteSize)
-    else
-      loop(0, -byteSize) match { case (p, u) => (-p, u)}
+    val (prefix, unit) =
+      if (byteSize > 0)
+        loop(0, byteSize)
+      else
+        loop(0, -byteSize) match { case (p, u) => (-p, u) }
     s"$prefix$unit"
   }
 

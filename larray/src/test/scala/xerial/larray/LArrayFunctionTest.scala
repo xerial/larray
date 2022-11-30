@@ -23,8 +23,8 @@
 package xerial.larray
 
 import java.io.File
-
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers
 import wvlet.log.LogSupport
 
 import scala.reflect.ClassTag
@@ -32,27 +32,26 @@ import scala.reflect.ClassTag
 object LArrayFunctionTest extends LogSupport with Matchers {
 
   def stringRepr[A: ClassTag](l: LSeq[A]): String = {
-    val tag = implicitly[ClassTag[A]]
+    val tag       = implicitly[ClassTag[A]]
     val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
     if (isBoolean) {
       l.toString
-    }
-    else {
+    } else {
       l.mkString(", ")
     }
   }
   def stringRepr[A: ClassTag](l: Seq[A]): String = {
-    val tag = implicitly[ClassTag[A]]
+    val tag       = implicitly[ClassTag[A]]
     val isBoolean = (tag.runtimeClass == java.lang.Boolean.TYPE)
     if (isBoolean) {
-      l.map(v => if (v.asInstanceOf[Boolean]) {
-        "1"
-      }
-      else {
-        "0"
-      }).mkString
-    }
-    else {
+      l.map(v =>
+        if (v.asInstanceOf[Boolean]) {
+          "1"
+        } else {
+          "0"
+        }
+      ).mkString
+    } else {
       l.mkString(", ")
     }
   }
@@ -88,7 +87,7 @@ trait LArrayBehaviour {
 
   import LArrayFunctionTest._
 
-  def validArray[A: ClassTag](arr: Seq[A]) = {
+  def validArray[A: ClassTag](arr: Seq[A]): Unit = {
     val l: LArray[A] = arr.toLArray
 
     When(s"input is (${stringRepr(arr).take(100)})")
@@ -225,9 +224,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0d)(_ + _) shouldBe arr.foldLeft(0d)(_ + _)
-        (0d /: l) (_ + _) shouldBe ((0d /: arr) (_ + _))
+        (0d /: l)(_ + _) shouldBe ((0d /: arr)(_ + _))
         l.foldRight(0d)(_ + _) shouldBe arr.foldRight(0d)(_ + _)
-        (l :\ 0d) (_ + _) shouldBe (arr :\ 0d) (_ + _)
+        (l :\ 0d)(_ + _) shouldBe (arr :\ 0d) (_ + _)
       }
     }
 
@@ -300,9 +299,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0f)(_ + _) shouldBe arr.foldLeft(0f)(_ + _)
-        (0f /: l) (_ + _) shouldBe ((0f /: arr) (_ + _))
+        (0f /: l)(_ + _) shouldBe ((0f /: arr)(_ + _))
         l.foldRight(0f)(_ + _) shouldBe arr.foldRight(0f)(_ + _)
-        (l :\ 0f) (_ + _) shouldBe (arr :\ 0f) (_ + _)
+        (l :\ 0f)(_ + _) shouldBe (arr :\ 0f) (_ + _)
       }
     }
 
@@ -376,9 +375,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0)(_ + _) shouldBe arr.foldLeft(0)(_ + _)
-        (0 /: l) (_ + _) shouldBe ((0 /: arr) (_ + _))
+        (0 /: l)(_ + _) shouldBe ((0 /: arr)(_ + _))
         l.foldRight(0)(_ + _) shouldBe arr.foldRight(0)(_ + _)
-        (l :\ 0) (_ + _) shouldBe (arr :\ 0) (_ + _)
+        (l :\ 0)(_ + _) shouldBe (arr :\ 0) (_ + _)
       }
     }
 
@@ -452,9 +451,9 @@ trait LArrayBehaviour {
     "fold elements" in {
       if (arr.length <= 1000) {
         l.foldLeft(0L)(_ + _) shouldBe arr.foldLeft(0L)(_ + _)
-        (0L /: l) (_ + _) shouldBe ((0L /: arr) (_ + _))
+        (0L /: l)(_ + _) shouldBe ((0L /: arr)(_ + _))
         l.foldRight(0L)(_ + _) shouldBe arr.foldRight(0L)(_ + _)
-        (l :\ 0L) (_ + _) shouldBe (arr :\ 0L) (_ + _)
+        (l :\ 0L)(_ + _) shouldBe (arr :\ 0L) (_ + _)
       }
     }
 
@@ -490,7 +489,8 @@ trait LArrayBehaviour {
 }
 
 /**
-  * @author Taro L. Saito
+  * @author
+  *   Taro L. Saito
   */
 class LArrayFunctionTest extends LArraySpec with LArrayBehaviour {
 
@@ -537,4 +537,3 @@ class LArrayFunctionTest extends LArraySpec with LArrayBehaviour {
   }
 
 }
-

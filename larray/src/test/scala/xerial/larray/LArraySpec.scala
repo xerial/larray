@@ -22,65 +22,31 @@
 
 package xerial.larray
 
+import wvlet.airspec.AirSpec
 import org.scalatest._
-import java.io.{ByteArrayOutputStream, PrintStream}
-
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import wvlet.log.LogFormatter.SourceCodeLogFormatter
 import wvlet.log.{LogSupport, Logger}
-import wvlet.log.io.ResourceReader
+
+import java.io.{ByteArrayOutputStream, PrintStream}
 import wvlet.log.io.Timer
 
-import scala.language.implicitConversions
-
-
 /**
- * @author leo
- */
-trait LArraySpec extends WordSpec with Matchers with ResourceReader with Timer with LogSupport with BeforeAndAfterAll with BeforeAndAfter with GivenWhenThen with BeforeAndAfterEach {
+  * @author
+  *   leo
+  */
+trait LArraySpec
+    extends AnyWordSpec
+    with Matchers
+    with Timer
+    with LogSupport
+    with BeforeAndAfterAll
+    with BeforeAndAfter
+    with BeforeAndAfterEach
+    with GivenWhenThen {
 
-  implicit def toTag(t:String) = Tag(t)
-
-  /**
-   * Captures the output stream and returns the printed messages as a String
-   * @param body
-   * @tparam U
-   * @return
-   */
-  def captureOut[U](body: => U) : String = {
-    val out = new ByteArrayOutputStream
-    Console.withOut(out) {
-      body
-    }
-    new String(out.toByteArray)
-  }
-
-  /**
-   * Captures the output stream and returns the printed messages as a String
-   * @param body
-   * @tparam U
-   * @return
-   */
-  def captureSystemOut[U](body: => U) : String = {
-    val prev = System.out
-    val b = new ByteArrayOutputStream
-    val out = new PrintStream(b)
-    try {
-      System.setOut(out)
-      body
-      out.flush()
-    }
-    finally
-      System.setOut(prev)
-    new String(b.toByteArray)
-  }
-
-  def captureErr[U](body: => U) : String = {
-    val out = new ByteArrayOutputStream
-    Console.withErr(out) {
-      body
-    }
-    new String(out.toByteArray)
-  }
+  implicit def toTag(t: String) = Tag(t)
 
   Logger.setDefaultFormatter(SourceCodeLogFormatter)
 
@@ -93,6 +59,47 @@ trait LArraySpec extends WordSpec with Matchers with ResourceReader with Timer w
   override protected def afterAll(): Unit = {
     Logger.stopScheduledLogLevelScan
     super.afterAll()
+  }
+
+  /**
+    * Captures the output stream and returns the printed messages as a String
+    * @param body
+    * @tparam U
+    * @return
+    */
+  def captureOut[U](body: => U): String = {
+    val out = new ByteArrayOutputStream
+    Console.withOut(out) {
+      body
+    }
+    new String(out.toByteArray)
+  }
+
+  /**
+    * Captures the output stream and returns the printed messages as a String
+    * @param body
+    * @tparam U
+    * @return
+    */
+  def captureSystemOut[U](body: => U): String = {
+    val prev = System.out
+    val b    = new ByteArrayOutputStream
+    val out  = new PrintStream(b)
+    try {
+      System.setOut(out)
+      body
+      out.flush()
+    } finally
+      System.setOut(prev)
+    new String(b.toByteArray)
+  }
+
+  def captureErr[U](body: => U): String = {
+    val out = new ByteArrayOutputStream
+    Console.withErr(out) {
+      body
+    }
+    new String(out.toByteArray)
   }
 
 }
